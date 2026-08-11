@@ -1,0 +1,45 @@
+\VAR{ comp.commercial }
+
+\textbf{Rôle~:} \VAR{ comp.role }
+
+
+\textbf{Paquets principaux~:} \BLOCK{ for p in comp.packages_list }\texttt{\VAR{ p }}\BLOCK{ if not loop.last }, \BLOCK{ endif }\BLOCK{ endfor }
+
+
+\textbf{Ports par défaut~:} \VAR{ comp.default_ports }
+
+\BLOCK{ if comp.nodes }
+\textbf{Nœud(s) hébergeant ce composant chez \VAR{ client.name }~:}
+\begin{longtable}{|p{2.6cm}|p{4cm}|p{2.6cm}|p{2cm}|p{2.3cm}|}
+\hline
+\rowcolor{primary}\tblhead{Nœud} & \tblhead{Hostname} & \tblhead{IP} & \tblhead{Zone} & \tblhead{Rétention backup} \\
+\hline
+\endhead
+\BLOCK{ for n in comp.nodes }
+\VAR{ n.id } & \VAR{ n.hostname } & \VAR{ n.ip } & \VAR{ n.zone_label } & \VAR{ n.mailstore_backup_retention if n.mailstore_backup_retention else '[à préciser]' } \\
+\hline
+\BLOCK{ endfor }
+\end{longtable}
+
+\textbf{Rétention des sauvegardes~:} le système de sauvegarde Carbonio retient les données utilisateur (item-level~: e-mails, contacts, agenda) selon une politique de rétention définie \emph{par mailstore} --- voir la colonne « Rétention backup » ci-dessus. Cette rétention peut être ajustée indépendamment sur chaque nœud selon les contraintes propres à sa population d'utilisateurs.
+
+\BLOCK{ if comp.hsm_nodes }
+\BLOCK{ if carbonio_edition == 'ce' }
+\dnswarning{le HSM (Hierarchical Storage Management) n'est pas disponible en Carbonio Community Edition --- la configuration ci-dessous n'est donc pas cohérente avec l'édition déployée (\VAR{ carbonio_edition_label }) et doit être vérifiée.}
+\BLOCK{ endif }
+\textbf{Gestion hiérarchique du stockage (HSM) --- données chaudes / froides~:} les mailstores suivants disposent d'un module HSM (Hierarchical Storage Management) actif, qui bascule automatiquement les données anciennes (« froides ») du stockage primaire rapide vers un stockage secondaire économique (S3, MinIO, Ceph...), tout en conservant les données récentes (« chaudes ») sur le stockage primaire pour un accès rapide.
+\begin{longtable}{|p{4cm}|p{4cm}|p{5cm}|}
+\hline
+\rowcolor{primary}\tblhead{Nœud} & \tblhead{Rétention données chaudes (primaire)} & \tblhead{Stockage secondaire} \\
+\hline
+\endhead
+\BLOCK{ for n in comp.hsm_nodes }
+\VAR{ n.id } & \VAR{ n.mailstore_hot_retention } & \VAR{ n.mailstore_hsm_target if n.mailstore_hsm_target else '[à préciser]' } \\
+\hline
+\BLOCK{ endfor }
+\end{longtable}
+\placeholder{Documenter la politique de purge/archivage légal éventuellement applicable aux données froides (durée de conservation réglementaire).}
+\BLOCK{ endif }
+\BLOCK{ else }
+\placeholder{Aucun nœud n'est explicitement associé à ce composant --- à compléter}
+\BLOCK{ endif }

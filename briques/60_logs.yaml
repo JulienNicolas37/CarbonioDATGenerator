@@ -1,0 +1,21 @@
+brique: "Fichiers de logs"
+intro: |
+  Chaque service Carbonio écrit ses propres journaux, dans des fichiers
+  distincts selon le composant concerné. Cette table sert de point
+  d'entrée pour savoir où chercher en cas de diagnostic (erreur
+  d'authentification, message non délivré, service qui ne démarre pas...).
+
+reference_table:
+  columns: ["Chemin du fichier", "Service", "Contenu"]
+  rows:
+    - ["/var/log/carbonio.log", "Syslog", "MTA, LDAP, Système"]
+    - ["/opt/zextras/log/audit.log", "log4j", "Journaux d'authentification utilisateurs"]
+    - ["/opt/zextras/log/clamd.log", "ClamAV", "Journaux ClamAV"]
+    - ["/opt/zextras/log/freshclam.log", "Freshclam", "Journaux du service Freshclam"]
+    - ["/opt/zextras/log/mailbox.log", "log4j", "Toutes les activités des boîtes aux lettres"]
+    - ["/opt/zextras/log/nginx.access.log", "Nginx", "Journaux du service Nginx access"]
+    - ["/opt/zextras/log/zmmailboxd.out", "Jetty", "Output du service Mailboxd"]
+    - ["/var/log/carbonio/files", "Carbonio Files", "Journaux du service Carbonio Files"]
+    - ["/var/log/carbonio/docs", "Carbonio Docs", "Journaux du service Carbonio Docs"]
+    - ["/var/log/carbonio/docs-db-connector", "Carbonio Docs-connector", "Journaux du service Carbonio Docs-connector"]
+    - ["/var/log/carbonio/preview", "Carbonio Preview", "Journaux du service Carbonio Preview"]

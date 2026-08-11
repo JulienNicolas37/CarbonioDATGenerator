@@ -1,0 +1,33 @@
+\section{Schéma d'architecture}
+Le schéma ci-dessous est généré automatiquement à partir du fichier de configuration de la plateforme (nœuds, zones, flux) et donne une vue topologique d'ensemble, volontairement sans les flèches de flux (voir la légende des catégories ci-avant et les schémas détaillés ci-dessous pour le détail des flux ; la matrice exhaustive des règles d'ouverture de flux figure en fin de document).
+
+\begin{landscape}
+\begin{figure}[h!]
+\centering
+\begin{adjustbox}{max width=\textwidth, max height=0.85\textheight}
+\VAR{ diagram_tikz }
+\end{adjustbox}
+\caption{Architecture réseau --- \VAR{ client.name } (généré depuis \texttt{\VAR{ config_filename }})}
+\label{fig:archi-carbonio}
+\end{figure}
+
+\BLOCK{ if category_diagrams }
+\subsection{Schémas détaillés par type de flux}
+Le schéma d'ensemble ci-dessus ne représente pas les flux ; les schémas suivants isolent chaque catégorie pour en faciliter la lecture (mêmes nœuds, mêmes positions).
+
+\BLOCK{ for d in category_diagrams }
+\begin{figure}[h!]
+\centering
+\begin{adjustbox}{max width=\textwidth, max height=0.8\textheight}
+\VAR{ d.tikz }
+\end{adjustbox}
+\caption{Flux --- \VAR{ d.label }}
+\end{figure}
+
+\BLOCK{ endfor }
+\BLOCK{ endif }
+\end{landscape}
+
+\clearpage
+\section{Composants Carbonio et rôles}
+La plateforme Carbonio repose sur une architecture modulaire par composants. Seuls les composants activés dans le fichier de configuration de ce client sont détaillés ci-dessous.

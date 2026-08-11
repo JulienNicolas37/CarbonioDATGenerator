@@ -1,0 +1,9 @@
+# Regroupements de composants : quand plusieurs ids partagent le même
+# "group" dans components_catalog.yaml, le générateur affiche une section
+# d'introduction générique UNE FOIS (\subsection), suivie d'une
+# sous-section (\subsubsection) par composant du groupe, plutôt que de les
+# lister à plat au même niveau que les autres composants.
+
+mta:
+  name: "MTA (Mail Transfer Agent)"
+  intro: "Le MTA (Mail Transfer Agent) est le composant Carbonio responsable du transport SMTP du courrier électronique, aussi bien en réception qu'en émission. Sur Carbonio, ce rôle est volontairement scindé en trois fonctions distinctes --- MTA IN (réception), MTA OUT (émission) et MTA AUTH (soumission authentifiée) --- qui peuvent être colocalisées sur un même nœud pour une petite infrastructure, ou réparties sur des nœuds dédiés en haute disponibilité pour une infrastructure de taille réelle. Cette séparation logique reste pertinente dans les deux cas : elle clarifie les règles de pare-feu, la supervision et l'imputabilité de chaque flux SMTP."

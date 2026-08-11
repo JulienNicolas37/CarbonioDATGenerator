@@ -1,0 +1,52 @@
+brique: "Remplacement d'un certificat SSL commercial"
+# "components" : nœuds concernés listés en mode --client (meilleure
+# estimation --- à ajuster si besoin). Pas de "services" ici : brique
+# universelle, toujours incluse quelle que soit la config client.
+components: [proxy]
+
+intro: |
+  Le certificat SSL/TLS commercial garantit la confiance du navigateur ou
+  du client de messagerie lors de la connexion à la plateforme (webmail,
+  IMAPS, SMTP soumission). Il doit être renouvelé avant son expiration
+  --- généralement fourni par une autorité de certification tierce
+  (Let's Encrypt ou un fournisseur commercial), à la différence du
+  certificat auto-signé utilisé par défaut à l'installation.
+
+operations:
+  - title: "Sauvegarde de l'ancien certificat"
+    description: "Avant de remplacer le certificat, il est recommandé de sauvegarder les fichiers actuels en cas de besoin de restauration."
+    commands:
+      - 'cp -a /opt/zextras/ssl/carbonio /opt/zextras/ssl/carbonio.$(date "+%Y%m%d")'
+
+  - title: "Copier les nouveaux fichiers du certificat"
+    description: "Les nœuds portant le certificat ont besoin des éléments suivants :"
+    items:
+      - "Le certificat principal (commercial.crt)"
+      - "Le certificat intermédiaire (commercial_ca.crt), composé du certificat intermédiaire et du certificat racine"
+      - "La clé privée (commercial.key)"
+
+  - title: "Vérification du certificat"
+    description: |
+      L'utilitaire Carbonio « zmcertmgr » permet de vérifier la correspondance entre clé
+      privée, clé publique et route de certification.
+    commands:
+      - "zmcertmgr verifycrt comm /tmp/commercial.key /tmp/commercial.crt /tmp/commercial_ca.crt"
+    explanation: "Le retour de la commande se présente ainsi :"
+    example_output: |
+      ** Verifying '/tmp/commercial.crt' against '/tmp/commercial.key'
+      Certificate '/tmp/commercial.crt' and private key '/tmp/commercial.key' match.
+      ** Verifying '/tmp/commercial.crt' against '/tmp/commercial_ca.crt'
+      Valid certificate chain: /tmp/commercial.crt: OK
+
+  - title: "Installer et déployer le certificat"
+    description: "Une fois les fichiers validés, il faut copier la clé privée à l'emplacement suivant :"
+    commands:
+      - "cp /tmp/commercial.key /opt/zextras/ssl/carbonio/commercial/commercial.key"
+    explanation: "Puis déployer le certificat avec la commande suivante :"
+    example_output: |
+      zmcertmgr deploycrt comm /tmp/commercial.crt /tmp/commercial_ca.crt
+
+  - title: "Redémarrer les services Carbonio"
+    description: "Afin de prendre en compte le nouveau certificat, il faut redémarrer Carbonio :"
+    commands:
+      - "zmcontrol restart"

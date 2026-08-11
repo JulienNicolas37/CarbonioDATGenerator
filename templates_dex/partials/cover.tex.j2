@@ -1,0 +1,42 @@
+\begin{titlepage}
+\centering
+\vspace*{1.5cm}
+\BLOCK{ if client_mode and stakeholder_client.logo_file }
+\includegraphics[height=3cm]{\VAR{ stakeholder_client.logo_file }}\par
+\vspace{1.2cm}
+\BLOCK{ elif not client_mode }
+\includegraphics[height=3cm]{\VAR{ stakeholder_integrator.logo_file }}\par
+\vspace{1.2cm}
+\BLOCK{ endif }
+{\Huge\bfseries\color{primary} DOCUMENT D'EXPLOITATION\par}
+\vspace{0.8cm}
+{\LARGE\bfseries\color{accent} \VAR{ meta.title }\par}
+\vspace{0.5cm}
+\BLOCK{ if client_mode }
+{\Large\itshape\color{graytxt} Document personnalisé pour \VAR{ stakeholder_client.long_name }\par}
+\BLOCK{ else }
+{\Large\itshape\color{graytxt} Procédures génériques --- toutes infrastructures Carbonio\par}
+\BLOCK{ endif }
+\vspace{3cm}
+
+\renewcommand{\arraystretch}{1.8}
+\begin{tabular}{|>{\columncolor{primary}\color{white}\bfseries}m{4.2cm}|m{9cm}|}
+\hline
+\BLOCK{ if client_mode }
+Client & \VAR{ stakeholder_client.long_name } \\
+\hline
+\BLOCK{ endif }
+Prestataire & \VAR{ stakeholder_integrator.long_name } \\
+\hline
+Rédacteur & \VAR{ meta.redaction } \\
+\hline
+Vérificateur & \VAR{ meta.verification } \\
+\hline
+Version du document & \VAR{ meta.current_version } \\
+\hline
+Date & \VAR{ meta.current_date } \\
+\hline
+Classification & \VAR{ meta.confidentiality_label } \\
+\hline
+\end{tabular}
+\end{titlepage}

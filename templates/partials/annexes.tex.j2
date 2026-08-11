@@ -1,0 +1,11 @@
+\chapter{Annexes}
+\begin{longtable}{|p{4cm}|p{4cm}|p{5.5cm}|}
+\hline
+\rowcolor{primary}\tblhead{Nom du document} & \tblhead{Nom du fichier} & \tblhead{Description} \\
+\hline
+\endhead
+\BLOCK{ for a in annexes }
+\VAR{ a.name } & \texttt{\VAR{ a.filename }} & \VAR{ a.description } \\
+\hline
+\BLOCK{ endfor }
+\end{longtable}

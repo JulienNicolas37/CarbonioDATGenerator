@@ -1,0 +1,16 @@
+\section{Légende des catégories de flux}
+Seules les catégories de flux effectivement utilisées dans cette infrastructure sont listées ci-dessous ; cette légende est reprise sur chacun des schémas suivants.
+
+\VAR{ flow_category_color_defs }
+
+
+\begin{longtable}{|p{1.2cm}|p{5.5cm}|p{6.5cm}|}
+\hline
+\rowcolor{primary}\tblhead{Couleur} & \tblhead{Catégorie} & \tblhead{Ports typiques} \\
+\hline
+\endhead
+\BLOCK{ for cat in flow_category_ref }
+\tikz{\fill[\VAR{ cat.color_name }] (0,0) rectangle (0.3,0.3);} & \VAR{ cat.label } & \VAR{ cat.typical_ports } \\
+\hline
+\BLOCK{ endfor }
+\end{longtable}

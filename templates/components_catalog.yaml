@@ -1,0 +1,138 @@
+# Catalogue des composants Carbonio connus du générateur.
+# Pour ajouter un nouveau composant : ajouter une entrée ici + éventuellement
+# un fichier templates/partials/components/<id>.tex.j2 (sinon le template
+# générique _generic.tex.j2 est utilisé automatiquement).
+#
+# "order" contrôle l'ordre d'apparition dans le DAT (croissant).
+# Sources : docs.zextras.com + schémas de référence internes (CR974, 6k),
+# vérifié en août 2026.
+#
+# NOTE DE CONCEPTION : il n'existe volontairement PAS d'id générique "mta"
+# ou "directory" : le MTA est toujours scindé en IN/OUT/AUTH, et LDAP en
+# Master/Replica, même sur une petite infrastructure où plusieurs rôles
+# sont colocalisés sur les mêmes nœuds. Objectif : rendre visible et
+# explicite chaque rôle réellement en jeu, plutôt que de le masquer dans un
+# composant générique.
+
+mesh:
+  order: 5
+  name: "Mesh"
+  role: "Agent de coordination inter-nœuds et de découverte de services (service discovery). Présent sur l'ensemble des nœuds d'infrastructure Carbonio, qu'ils hébergent ou non LDAP/PostgreSQL."
+  commercial: "Brique d'infrastructure invisible pour l'utilisateur final, mais indispensable : elle permet aux différents modules Carbonio de se découvrir et de communiquer entre eux quel que soit le nombre de serveurs. Sans valeur commerciale directe, elle est incluse dans toutes les éditions Carbonio."
+  packages: "service-discover-server, carbonio-message-broker, carbonio-storages"
+  default_ports: "interne uniquement (Consul / service discovery)"
+
+directory_master:
+  order: 10
+  name: "Directory Master (LDAP)"
+  role: "Annuaire LDAP maître : seul nœud acceptant les écritures (création de comptes, domaines, classes de service). Point de référence pour la réplication vers les Directory Replica."
+  commercial: "Annuaire d'entreprise qui centralise les identités (comptes, mots de passe, groupes, domaines). C'est le socle d'authentification de toute la plateforme --- inclus dans toutes les éditions Carbonio."
+  packages: "carbonio-directory-server"
+  default_ports: "389 (LDAP) / 636 (LDAPS) --- interne uniquement ; réplique vers les nœuds Replica"
+
+directory_replica:
+  order: 11
+  name: "Directory Replica (LDAP)"
+  role: "Annuaire LDAP en lecture seule, synchronisé en continu depuis le Directory Master. Sert les requêtes d'authentification pour répartir la charge et assurer une continuité de service si le Master est indisponible."
+  commercial: "Réplique de l'annuaire d'entreprise, dédiée à la haute disponibilité de l'authentification. Recommandée dès qu'une continuité de service est exigée sur l'accès aux boîtes mail."
+  packages: "carbonio-directory-server"
+  default_ports: "389 (LDAP) / 636 (LDAPS) --- interne uniquement ; synchronisé depuis le Master"
+
+database:
+  order: 20
+  name: "Database"
+  role: "Bases de données PostgreSQL des différents services (mailbox, files, docs, tâches, chat)."
+  commercial: "Moteur de persistance des données applicatives (hors messages eux-mêmes). Composant standard, sans coût de licence additionnel."
+  packages: "postgresql, carbonio-mailbox-db, carbonio-files-db, carbonio-docs-connector-db, carbonio-tasks-db, carbonio-ws-collaboration-db"
+  default_ports: "5432 (PostgreSQL) --- interne uniquement"
+
+mailbox:
+  order: 30
+  name: "Mailstore"
+  role: "Cœur applicatif : stockage des messages, calendriers, contacts ; API SOAP/REST ; IMAP/POP3."
+  commercial: "Le cœur de l'offre Carbonio : messagerie électronique, agenda partagé et contacts, accessible depuis le webmail, les clients lourds (IMAP/POP3) et les terminaux mobiles."
+  packages: "carbonio-appserver, carbonio-mailbox (store, soap, client)"
+  default_ports: "7071 (SOAP interne), 143/993 (IMAP), 110/995 (POP3)"
+
+proxy:
+  order: 40
+  name: "Proxy"
+  role: "Reverse-proxy HTTP/S et proxy mail ; point d'entrée unique pour les clients externes (webmail, IMAP/POP3, ActiveSync)."
+  commercial: "Point d'accès unique et sécurisé à la plateforme pour les utilisateurs externes. Composant d'infrastructure inclus, sans coût de licence additionnel."
+  packages: "carbonio-proxy, carbonio-webui"
+  default_ports: "443 (HTTPS), 993 (IMAPS), 995 (POP3S)"
+
+mta_in:
+  order: 50
+  name: "MTA IN"
+  role: "Réception du courrier entrant depuis Internet. Applique le filtrage antispam/antivirus et vérifie l'authentification de l'expéditeur (SPF, DKIM, DMARC) avant remise en boîte."
+  commercial: "Filtre la première ligne de défense contre le spam et les virus à la réception des e-mails. Un dimensionnement et une politique anti-spam/anti-virus robustes sur ce composant conditionnent directement la réputation du domaine du client."
+  packages: "carbonio-mta"
+  default_ports: "25 (SMTP entrant)"
+  group: "mta"
+
+mta_out:
+  order: 51
+  name: "MTA OUT"
+  role: "Émission du courrier sortant vers Internet. Signe les messages sortants (DKIM) pour le compte des domaines gérés."
+  commercial: "Garantit que les e-mails envoyés par les utilisateurs du client sont correctement authentifiés (DKIM) avant d'atteindre les serveurs destinataires, ce qui limite le risque de classement en spam chez les tiers."
+  packages: "carbonio-mta"
+  default_ports: "25 (SMTP sortant vers MTA distants)"
+  group: "mta"
+
+mta_auth:
+  order: 52
+  name: "MTA AUTH"
+  role: "Point de soumission authentifiée pour les clients de messagerie (envoi via un compte utilisateur authentifié)."
+  commercial: "Point d'entrée dédié à l'envoi de courrier pour les utilisateurs authentifiés (clients de messagerie externes, applications tierces). Permet d'isoler ce trafic du flux SMTP entrant/sortant pour la sécurité et la supervision."
+  packages: "carbonio-mta"
+  default_ports: "587 (Submission / SMTP AUTH)"
+  group: "mta"
+
+files:
+  order: 60
+  name: "Files"
+  role: "Stockage de fichiers et partage documentaire (équivalent Drive), intégré au webmail et aux autres applications Carbonio. Souvent colocalisé avec Docs sur un même nœud applicatif."
+  commercial: "Module de stockage et de partage de fichiers (équivalent fonctionnel à un Drive d'entreprise), intégré nativement à la messagerie. Fonctionnalité soumise à licence --- voir la section Licence."
+  packages: "carbonio-files-ce (ou -ee), carbonio-files-db, carbonio-files-ui, carbonio-storages"
+  default_ports: "N/A (interne, via API mailbox/proxy)"
+
+docs:
+  order: 70
+  name: "Docs (édition collaborative)"
+  role: "Édition collaborative de documents bureautiques (Writer/Calc/Impress) directement dans le navigateur, via Collabora Online (moteur LibreOffice Online) intégré en WOPI. Souvent colocalisé avec Files."
+  commercial: "Édition collaborative de documents bureautiques (texte, tableur, présentation) directement dans le navigateur, sans installation de suite bureautique sur le poste utilisateur. Nécessite le module Files et est soumis à licence."
+  packages: "carbonio-docs-connector-ce, carbonio-docs-connector-db, carbonio-docs-editor (Collabora Online / coolwsd)"
+  default_ports: "10000 (coolwsd, interne) --- exposé aux utilisateurs via le Proxy en HTTPS"
+
+chat:
+  order: 80
+  name: "Chat (Workstream Collaboration)"
+  role: "Messagerie instantanée temps réel (1:1 et groupes), notifications, intégration avec les autres services Carbonio. Souvent colocalisé avec Tasks."
+  commercial: "Messagerie instantanée d'entreprise intégrée à la plateforme de messagerie (Carbonio Workstream Collaboration). Fonctionnalité soumise à licence --- voir la section Licence."
+  packages: "carbonio-ws-collaboration, carbonio-ws-collaboration-db, carbonio-ws-collaboration-ui, carbonio-message-dispatcher, carbonio-push-connector, carbonio-notification-push"
+  default_ports: "WebSocket (WSS) via le Proxy --- le protocole WebSocket doit être explicitement autorisé sur le nœud Proxy"
+
+videoconf:
+  order: 90
+  name: "Visioconférence (Video Server)"
+  role: "Hébergement et agrégation des flux WebRTC des réunions vidéo (Carbonio VideoServer). Placé en zone publique (DMZ) car il nécessite un NAT 1:1 direct, incompatible avec un relais proxy classique."
+  commercial: "Réunions vidéo intégrées à la plateforme, sans dépendance à un outil de visioconférence tiers. Fonctionnalité soumise à licence --- voir la section Licence."
+  packages: "carbonio-videoserver, carbonio-videoserver-recorder"
+  default_ports: "8188 (API du serveur vidéo), 8090 (enregistreur) --- ports RTP UDP 20000-40000 à ouvrir vers Internet"
+
+tasks:
+  order: 100
+  name: "Tasks"
+  role: "Gestion de tâches et listes de choses à faire, intégrée au webmail et aux calendriers Carbonio. Souvent colocalisé avec Chat."
+  commercial: "Gestion de tâches et de listes de choses à faire, intégrée au webmail et aux calendriers --- confort d'usage pour les utilisateurs, sans configuration additionnelle côté administrateur."
+  packages: "carbonio-tasks, carbonio-tasks-db, carbonio-tasks-ui"
+  default_ports: "N/A (interne, via API mailbox)"
+
+monitoring:
+  order: 110
+  name: "Monitoring"
+  role: "Supervision et remontée de métriques."
+  commercial: "Supervision technique de la plateforme (indicateurs de santé, alerting). Composant d'exploitation, sans exposition ni valeur pour l'utilisateur final."
+  packages: "carbonio-prometheus et exporters associés"
+  default_ports: "9100+ (exporters Prometheus)"

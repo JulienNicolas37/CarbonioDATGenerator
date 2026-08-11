@@ -1,0 +1,65 @@
+\chapter{Parties prenantes}
+
+\section{Client --- \VAR{ stakeholder_client.long_name }}
+\BLOCK{ if stakeholder_client.description }
+\VAR{ stakeholder_client.description }
+
+\BLOCK{ endif }
+\begin{itemize}[nosep]
+\BLOCK{ if stakeholder_client.website }
+  \item Site web~: \url{\VAR{ stakeholder_client.website } }
+\BLOCK{ endif }
+\BLOCK{ if stakeholder_client.address }
+  \item Adresse~: \VAR{ stakeholder_client.address_display }
+\BLOCK{ endif }
+\BLOCK{ if stakeholder_client.emergency_phone }
+  \item Téléphone d'urgence~: \VAR{ stakeholder_client.emergency_phone }
+\BLOCK{ endif }
+\end{itemize}
+
+\BLOCK{ if stakeholder_client.contacts }
+\begin{longtable}{|p{3cm}|p{3cm}|p{4.3cm}|p{2.7cm}|}
+\hline
+\rowcolor{primary}\tblhead{Nom} & \tblhead{Rôle} & \tblhead{E-mail} & \tblhead{Téléphone} \\
+\hline
+\endhead
+\BLOCK{ for c in stakeholder_client.contacts }
+\VAR{ c.name } & \VAR{ c.role } & \BLOCK{ if c.email }\href{mailto:\VAR{ c.email }}{\VAR{ c.email_display }}\BLOCK{ endif } & \VAR{ c.phone } \\
+\hline
+\BLOCK{ endfor }
+\end{longtable}
+\BLOCK{ else }
+\placeholder{Compléter la liste des contacts client (\texttt{client.contacts}) : responsable de projet, responsable technique, intervenants techniques...}
+\BLOCK{ endif }
+
+\section{Intégrateur --- \VAR{ stakeholder_integrator.long_name }}
+\BLOCK{ if stakeholder_integrator.description }
+\VAR{ stakeholder_integrator.description }
+
+\BLOCK{ endif }
+\begin{itemize}[nosep]
+\BLOCK{ if stakeholder_integrator.website }
+  \item Site web~: \url{\VAR{ stakeholder_integrator.website } }
+\BLOCK{ endif }
+\BLOCK{ if stakeholder_integrator.address }
+  \item Adresse~: \VAR{ stakeholder_integrator.address_display }
+\BLOCK{ endif }
+\BLOCK{ if stakeholder_integrator.emergency_phone }
+  \item Téléphone d'urgence~: \VAR{ stakeholder_integrator.emergency_phone }
+\BLOCK{ endif }
+\end{itemize}
+
+\BLOCK{ if stakeholder_integrator.contacts }
+\begin{longtable}{|p{3cm}|p{3cm}|p{4.3cm}|p{2.7cm}|}
+\hline
+\rowcolor{primary}\tblhead{Nom} & \tblhead{Rôle} & \tblhead{E-mail} & \tblhead{Téléphone} \\
+\hline
+\endhead
+\BLOCK{ for c in stakeholder_integrator.contacts }
+\VAR{ c.name } & \VAR{ c.role } & \BLOCK{ if c.email }\href{mailto:\VAR{ c.email }}{\VAR{ c.email_display }}\BLOCK{ endif } & \VAR{ c.phone } \\
+\hline
+\BLOCK{ endfor }
+\end{longtable}
+\BLOCK{ else }
+\placeholder{Compléter la liste des contacts intégrateur (\texttt{integrator.contacts}).}
+\BLOCK{ endif }

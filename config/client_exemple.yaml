@@ -1,0 +1,300 @@
+# ---------------------------------------------------------------------------
+# Fichier de configuration client --- décrit UNE plateforme Carbonio donnée.
+# C'est ce fichier qui change d'un client à l'autre ; les templates ne
+# bougent pas.
+#
+# Ce fichier d'exemple reprend la structure type observée sur les schémas
+# de référence internes (3 zones Externe/DMZ/LAN, MTA IN/OUT/AUTH séparés,
+# LDAP Master/Replica séparés, nœuds "Application" multi-rôles).
+# ---------------------------------------------------------------------------
+
+client:
+  name: "Exemple SA"
+  long_name: "Exemple Société Anonyme"
+  scope: "Messagerie, agenda, contacts, mobilité, chat, visioconférence"
+  author: "Julien Nicolas"
+  version: "1.0"
+  date: "04/08/2026"
+  classification: "Confidentiel"
+  verificateur: "Laurent FRANÇOISE"
+  carbonio_edition: "advanced"
+  logo: "logo_client_placeholder.png"   # chemin relatif à CE fichier de config
+  description: "Exemple SA est une entreprise fictive utilisée comme cas d'exemple pour ce générateur de DAT."
+  website: "https://www.exemple.fr"
+  address:
+    - "12 rue de l'Exemple"
+    - "75000 Paris"
+  emergency_phone: "+33 1 23 45 67 89"
+  contacts:
+    - name: "Jean Dupont"
+      role: "Responsable de projet"
+      email: "jean.dupont@exemple.fr"
+      phone: "+33 1 23 45 67 90"
+    - name: "Marie Martin"
+      role: "Responsable technique"
+      email: "marie.martin@exemple.fr"
+      phone: "+33 1 23 45 67 91"
+    - name: "Paul Petit"
+      role: "Intervenant technique"
+      email: "paul.petit@exemple.fr"
+      phone: ""
+
+# Intégrateur (Zextras Services) --- valeurs par défaut fournies, à ajuster
+# uniquement si un autre intégrateur intervient sur cette plateforme.
+integrator:
+  name: "Zextras Services"
+  long_name: "Zextras Services"
+  description: "Zextras Services est la filiale française du groupe Zextras, présente en France depuis 2017 et spécialisée dans l'accompagnement des organisations dans la mise en œuvre, l'exploitation et l'évolution de leurs plateformes collaboratives. Forte d'une équipe d'experts reconnus pour leur maîtrise d'environnements critiques et à grande échelle, l'entreprise intervient à chaque étape des projets, depuis les phases de conception jusqu'au maintien en conditions opérationnelles. Ses compétences couvrent le déploiement de solutions en cloud souverain, sur site ou en architecture hybride, ainsi que la migration de plateformes complexes tout en garantissant la continuité des services. Zextras Services accompagne également les organisations dans la conduite du changement, le transfert de compétences et la montée en autonomie des équipes techniques et fonctionnelles. L'entreprise assure l'exploitation et le maintien en conditions opérationnelles d'infrastructures pouvant accueillir jusqu'à près d'un million d'utilisateurs, avec des exigences élevées en matière de disponibilité, de sécurité et de performance. Son offre comprend enfin un support technique de niveaux 2 et 3, assuré par des ingénieurs spécialisés, afin d'apporter une expertise avancée et un accompagnement durable tout au long du cycle de vie des plateformes."
+  website: "https://www.zextras-services.fr"
+  address:
+    - "1 allée Ferdinand de Lesseps"
+    - "37200 Tours"
+  contacts:
+    - name: "Julien NICOLAS"
+      role: "Responsable projet"
+      email: "julien.nicolas@zextras.fr"
+      phone: "06 69 40 25 96"
+    - name: "Laurent FRANÇOISE"
+      role: "Responsable technique"
+      email: "laurent.francoise@zextras.fr"
+      phone: ""
+
+# Informations produit affichées dans le chapitre "Solution Zextras Carbonio".
+product:
+  version: "25.9.0"
+  release_date: "30/09/2025"
+  version_check_url: "https://docs.zextras.com/en/carbonio-release-notes/latest"
+  user_doc_url: "https://docs.zextras.com/en/user-guide"
+  admin_doc_url: "https://docs.zextras.com/en/carbonio-admin-guide"
+
+# Informations de licence contractuelle.
+license:
+  accounts: 500
+  activesync: 150
+  chat: true
+  two_fa: true
+  s3_storage: false
+  video: true
+  files: true
+
+sla:
+  availability: "99,9 % hors fenêtres de maintenance planifiées"
+  rto: "4h"
+  rpo: "1h"
+  backup_retention: "30 jours glissants, sauvegarde quotidienne"
+
+# Enregistrements DNS et politique anti-usurpation en production.
+dns:
+  domains:
+    - domain: "exemple.fr"
+      mx_records:
+        - {priority: 10, hostname: "mx1.exemple.fr"}
+        - {priority: 20, hostname: "mx2.exemple.fr"}
+      spf: "v=spf1 mx ip4:192.0.2.10 -all"
+      dkim_selector: "carbonio"
+      dmarc: "v=DMARC1; p=quarantine; rua=mailto:dmarc-reports@exemple.fr; pct=100"
+    - domain: "exemple-filiale.fr"
+      alias_of: "exemple.fr"   # alias de domaine --- pas de comptes propres
+      mx_records:
+        - {priority: 10, hostname: "mx1.exemple.fr"}
+      spf: "v=spf1 mx ip4:192.0.2.10 -all"
+      # dkim_selector volontairement absent ici --- teste l'alerte DNS manquant
+      dmarc: "v=DMARC1; p=quarantine; rua=mailto:dmarc-reports@exemple.fr; pct=100"
+
+# Méthode(s) d'authentification effectivement activée(s) --- combinables.
+authentication:
+  methods: [native, external_ldap]
+  connection:
+    vhost: "webmail.exemple.fr"
+    url: "https://webmail.exemple.fr"
+  native:
+    password_policy: "12 caractères minimum, renouvellement tous les 180 jours"
+    lockout_policy: "5 tentatives échouées --- verrouillage 15 minutes"
+  external_ldap:
+    fallback_to_native: true
+    servers:
+      - {hostname: "ad01.exemple.local", ip: "10.0.5.10"}
+      - {hostname: "ad02.exemple.local", ip: "10.0.5.11"}
+  brute_force_protection:
+    enabled: true
+    tool: "fail2ban"
+    details: "Bannissement 15 minutes après 5 échecs en 10 minutes, sur proxy et mta_auth"
+
+# Anti-spam / anti-virus --- section systématiquement affichée dans le DAT.
+antispam_antivirus:
+  name: "Vade for Zextras"
+  outbound_filtering: true
+  inbound_filtering: true
+  quarantine: true
+  dkim_domains: []   # aucun --- Carbonio (MTA OUT) gère le DKIM pour tous les domaines
+
+# Support Zextras Services.
+support:
+  url: "https://support.zextras-services.fr"
+  phone: "+33 1 85 76 01 97"
+  escalation_name: "M. NICOLAS Julien"
+  escalation_phone: "+33 6 69 40 25 96"
+
+# Plan de Continuité / Reprise d'Activité --- description standard utilisée
+# si enabled: false.
+pca:
+  enabled: false
+
+pra:
+  enabled: false
+
+# Active ou désactive des sections entières du DAT selon les services
+# réellement présents chez le client.
+services:
+  mesh: true
+  directory_master: true
+  directory_replica: true
+  database: true
+  mailbox: true
+  proxy: true
+  mta_in: true
+  mta_out: true
+  mta_auth: true
+  files: true
+  docs: true
+  chat: true
+  videoconf: true
+  tasks: true
+  monitoring: true
+
+# Équipements réseau représentés en chaîne au-dessus des zones applicatives
+# (purement visuel : pour qu'un flux les traverse, référencer leur id dans
+# "flows" comme n'importe quel nœud). Optionnel : à omettre pour un schéma
+# sans cette rangée.
+network_equipment:
+  - id: internet
+    label: "Internet"
+    type: internet
+  - id: router01
+    label: "Routeur"
+    type: router
+  - id: firewall01
+    label: "Pare-feu"
+    type: firewall
+
+# 3 zones seulement : Externe (équipements réseau ci-dessus, pas de zone
+# dédiée nécessaire), DMZ (Publique) et LAN (Privée) --- pas de sous-zone
+# séparée pour la messagerie vs l'infrastructure.
+zones:
+  - id: DMZ
+    label: "Zone Publique (DMZ)"
+    short_label: "Publique (DMZ)"
+  - id: LAN
+    label: "Zone Privée (LAN)"
+    short_label: "Privée (LAN)"
+    max_cols: 3   # nombre de nœuds par rangée avant repli sur une nouvelle rangée
+
+# Nœuds réels de la plateforme cliente.
+nodes:
+  - id: front01
+    zone: DMZ
+    hostname: "proxy01.exemple.fr"
+    ip: "192.0.2.10"
+    public_ip: "203.0.113.10"   # IP fixe publique (NAT/pare-feu)
+    components: [proxy, mta_in, mta_out, mta_auth]
+    sizing: {vcpu: 4, ram_gb: 8, storage_gb: 50, os: "Rocky Linux 9"}
+
+  - id: video01
+    zone: DMZ
+    hostname: "video01.exemple.fr"
+    ip: "192.0.2.20"
+    public_ip: "203.0.113.20"
+    components: [videoconf]
+    sizing: {vcpu: 4, ram_gb: 8, storage_gb: 50, os: "Rocky Linux 9"}
+
+  - id: mail01
+    zone: LAN
+    hostname: "mailstore01.exemple.local"
+    ip: "10.0.1.10"
+    components: [mesh, mailbox]
+    sizing: {vcpu: 8, ram_gb: 16, storage_gb: 500, os: "Rocky Linux 9"}
+    mailstore:
+      backup_retention_days: 30
+      hsm_enabled: true
+      hot_data_retention_days: 90
+      hsm_target: "S3 (bucket exemple-hsm-cold, hébergeur OVH)"
+    backup:
+      enabled: true
+      schedule:
+        - {days: "Lundi-Vendredi", times: ["02:00"]}
+        - {days: "Samedi", times: ["02:00", "22:00"]}
+
+  - id: application01
+    zone: LAN
+    hostname: "application01.exemple.local"
+    ip: "10.0.1.20"
+    components: [mesh, chat, tasks]
+    sizing: {vcpu: 4, ram_gb: 8, storage_gb: 100, os: "Rocky Linux 9"}
+
+  - id: application02
+    zone: LAN
+    hostname: "application02.exemple.local"
+    ip: "10.0.1.21"
+    components: [mesh, files, docs]
+    sizing: {vcpu: 4, ram_gb: 8, storage_gb: 300, os: "Rocky Linux 9"}
+
+  - id: services01
+    zone: LAN
+    hostname: "services01.exemple.local"
+    ip: "10.0.1.30"
+    components: [mesh, directory_master, database]
+    sizing: {vcpu: 4, ram_gb: 8, storage_gb: 100, os: "Rocky Linux 9"}
+
+  - id: services02
+    zone: LAN
+    hostname: "services02.exemple.local"
+    ip: "10.0.1.31"
+    components: [mesh, directory_replica]
+    sizing: {vcpu: 4, ram_gb: 8, storage_gb: 100, os: "Rocky Linux 9"}
+
+# Les flux réseau ne se déclarent plus manuellement : ils sont déduits
+# automatiquement des nœuds/composants ci-dessus et du catalogue de
+# relations standard (templates/flow_relations.yaml) --- proxy vers chaque
+# mailstore, chaque nœud LDAP-consommateur vers le Directory Master, etc.
+# La réplication LDAP Master/Replica n'est volontairement jamais générée
+# (hors standard, sans intérêt sur les schémas).
+#
+# Catégories dont le schéma dédié doit apparaître dans le DAT (Oui/Non) ---
+# une catégorie absente d'ici vaut "Oui" par défaut.
+protocol_schemas:
+  web: true
+  smtp: true
+  ldap: true
+  udp_video: true
+  interne: true
+  mesh: true
+
+# Opérations planifiées (crons) connues sur la plateforme, tous nœuds
+# confondus --- liste exhaustive attendue en fin de chapitre "Architecture
+# technique détaillée".
+scheduled_operations:
+  - node: "mail01"
+    operation: "Sauvegarde Carbonio (backup.sh)"
+    schedule:
+      - {days: "Lundi-Vendredi", times: ["02:00"]}
+      - {days: "Samedi", times: ["02:00", "22:00"]}
+  - node: "services01"
+    operation: "Purge des logs applicatifs (logrotate)"
+    schedule:
+      - {days: "Tous les jours", times: ["03:30"]}
+
+# Documents complémentaires associés à ce DAT.
+annexes:
+  - name: "Document d'exploitation"
+    filename: "EXPL_Exemple_SA.pdf"
+    description: "Procédures pas à pas d'administration courante (comptes, quotas, montées de version)."
+  - name: "Plan d'Assurance Sécurité"
+    filename: "PAS_Exemple_SA.pdf"
+    description: "Politique de sécurité contractuelle applicable à la plateforme."
+
+# Exclusions PUREMENT VISUELLES sur les schémas (le flux existe réellement
+# et reste listé dans la matrice exhaustive de fin de document --- seul son
+# tracé sur les schémas est masqué, par exemple pour désencombrer un schéma
+# trop dense). L'appariement des nœuds fonctionne dans les deux sens.
+flow_diagram_exclusions:
+  - {node1: "application01", node2: "application02", category: "mesh"}

@@ -1,0 +1,9 @@
+# Procédures par défaut appliquées en l'absence de PCA/PRA spécifique pour
+# un client donné. Julien : à compléter avec la procédure standard réelle
+# appliquée par défaut chez Zextras Services.
+
+pca_default: |
+  \placeholder{Décrire ici la procédure standard de continuité d'activité appliquée par défaut, en l'absence de PCA spécifique contractualisé avec le client (mécanismes de haute disponibilité standard : réplication LDAP, réplication PostgreSQL, redondance des rôles --- voir le chapitre Architecture technique détaillée).}
+
+pra_default: |
+  \placeholder{Décrire ici la procédure standard de reprise d'activité appliquée par défaut, en l'absence de PRA spécifique contractualisé avec le client (restauration depuis les sauvegardes standard --- voir la section Système de sauvegarde des nœuds --- et délais de reprise associés).}

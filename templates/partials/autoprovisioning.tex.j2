@@ -1,0 +1,37 @@
+\chapter{Mécanisme d'ajout / Modification / Suppression de comptes automatisé}
+Cette plateforme utilise un mécanisme d'auto-provisionnement : les comptes, listes de distribution, ressources et/ou signatures sont synchronisés automatiquement depuis un annuaire externe (LDAP ou Active Directory) plutôt que créés manuellement dans Carbonio.
+
+\section{Paramètres de synchronisation}
+\begin{longtable}{|p{5.5cm}|p{7.5cm}|}
+\hline
+\rowcolor{primary}\tblhead{Paramètre} & \tblhead{Valeur} \\
+\hline
+\endhead
+Nœud exécutant le script & \VAR{ autoprovisioning.node } \\
+\hline
+Nom du script & \texttt{\VAR{ autoprovisioning.script_name } } \\
+\hline
+Serveur LDAP/AD source & \VAR{ autoprovisioning.ldap_server_hostname } (\VAR{ autoprovisioning.ldap_server_ip }) \\
+\hline
+Arguments du script & \texttt{\VAR{ autoprovisioning.arguments } } \\
+\hline
+Fréquence d'exécution & \VAR{ autoprovisioning.frequency } \\
+\hline
+\end{longtable}
+
+\section{Opérations couvertes}
+\begin{longtable}{|p{9cm}|p{4cm}|}
+\hline
+\rowcolor{primary}\tblhead{Opération} & \tblhead{Couverte ?} \\
+\hline
+\endhead
+Synchronisation des comptes & \VAR{ autoprovisioning.sync_accounts } \\
+\hline
+Synchronisation des listes de distribution & \VAR{ autoprovisioning.sync_distribution_lists } \\
+\hline
+Synchronisation des ressources (salles, matériel) & \VAR{ autoprovisioning.sync_resources } \\
+\hline
+Synchronisation des signatures & \VAR{ autoprovisioning.sync_signatures } \\
+\hline
+\end{longtable}
+\placeholder{Documenter ici le comportement en cas d'échec de synchronisation (alerting, rattrapage) et la procédure de resynchronisation manuelle si nécessaire.}

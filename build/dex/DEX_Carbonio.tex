@@ -1,0 +1,564 @@
+\documentclass[11pt,a4paper]{report}
+
+\usepackage{fontspec}
+\setmainfont{Open Sans}
+\usepackage[french]{babel}
+\usepackage[a4paper,top=3.1cm,bottom=2.7cm,left=2.3cm,right=2.3cm,headheight=1.6cm,headsep=0.5cm]{geometry}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{longtable}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{colortbl}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{tabularx}
+\usepackage{parskip}
+\usepackage{lastpage}
+\usepackage{tikz}
+\usepackage{adjustbox}
+\usepackage{pdflscape}
+\usepackage{listings}
+\usepackage{amssymb}
+\usetikzlibrary{arrows.meta, positioning, fit, backgrounds, shapes.geometric}
+
+% ---------- Couleurs ----------
+\definecolor{primary}{HTML}{1F3864}
+\definecolor{accent}{HTML}{2E74B5}
+\definecolor{lightbg}{HTML}{DDEBF7}
+\definecolor{graytxt}{HTML}{595959}
+\definecolor{placeholdercol}{HTML}{C00000}
+\definecolor{codebg}{HTML}{EDEDED}
+
+% ---------- Bloc de commande (utilisé par le DEX --- style "lstlisting",
+%            aucun échappement LaTeX nécessaire pour son contenu, sûr pour
+%            des commandes shell contenant _, %, $, {, }...) ----------
+\lstdefinestyle{commandblock}{
+  backgroundcolor=\color{codebg},
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  columns=fullflexible,
+  frame=none,
+  xleftmargin=0.3cm,
+  xrightmargin=0.3cm,
+  framexleftmargin=0.3cm,
+  framextopmargin=0.2cm,
+  framexbottommargin=0.2cm,
+}
+\lstset{style=commandblock}
+
+% ---------- Titres ----------
+\titleformat{\chapter}[hang]{\Large\bfseries\color{primary}}{\thechapter.}{0.6em}{}
+\titlespacing{\chapter}{0pt}{0pt}{1.2em}
+\titleformat{\section}{\large\bfseries\color{accent}}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\normalsize\bfseries\color{graytxt}}{\thesubsection}{0.6em}{}
+\titleformat{\subsubsection}{\normalsize\bfseries\color{graytxt}}{\thesubsubsection}{0.6em}{}
+\titleformat{\paragraph}{\normalsize\bfseries\itshape\color{graytxt}}{}{0em}{}
+\titlespacing{\paragraph}{0pt}{0.8em}{0.4em}
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+
+% ---------- En-tête / pied de page (logos client + intégrateur) ----------
+\pagestyle{fancy}
+\fancyhf{}
+% \chapter réinitialise normalement le style de page en "plain" sur sa
+% première page (comportement standard des classes report/book) : on force
+% ici la conservation du style "fancy" (logos) sur CETTE page également.
+\assignpagestyle{\chapter}{fancy}
+\renewcommand{\headrulewidth}{0.4pt}
+\fancyhead[L]{\small\bfseries\color{graytxt}}
+\fancyhead[R]{\includegraphics[height=1.1cm]{integrator_logo.png}}
+% Le pied de page (date de génération + pagination) n'est activé qu'à
+% partir de la première page du chapitre 1 (voir intro.tex.j2) : la page de
+% garde, l'historique des révisions et le sommaire n'en ont pas.
+
+% ---------- Commande pour placeholders ----------
+\newcommand{\placeholder}[1]{\textit{\textcolor{placeholdercol}{[#1]}}\par\vspace{4pt}}
+\newcommand{\dnswarning}[1]{\textbf{\textcolor{placeholdercol}{\textbullet\ Attention~: #1}}\par\vspace{4pt}}
+
+% ---------- Hyperliens ----------
+\hypersetup{
+  colorlinks=true,
+  linkcolor=accent,
+  citecolor=accent,
+  urlcolor=accent,
+  pdftitle={DAT - Exploitation quotidienne d'une infrastructure Carbonio},
+  pdfauthor={Ryan Georges Khouri}
+}
+
+% ---------- En-tête de tableau réutilisable ----------
+% \rowcolor doit être appelé UNE SEULE FOIS par ligne (avant la 1re cellule) :
+% utiliser \rowcolor{primary} au début de la ligne, puis \tblhead{...} par cellule.
+\newcommand{\tblhead}[1]{\textcolor{white}{\textbf{#1}}}
+
+% Le contenu de ce document est en partie généré dynamiquement (hostnames,
+% noms de paquets...) et peut donc contenir des chaînes longues et non
+% césurables par les règles d'hyphénation françaises. \sloppy assouplit les
+% contraintes de justification pour éviter les dépassements de marge.
+\sloppy
+
+\begin{document}
+
+\begin{titlepage}
+\centering
+\vspace*{1.5cm}
+\includegraphics[height=3cm]{integrator_logo.png}\par
+\vspace{1.2cm}
+{\Huge\bfseries\color{primary} DOCUMENT D'EXPLOITATION\par}
+\vspace{0.8cm}
+{\LARGE\bfseries\color{accent} Exploitation quotidienne d'une infrastructure Carbonio\par}
+\vspace{0.5cm}
+{\Large\itshape\color{graytxt} Procédures génériques --- toutes infrastructures Carbonio\par}
+\vspace{3cm}
+
+\renewcommand{\arraystretch}{1.8}
+\begin{tabular}{|>{\columncolor{primary}\color{white}\bfseries}m{4.2cm}|m{9cm}|}
+\hline
+Prestataire & Zextras Services \\
+\hline
+Rédacteur & Ryan Georges Khouri \\
+\hline
+Vérificateur & Julien NICOLAS \\
+\hline
+Version du document & V3 \\
+\hline
+Date & 10/08/2026 \\
+\hline
+Classification & Public \\
+\hline
+\end{tabular}
+\end{titlepage}
+
+\chapter{Informations sur le document}
+
+\section*{Approbations}
+\begin{longtable}{|p{6.5cm}|p{6.5cm}|}
+\hline
+\rowcolor{primary}\tblhead{Rédaction} & \tblhead{Vérification} \\
+\hline
+\endhead
+Ryan Georges Khouri & Julien NICOLAS \\
+\hline
+\end{longtable}
+
+\section*{Confidentialité}
+\begin{longtable}{|p{1cm}|p{2.5cm}|p{9.5cm}|}
+\hline
+\endhead
+$\boxtimes$ & Public & Le contenu de ce document et de ses annexes peut être diffusé librement sans restriction. \\
+\hline
+$\square$ & Client & Le contenu de ce document et de ses annexes est strictement confidentiel et ne peut être diffusé en dehors des intervenants directs. \\
+\hline
+$\square$ & Restreint & Le contenu de ce document et de ses annexes est strictement confidentiel et est réservé uniquement aux collaborateurs de ZEXTRAS SERVICES. \\
+\hline
+$\square$ & Confidentiel & Le contenu de ce document et de ses annexes est strictement confidentiel et est réservé uniquement aux collaborateurs de ZEXTRAS SERVICES identifiés ci-dessous. \\
+\hline
+\end{longtable}
+
+\section*{Révisions}
+\begin{longtable}{|p{2cm}|p{2.5cm}|p{9.5cm}|}
+\hline
+\rowcolor{primary}\tblhead{Version} & \tblhead{Date} & \tblhead{Motifs d'évolution} \\
+\hline
+\endhead
+V1 & 19/12/2024 & Création du plan \\
+\hline
+V2 & 20/03/2025 & Corrections diverses \\
+\hline
+V3 & 10/08/2026 & Génération automatisée -\allowbreak{}-\allowbreak{}-\allowbreak{} ajout du moteur à briques auto-\allowbreak{}découvertes \\
+\hline
+\end{longtable}
+
+\clearpage
+\tableofcontents
+\clearpage
+
+\renewcommand{\footrulewidth}{0.4pt}
+\fancyfoot[L]{\small\color{graytxt}Document du 11/08/2026}
+\fancyfoot[R]{\small\color{graytxt}Page \thepage\ / \pageref{LastPage}}
+
+\chapter{Opérations courantes}
+
+\section{Vérification de la version de Carbonio}
+La vérification de la version de Carbonio installée se fait via la commande suivante :
+
+\begin{lstlisting}
+zmcontrol -v
+\end{lstlisting}
+
+
+\section{Vérification du fonctionnement des services}
+La vérification du fonctionnement des services sur un nœud Carbonio se fait via la commande :
+
+\begin{lstlisting}
+zmcontrol status
+\end{lstlisting}
+
+
+\chapter{Gestion des comptes et domaines (zmprov)}
+
+`zmprov` est l'outil CLI (Command Line Interface) principal utilisé pour administrer
+Carbonio.\allowbreak{} Il permet d'effectuer diverses tâches d'administration sur le serveur, telles
+que la gestion des comptes, des alias, des domaines, des classes de service (COS) et des
+configurations globales.\allowbreak{}
+
+Cet outil interagit à l'aide du protocole SOAP ou OpenLDAP.\allowbreak{}
+
+
+\section{Ajout d'un domaine de messagerie}
+\begin{lstlisting}
+zmprov cd mon_nouveau_domaine.tld
+\end{lstlisting}
+
+
+\section{Modification d'un domaine}
+\begin{lstlisting}
+zmprov md mondomaine.tld attribut1 valeur1 attribut2 valeur2 ...
+\end{lstlisting}
+
+
+\section{Suppression d'un domaine de messagerie}
+\begin{lstlisting}
+zmprov dd mon_ancien_domaine.tld
+\end{lstlisting}
+
+
+\section{Ajout d'un compte de messagerie}
+\begin{lstlisting}
+zmprov ca nom@domaine.tld motdepasseducompte
+\end{lstlisting}
+
+
+\section{Modification d'un compte de messagerie}
+\begin{lstlisting}
+zmprov ma nom@domaine.tld attribut1 valeur1 attribut2 valeur2
+\end{lstlisting}
+
+
+\section{Suppression d'un compte de messagerie}
+\begin{lstlisting}
+zmprov da nom@domaine.tld
+\end{lstlisting}
+
+
+\section{Création d'une liste de distribution}
+\begin{lstlisting}
+zmprov cdl nomdelaliste@domaine.tld nomdumembre1@domaine.tld nomdumembre2@domaine.tld nomdumembre3@domaine.tld
+\end{lstlisting}
+
+
+\section{Intégration d'un membre à une liste de distribution}
+\begin{lstlisting}
+zmprov adlm nomdelaliste@domaine.tld nomdumembre@domaine.tld
+\end{lstlisting}
+
+
+\section{Retrait d'un membre d'une liste de distribution}
+\begin{lstlisting}
+zmprov rdlm nomdelaliste@domaine.tld nomdumembre@domaine.tld
+\end{lstlisting}
+
+
+\section{Modification d'une liste de distribution}
+\begin{lstlisting}
+zmprov mdl nomdelaliste@domaine.tld attribut1 valeur1 attribut2 valeur2
+\end{lstlisting}
+
+
+\section{Suppression d'une liste de distribution}
+\begin{lstlisting}
+zmprov ddl nomdelaliste@domaine.tld
+\end{lstlisting}
+
+
+\section{Ajout d'un alias sur un compte}
+\begin{lstlisting}
+zmprov aaa nomducompte@domaine.tld nomdelalias@domaine.tld
+\end{lstlisting}
+
+
+\section{Suppression d'un alias sur un compte}
+\begin{lstlisting}
+zmprov raa nomducompte@domaine.tld nomdelalias@domaine.tld
+\end{lstlisting}
+
+
+\section{Ajout d'un droit d'envoi en tant que}
+\begin{lstlisting}
+zmprov grr account toto@domaine.tld usr tata@domaine.tld sendAs
+\end{lstlisting}
+La commande permet à tata@domaine.\allowbreak{}tld d'envoyer en tant que toto@domaine.\allowbreak{}tld.\allowbreak{}
+
+
+
+\section{Ajout d'une clé DKIM sur un domaine}
+Cette procédure décrit comment provisionner une clé DKIM sur un domaine Carbonio.\allowbreak{}
+Ainsi les mails envoyés depuis Carbonio seront signés avec une clé DKIM.\allowbreak{}
+
+
+\dnswarning{Il est nécessaire d'avoir accès à la zone DNS du domaine avant le début de la procédure.\allowbreak{}}
+\begin{lstlisting}
+libexec/zmdkimkeyutil -a -d testons.carbonio.fr
+\end{lstlisting}
+Cette commande ajoute et active le DKIM sur le domaine "testons.\allowbreak{}carbonio.\allowbreak{}fr".\allowbreak{}
+L'utilitaire "zmdkimkeyutil" est utilisable depuis n'importe quel nœud Carbonio
+supportant le service MTA.\allowbreak{} La commande retourne la clé publique, formatée pour être
+directement ajoutée sur la zone DNS :
+
+
+\begin{lstlisting}
+DKIM Data added to LDAP for domain testons.carbonio.fr with selector DD4A0FA0-E493-11EF-9218-6D3156ED655B
+Public signature to enter into DNS:
+DD4A0FA0-E493-11EF-9218-6D3156ED655B._domainkey  IN  TXT  ( "v=DKIM1; k=rsa;"
+"p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxvt8mdiit1FcCbgVBESm6WzqaXMBu0RaOJOEjkVWkqKlReGSOuaVtMtrM34aA5EhJyo7srZNHviH2tMNB
+JP2UwEINhqNfrM8dQFOwMUYteN4dpfgrT+i9p/7pP/HmuiocE9at0MgGtPbxaq1p9AfuOUf/engkwsiYcyqRTA3aDLc9mHwZ+7jxF5uMhvzT667oT05RcqYZfg2gl"
+"trHcwsd1pGEe3FAebdvc5gpW4bXgD6Yx1B+SOluuUruNDCFug5bw03jWIF6PtmQliu8e4nMrxg+AtYGCVc8+a8UvjzuL0CPiP6JQzFa2GPZdibpZnGhZxuNkQU51YJ6
+cf13hBnVwIDAQAB" ) ; ----- DKIM key DD4A0FA0-E493-11EF-9218-6D3156ED655B for testons.carbonio.fr
+
+\end{lstlisting}
+\dnswarning{Après l'exécution de la commande précédente, les mails envoyés depuis le domaine
+« testons.\allowbreak{}carbonio.\allowbreak{}fr » seront automatiquement signés avec la clé DKIM.\allowbreak{} Il est donc
+nécessaire d'ajouter la clé publique sur la zone DNS juste après l'exécution de la commande.\allowbreak{}
+}
+
+
+\chapter{Les attributs Carbonio}
+
+Carbonio stocke ses configurations dans une arborescence LDAP, où chaque paramètre est
+défini sous forme d'un attribut clé/valeur.\allowbreak{} Un attribut peut se positionner sur un
+compte, une COS, un domaine, un serveur.\allowbreak{}.\allowbreak{}.\allowbreak{}
+
+
+\section{Liste des attributs Carbonio}
+Pour lister les attributs Carbonio, il faut exécuter la commande suivante :
+
+\begin{lstlisting}
+zmprov desc
+\end{lstlisting}
+Cette commande renvoyant plus de 1830 noms d'attributs, il est plus judicieux de
+s'en servir avec un « grep », ou d'écrire la sortie de la commande dans un fichier.\allowbreak{}
+Ainsi il est plus facile de chercher un attribut.\allowbreak{}
+
+
+
+
+\section{Obtenir des informations sur un attribut}
+Un attribut se positionne sur certains types d'objets Carbonio (domaines, comptes,
+serveurs, listes de distribution.\allowbreak{}.\allowbreak{}.\allowbreak{}).\allowbreak{} Son nom ne suffit pas toujours à comprendre
+son utilité.\allowbreak{} De plus, la modification d'un attribut peut nécessiter un redémarrage
+de services pour la prise en compte du nouveau paramétrage.\allowbreak{}
+
+Pour répondre à ces questions, il est possible d'obtenir plus d'informations sur un
+attribut avec la commande suivante :
+
+
+\begin{lstlisting}
+zmprov desc -a <nom de l'attribut>
+\end{lstlisting}
+La commande retourne des informations sur l'attribut mentionné.\allowbreak{} Exemple :
+
+\begin{lstlisting}
+# zmprov desc -a zimbraMailSieveScript
+zimbraMailSieveScript
+  sieve script generated from user filter rules
+          type :string
+         value :
+      callback :MailSieveScript
+     immutable :false
+   cardinality :single
+     requiredIn :
+     optionalIn :account
+         flags :
+      defaults :
+           min :
+           max :
+            id :32
+requiresRestart :
+         since :
+deprecatedSince :
+
+\end{lstlisting}
+
+
+\section{Modifier un attribut sur un objet Carbonio}
+Un attribut Carbonio peut être affecté à son objet lors de la création de celui-\allowbreak{}ci.\allowbreak{}
+Par exemple, le compte suivant sera créé avec un quota de 20 Gigaoctets.\allowbreak{}
+
+
+\begin{lstlisting}
+zmprov ca john.doe@domaine.tld zimbraMailQuota 20000000000
+\end{lstlisting}
+Si l'objet est déjà provisionné, l'application de l'attribut se fait via le module
+de modification.\allowbreak{} Pour un compte, le module de modification est « ma » (pour Modify
+Account) :
+
+
+\begin{lstlisting}
+zmprov ma john.doe@domaine.tld zimbraMailQuota 20000000000
+
+\end{lstlisting}
+
+
+\section{Modifier simultanément plusieurs attributs d'un objet Carbonio}
+L'outil zmprov permet la modification de plusieurs attributs sur un même objet, en suivant la syntaxe suivante :
+
+\begin{lstlisting}
+zmprov ma john.doe@domaine.tld attr1 valeur1 attr2 valeur2 attr3 valeur3
+\end{lstlisting}
+Exemple d'utilisation : l'utilisateur john.\allowbreak{}doe@domaine.\allowbreak{}tld reçoit un quota de
+20 Gigaoctets ET devra changer son mot de passe à la prochaine connexion.\allowbreak{}
+
+
+\begin{lstlisting}
+zmprov ma john.doe@domaine.tld zimbraMailQuota 20000000000 zimbraPasswordMustChange TRUE
+
+\end{lstlisting}
+
+
+\chapter{Remplacement d'un certificat SSL commercial}
+
+\section{Sauvegarde de l'ancien certificat}
+Avant de remplacer le certificat, il est recommandé de sauvegarder les fichiers actuels en cas de besoin de restauration.\allowbreak{}
+
+\begin{lstlisting}
+cp -a /opt/zextras/ssl/carbonio /opt/zextras/ssl/carbonio.$(date "+%Y%m%d")
+\end{lstlisting}
+
+
+\section{Copier les nouveaux fichiers du certificat}
+Les nœuds portant le certificat ont besoin des éléments suivants :
+
+\begin{itemize}[nosep]
+  \item Le certificat principal (commercial.\allowbreak{}crt)
+  \item Le certificat intermédiaire (commercial\_ca.\allowbreak{}crt), composé du certificat intermédiaire et du certificat racine
+  \item La clé privée (commercial.\allowbreak{}key)
+\end{itemize}
+
+
+
+\section{Vérification du certificat}
+L'utilitaire Carbonio « zmcertmgr » permet de vérifier la correspondance entre clé
+privée, clé publique et route de certification.\allowbreak{}
+
+
+\begin{lstlisting}
+zmcertmgr verifycrt comm /tmp/commercial.key /tmp/commercial.crt /tmp/commercial_ca.crt
+\end{lstlisting}
+Le retour de la commande se présente ainsi :
+
+\begin{lstlisting}
+** Verifying '/tmp/commercial.crt' against '/tmp/commercial.key'
+Certificate '/tmp/commercial.crt' and private key '/tmp/commercial.key' match.
+** Verifying '/tmp/commercial.crt' against '/tmp/commercial_ca.crt'
+Valid certificate chain: /tmp/commercial.crt: OK
+
+\end{lstlisting}
+
+
+\section{Installer et déployer le certificat}
+Une fois les fichiers validés, il faut copier la clé privée à l'emplacement suivant :
+
+\begin{lstlisting}
+cp /tmp/commercial.key /opt/zextras/ssl/carbonio/commercial/commercial.key
+\end{lstlisting}
+Puis déployer le certificat avec la commande suivante :
+
+\begin{lstlisting}
+zmcertmgr deploycrt comm /tmp/commercial.crt /tmp/commercial_ca.crt
+
+\end{lstlisting}
+
+
+\section{Redémarrer les services Carbonio}
+Afin de prendre en compte le nouveau certificat, il faut redémarrer Carbonio :
+
+\begin{lstlisting}
+zmcontrol restart
+\end{lstlisting}
+
+
+\chapter{Sauvegarde et restauration}
+
+\section{Restauration d'un compte à une date précise}
+Cette procédure décrit comment restaurer un compte Carbonio à une date précise, en utilisant le module Carbonio Backup, vers un nouveau compte.\allowbreak{}
+
+\begin{lstlisting}
+carbonio backup doRestoreOnNewAccount john.doe@domaine.tld john.doe.restauration@domaine.tld "01/12/2024 13:00:00" notifications juste.leblanc@domaine.tld
+\end{lstlisting}
+\begin{longtable}{|p{5.5cm}|p{7.5cm}|}
+\hline
+\rowcolor{primary}\tblhead{Option} & \tblhead{Description} \\
+\hline
+\endhead
+doRestoreOnNewAccount & Lance la restauration d'un compte \\
+\hline
+john.\allowbreak{}doe@domaine.\allowbreak{}tld & Le nom du compte à restaurer \\
+\hline
+john.\allowbreak{}doe.\allowbreak{}restauration@domaine.\allowbreak{}tld & Le nom du compte de restauration \\
+\hline
+"01/12/2024 13:00:00" & Le compte sera restauré à son état du 1er décembre 2024 à 13h \\
+\hline
+notifications juste.\allowbreak{}leblanc@domaine.\allowbreak{}tld & Une fois la restauration terminée, un mail sera envoyé à "juste.\allowbreak{}leblanc@domaine.\allowbreak{}tld" \\
+\hline
+\end{longtable}
+
+
+
+\chapter{Partages}
+
+\section{Ajout d'un partage racine}
+Cette procédure indique comment créer un partage racine entre deux comptes de
+messagerie.\allowbreak{} Le partage inclut toute l'arborescence :
+
+
+\begin{itemize}[nosep]
+  \item Des dossiers mails
+  \item Des dossiers calendriers
+  \item Des dossiers contacts
+\end{itemize}
+
+\begin{lstlisting}
+zmprov sm albert@domaine.tld modifyFolderGrant / account john@domaine.tld rdwxia
+\end{lstlisting}
+D'où le terme partage « racine ».\allowbreak{} Dans la commande qui suit, nous désignons
+albert@domaine.\allowbreak{}tld comme le compte émetteur du partage et john@domaine.\allowbreak{}tld comme
+le compte receveur.\allowbreak{}
+
+
+\dnswarning{john@domaine.\allowbreak{}tld reçoit l'accès à l'arborescence complète du compte albert@domaine.\allowbreak{}tld, en écriture et lecture.\allowbreak{}}
+
+
+\chapter{Fichiers de logs}
+
+\begin{longtable}{|p{5.3cm}|p{5.3cm}|p{5.3cm}|}
+\hline
+\rowcolor{primary}\tblhead{Chemin du fichier } & \tblhead{Service } & \tblhead{Contenu } \\
+\hline
+\endhead
+/var/log/carbonio.\allowbreak{}log & Syslog & MTA, LDAP, Système \\
+\hline
+/opt/zextras/log/audit.\allowbreak{}log & log4j & Journaux d'authentification utilisateurs \\
+\hline
+/opt/zextras/log/clamd.\allowbreak{}log & ClamAV & Journaux ClamAV \\
+\hline
+/opt/zextras/log/freshclam.\allowbreak{}log & Freshclam & Journaux du service Freshclam \\
+\hline
+/opt/zextras/log/mailbox.\allowbreak{}log & log4j & Toutes les activités des boîtes aux lettres \\
+\hline
+/opt/zextras/log/nginx.\allowbreak{}access.\allowbreak{}log & Nginx & Journaux du service Nginx access \\
+\hline
+/opt/zextras/log/zmmailboxd.\allowbreak{}out & Jetty & Output du service Mailboxd \\
+\hline
+/var/log/carbonio/files & Carbonio Files & Journaux du service Carbonio Files \\
+\hline
+/var/log/carbonio/docs & Carbonio Docs & Journaux du service Carbonio Docs \\
+\hline
+/var/log/carbonio/docs-\allowbreak{}db-\allowbreak{}connector & Carbonio Docs-\allowbreak{}connector & Journaux du service Carbonio Docs-\allowbreak{}connector \\
+\hline
+/var/log/carbonio/preview & Carbonio Preview & Journaux du service Carbonio Preview \\
+\hline
+\end{longtable}
+
+\end{document}

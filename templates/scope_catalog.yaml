@@ -1,0 +1,59 @@
+# Description "métier" de chaque service, utilisée dans les sections
+# "Périmètre du document" et "Services rendus aux utilisateurs".
+# Indépendant du catalogue technique (components_catalog.yaml).
+
+directory_master:
+  order: 10
+  text: "Authentification et annuaire d'entreprise --- nœud maître (LDAP)"
+
+directory_replica:
+  order: 11
+  text: "Authentification et annuaire d'entreprise --- réplique(s) en lecture (LDAP)"
+
+database:
+  order: 20
+  text: "Persistance des données applicatives (PostgreSQL)"
+
+mailbox:
+  order: 30
+  text: "Messagerie électronique (SMTP/IMAP/POP3), agenda et contacts"
+
+proxy:
+  order: 40
+  text: "Accès webmail et synchronisation mobile (ActiveSync / EAS)"
+
+mta_in:
+  order: 50
+  text: "Réception du courrier entrant (antispam/antivirus, SPF/DKIM/DMARC)"
+
+mta_out:
+  order: 51
+  text: "Émission du courrier sortant (signature DKIM)"
+
+mta_auth:
+  order: 52
+  text: "Soumission authentifiée des e-mails sortants des utilisateurs"
+
+files:
+  order: 60
+  text: "Stockage de fichiers et partage documentaire (Carbonio Files)"
+
+docs:
+  order: 70
+  text: "Édition collaborative de documents bureautiques en ligne (Collabora Online / LibreOffice Online)"
+
+chat:
+  order: 80
+  text: "Messagerie instantanée d'entreprise (Chat --- Carbonio Workstream Collaboration)"
+
+videoconf:
+  order: 90
+  text: "Visioconférence et réunions vidéo (Carbonio Workstream Collaboration --- Video Server)"
+
+tasks:
+  order: 100
+  text: "Gestion de tâches et listes de choses à faire (Carbonio Tasks)"
+
+monitoring:
+  order: 110
+  text: "Supervision et remontée de métriques de la plateforme"

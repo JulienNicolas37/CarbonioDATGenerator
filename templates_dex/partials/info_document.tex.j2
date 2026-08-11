@@ -1,0 +1,30 @@
+\chapter{Introduction et cadrage}
+
+\section{Objet du document}
+\BLOCK{ if client_mode }
+Ce Document d'Exploitation (DEX) décrit les procédures d'administration courante de l'infrastructure Carbonio de \VAR{ stakeholder_client.long_name }, en complément du Document d'Architecture Technique (DAT) de cette même infrastructure. Il a vocation à guider les équipes d'exploitation dans les opérations courantes de maintien en conditions opérationnelles (MCO).
+\BLOCK{ else }
+Ce Document d'Exploitation (DEX) décrit, à titre de référence générale, les procédures d'administration courante d'une infrastructure Carbonio. Il ne se substitue pas à un DEX personnalisé pour une infrastructure donnée, qui précise notamment les nœuds concernés par chaque procédure.
+\BLOCK{ endif }
+
+\section{Confidentialité}
+\BLOCK{ include "confidentiality.tex.j2" }
+
+\BLOCK{ if client_mode }
+\section{Propriété intellectuelle et usage autorisé}
+\BLOCK{ include "ip_notice.tex.j2" }
+
+\BLOCK{ endif }
+\section{Approbations}
+\begin{longtable}{|p{6.5cm}|p{6.5cm}|}
+\hline
+\rowcolor{primary}\tblhead{Rédaction} & \tblhead{Vérification} \\
+\hline
+\endhead
+\VAR{ meta.redaction } & \VAR{ meta.verification } \\
+\hline
+\end{longtable}
+
+\clearpage
+\tableofcontents
+\clearpage

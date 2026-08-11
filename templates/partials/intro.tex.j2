@@ -1,0 +1,66 @@
+% Pied de page actif à partir de cette page et jusqu'à la fin du document
+% (rien avant : page de garde, historique des révisions, sommaire).
+\renewcommand{\footrulewidth}{0.4pt}
+\fancyfoot[L]{\small\color{graytxt}Document du \VAR{ generation_date }}
+\fancyfoot[R]{\small\color{graytxt}Page \thepage\ / \pageref{LastPage}}
+
+\chapter{Introduction et cadrage}
+
+\section{Objet du document}
+Ce Document d'Architecture Technique (DAT) décrit l'architecture cible et/ou existante de l'infrastructure de messagerie collaborative basée sur Zextras Carbonio pour le compte de \VAR{ client.name }. Il a pour vocation de servir de référentiel technique partagé entre les équipes d'exploitation (MCO), l'éditeur/intégrateur Zextras et le client, tout au long du cycle de vie de la plateforme.
+
+\section{Confidentialité}
+\BLOCK{ include "confidentiality.tex.j2" }
+
+\section{Propriété intellectuelle et usage autorisé}
+\BLOCK{ include "ip_notice.tex.j2" }
+
+\section{Contexte et enjeux}
+\placeholder{Décrire le contexte : migration depuis Zimbra/Exchange, hébergement on-premise ou cloud souverain, contraintes réglementaires (RGPD, hébergement France/UE), volumétrie utilisateurs, enjeux de continuité de service}
+
+\section{Périmètre du document}
+Sont couverts par le présent DAT, sur la base des services activés pour ce client~:
+\begin{itemize}[nosep]
+\BLOCK{ for item in scope_items }
+  \item \VAR{ item }
+\BLOCK{ endfor }
+\end{itemize}
+
+Sont explicitement exclus du périmètre~:
+\placeholder{Ex. : postes de travail clients, infrastructure réseau opérateur, applications tierces non intégrées à Carbonio}
+
+\section{Documents de référence}
+\begin{longtable}{|p{2cm}|p{8.5cm}|p{2.5cm}|}
+\hline
+\rowcolor{primary}\tblhead{Référence} & \tblhead{Titre} & \tblhead{Version} \\
+\hline
+\endhead
+REF-01 & Cahier des charges / expression de besoin & [v] \\
+\hline
+REF-02 & Plan d'Assurance Sécurité (PAS) & [v] \\
+\hline
+REF-03 & Contrat de service et SLA & [v] \\
+\hline
+REF-04 & Documentation officielle Carbonio (docs.zextras.com) & en ligne \\
+\hline
+\end{longtable}
+
+\section{Glossaire et acronymes}
+\begin{longtable}{|p{3.5cm}|p{9.5cm}|}
+\hline
+\rowcolor{primary}\tblhead{Terme} & \tblhead{Définition} \\
+\hline
+\endhead
+MTA & Mail Transfer Agent --- composant Carbonio en charge du routage SMTP entrant/sortant \\
+\hline
+LDAP & Lightweight Directory Access Protocol --- annuaire d'authentification et de profils \\
+\hline
+HSM & Hierarchical Storage Management --- gestion multi-niveaux du stockage des messages \\
+\hline
+RTO / RPO & Recovery Time/Point Objective --- délais cibles de reprise après incident \\
+\hline
+SPF / DKIM / DMARC & Mécanismes d'authentification et de lutte contre l'usurpation d'e-mails \\
+\hline
+MCO & Maintien en Conditions Opérationnelles \\
+\hline
+\end{longtable}

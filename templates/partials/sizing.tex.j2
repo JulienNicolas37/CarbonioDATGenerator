@@ -1,0 +1,15 @@
+\clearpage
+\section{Dimensionnement}
+\begin{longtable}{|p{3.2cm}|p{1.6cm}|p{1.6cm}|p{2.8cm}|p{3.5cm}|}
+\hline
+\rowcolor{primary}\tblhead{Nœud} & \tblhead{vCPU} & \tblhead{RAM} & \tblhead{Stockage} & \tblhead{Hypothèses} \\
+\hline
+\endhead
+\BLOCK{ for n in nodes }
+\BLOCK{ if n.sizing }
+\VAR{ n.id } & \VAR{ n.sizing.vcpu } & \VAR{ n.sizing.ram_gb } Go & \VAR{ n.sizing.storage_gb } Go & \textcolor{placeholdercol}{\textit{[hypothèses de charge]}} \\
+\hline
+\BLOCK{ endif }
+\BLOCK{ endfor }
+\end{longtable}
+Le dimensionnement doit intégrer une marge de croissance (typiquement 20 à 30~\% sur 12 à 24 mois) et prendre en compte le stockage secondaire HSM si l'archivage à froid est activé (S3/MinIO/Ceph compatible).

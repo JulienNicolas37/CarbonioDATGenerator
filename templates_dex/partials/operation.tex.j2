@@ -1,0 +1,46 @@
+\section{\VAR{ op.title }}
+\BLOCK{ if op.description }
+\VAR{ op.description }
+
+\BLOCK{ endif }
+\BLOCK{ if op.prerequisites }
+\dnswarning{\VAR{ op.prerequisites }}
+\BLOCK{ endif }
+\BLOCK{ if op.bullet_items }
+\begin{itemize}[nosep]
+\BLOCK{ for it in op.bullet_items }
+  \item \VAR{ it }
+\BLOCK{ endfor }
+\end{itemize}
+
+\BLOCK{ endif }
+\BLOCK{ if op.commands }
+\begin{lstlisting}
+\VAR{ op.commands_joined }
+\end{lstlisting}
+\BLOCK{ endif }
+\BLOCK{ if op.explanation }
+\VAR{ op.explanation }
+
+\BLOCK{ endif }
+\BLOCK{ if op.example_output }
+\begin{lstlisting}
+\VAR{ op.example_output }
+\end{lstlisting}
+\BLOCK{ endif }
+\BLOCK{ if op.options_table }
+\begin{longtable}{|p{5.5cm}|p{7.5cm}|}
+\hline
+\rowcolor{primary}\tblhead{Option} & \tblhead{Description} \\
+\hline
+\endhead
+\BLOCK{ for row in op.options_table }
+\VAR{ row.option } & \VAR{ row.description } \\
+\hline
+\BLOCK{ endfor }
+\end{longtable}
+
+\BLOCK{ endif }
+\BLOCK{ if op.warning }
+\dnswarning{\VAR{ op.warning }}
+\BLOCK{ endif }

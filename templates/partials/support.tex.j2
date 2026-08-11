@@ -1,0 +1,39 @@
+\chapter{Support}
+
+\section{Contact}
+\begin{itemize}[nosep]
+  \item Portail de support (ouverture de ticket)~: \url{\VAR{ support.url } }
+  \item Téléphone~: \VAR{ support.phone }
+\end{itemize}
+\textbf{Il est nécessaire d'ouvrir un ticket sur le portail de support avant d'appeler le support par téléphone.} L'appel permet de signaler l'urgence d'un ticket déjà créé, il ne remplace pas la création du ticket.
+
+\section{Niveaux de sévérité}
+Le choix de la sévérité au moment de la création du ticket conditionne le délai de prise en charge. Elle doit refléter l'impact réel constaté, pas uniquement le ressenti d'urgence.
+
+\begin{longtable}{|p{1.3cm}|p{11cm}|}
+\hline
+\rowcolor{primary}\tblhead{Sévérité} & \tblhead{Définition} \\
+\hline
+\endhead
+S1 & L'ensemble des services de la plateforme ne répond plus. \\
+\hline
+S2 & Un ou plusieurs services de la plateforme ne répondent plus. \\
+\hline
+S3 & Un dysfonctionnement est rencontré / une demande de gestion est nécessaire. \\
+\hline
+S4 & Une demande d'information. \\
+\hline
+S5 & Une demande d'évolution. \\
+\hline
+\end{longtable}
+
+\section{Que faire en cas d'urgence}
+\begin{enumerate}[nosep]
+  \item Créer un ticket avec la sévérité appropriée (\textbf{la sévérité n'est pas synonyme d'urgence} --- voir le tableau ci-dessus) sur \url{\VAR{ support.url } }.
+  \item Compléter ce ticket par un appel au support pour signaler l'urgence~: \VAR{ support.phone }.
+  \item En cas de besoin d'escalade de l'incident, contacter le responsable de production~:
+  \begin{itemize}[nosep]
+    \item \VAR{ support.escalation_name }
+    \item \VAR{ support.escalation_phone }
+  \end{itemize}
+\end{enumerate}

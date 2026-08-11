@@ -1,0 +1,197 @@
+# Catalogue des relations "standard" entre rôles Carbonio.
+#
+# Ce fichier fait partie du PROGRAMME (pas de la config client) : il
+# encode le savoir métier "qui parle à qui, sur quel protocole" pour une
+# infrastructure Carbonio standard. À partir de ce catalogue et des
+# nœuds/composants réellement déclarés dans la config client, les flux
+# réseau sont déduits automatiquement --- plutôt que d'être listés un par
+# un dans chaque fichier de configuration.
+#
+# Chaque règle relie deux RÔLES (id de composant du catalogue technique,
+# ou le marqueur spécial "network_equipment_last" désignant le dernier
+# équipement réseau déclaré --- typiquement le pare-feu) selon un sens
+# précis (from -> to). Pour CHAQUE PAIRE de nœuds réels qui héberge ces
+# deux rôles, un flux est généré dans ce sens.
+#
+# Le rôle spécial "mesh" n'est pas traité ici : voir la fonction
+# derive_flows() dans generate_dat.py, qui relie entre eux tous les nœuds
+# hébergeant le composant "mesh" (maillage complet, sans notion de sens).
+#
+# Volontairement absente de ce catalogue : la réplication LDAP
+# Master -> Replica (relation "exotique", hors standard, sans intérêt sur
+# les schémas --- décision produit).
+
+relations:
+  # --- Entrées depuis Internet ---
+  - from: network_equipment_last
+    to: proxy
+    category: web
+    label: "443 / 993 / 995"
+    protocol: "HTTPS / IMAPS / POP3S"
+    ports: [{proto: TCP, port: 443}, {proto: TCP, port: 993}, {proto: TCP, port: 995}]
+
+  - from: network_equipment_last
+    to: mta_in
+    category: smtp
+    label: "25"
+    protocol: "SMTP entrant"
+    ports: [{proto: TCP, port: 25}]
+
+  - from: network_equipment_last
+    to: mta_auth
+    category: smtp
+    label: "587"
+    protocol: "SMTP submission"
+    ports: [{proto: TCP, port: 587}]
+
+  - from: network_equipment_last
+    to: videoconf
+    category: udp_video
+    label: "UDP 20000-40000"
+    protocol: "RTP WebRTC"
+    ports: [{proto: UDP, port: "20000-40000"}]
+
+  # --- Sortie vers Internet ---
+  - from: mta_out
+    to: network_equipment_last
+    category: smtp
+    label: "25"
+    protocol: "SMTP sortant"
+    ports: [{proto: TCP, port: 25}]
+
+  # --- Proxy vers applications internes ---
+  - from: proxy
+    to: mailbox
+    category: interne
+    label: "SOAP/REST"
+    protocol: "HTTP interne"
+    ports: [{proto: TCP, port: 7071}]
+
+  - from: proxy
+    to: chat
+    category: interne
+    label: "HTTPS / WSS"
+    protocol: "Chat (WebSocket)"
+    ports: [{proto: TCP, port: 443}]
+
+  - from: proxy
+    to: tasks
+    category: interne
+    label: "HTTPS"
+    protocol: "Tasks"
+    ports: [{proto: TCP, port: 443}]
+
+  - from: proxy
+    to: files
+    category: interne
+    label: "HTTPS"
+    protocol: "Files"
+    ports: [{proto: TCP, port: 443}]
+
+  - from: proxy
+    to: docs
+    category: interne
+    label: "HTTPS"
+    protocol: "Docs (Collabora)"
+    ports: [{proto: TCP, port: 443}]
+
+  # --- MTA vers mailstore ---
+  - from: mta_in
+    to: mailbox
+    category: interne
+    label: "LMTP"
+    protocol: "Remise locale"
+    ports: [{proto: TCP, port: 7025}]
+
+  - from: mailbox
+    to: mta_out
+    category: interne
+    label: "SMTP"
+    protocol: "Relais sortant"
+    ports: [{proto: TCP, port: 25}]
+
+  # --- LDAP (Service Discover / annuaire) ---
+  - from: mailbox
+    to: directory_master
+    category: ldap
+    label: "389/636"
+    protocol: "LDAP(S)"
+    ports: [{proto: TCP, port: 389}, {proto: TCP, port: 636}]
+
+  - from: chat
+    to: directory_master
+    category: ldap
+    label: "389/636"
+    protocol: "LDAP(S)"
+    ports: [{proto: TCP, port: 389}, {proto: TCP, port: 636}]
+
+  - from: files
+    to: directory_master
+    category: ldap
+    label: "389/636"
+    protocol: "LDAP(S)"
+    ports: [{proto: TCP, port: 389}, {proto: TCP, port: 636}]
+
+  - from: docs
+    to: directory_master
+    category: ldap
+    label: "389/636"
+    protocol: "LDAP(S)"
+    ports: [{proto: TCP, port: 389}, {proto: TCP, port: 636}]
+
+  - from: tasks
+    to: directory_master
+    category: ldap
+    label: "389/636"
+    protocol: "LDAP(S)"
+    ports: [{proto: TCP, port: 389}, {proto: TCP, port: 636}]
+
+  - from: proxy
+    to: directory_master
+    category: ldap
+    label: "389/636"
+    protocol: "LDAP(S)"
+    ports: [{proto: TCP, port: 389}, {proto: TCP, port: 636}]
+
+  - from: mta_auth
+    to: directory_master
+    category: ldap
+    label: "389/636"
+    protocol: "LDAP(S) --- authentification"
+    ports: [{proto: TCP, port: 389}, {proto: TCP, port: 636}]
+
+  # --- Base de données applicative ---
+  - from: mailbox
+    to: database
+    category: interne
+    label: "5432"
+    protocol: "PostgreSQL"
+    ports: [{proto: TCP, port: 5432}]
+
+  - from: chat
+    to: database
+    category: interne
+    label: "5432"
+    protocol: "PostgreSQL"
+    ports: [{proto: TCP, port: 5432}]
+
+  - from: files
+    to: database
+    category: interne
+    label: "5432"
+    protocol: "PostgreSQL"
+    ports: [{proto: TCP, port: 5432}]
+
+  - from: docs
+    to: database
+    category: interne
+    label: "5432"
+    protocol: "PostgreSQL"
+    ports: [{proto: TCP, port: 5432}]
+
+  - from: tasks
+    to: database
+    category: interne
+    label: "5432"
+    protocol: "PostgreSQL"
+    ports: [{proto: TCP, port: 5432}]

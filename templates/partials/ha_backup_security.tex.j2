@@ -1,0 +1,31 @@
+\section{Haute disponibilité et résilience}
+\begin{itemize}[nosep]
+  \item Réplication de l'annuaire LDAP (Directory Replica) pour éviter le point de défaillance unique
+  \item Répartition de charge entre plusieurs nœuds Proxy si volumétrie ou criticité l'exigent
+  \item Réplication PostgreSQL (streaming replication) selon le niveau de service visé
+  \item Message Broker et Event Streaming pour la cohérence inter-services en configuration distribuée
+\end{itemize}
+Niveau de disponibilité cible~: \VAR{ sla.availability }.
+
+\section{Sauvegarde et restauration}
+\begin{itemize}[nosep]
+  \item Sauvegarde native Carbonio (item-level, dossier, compte) sans outillage tiers obligatoire
+  \item Politique de rétention~: \VAR{ sla.backup_retention }
+  \item RTO cible~: \VAR{ sla.rto } --- RPO cible~: \VAR{ sla.rpo }
+  \item Tests de restauration périodiques~: \placeholder{fréquence et procédure de validation}
+\end{itemize}
+
+\section{Sécurité}
+
+\subsection{Authentification et contrôle d'accès}
+\begin{itemize}[nosep]
+  \item Authentification via Carbonio Directory Server (LDAP) ou fédération avec AD/LDAP existant
+  \item Politique de mots de passe et verrouillage de compte conformes au PAS
+  \item SSO / authentification multi-facteurs si requis par le client
+\end{itemize}
+
+\subsection{Chiffrement}
+\begin{itemize}[nosep]
+  \item TLS en transit sur tous les flux clients et inter-composants (SMTP, IMAP, HTTPS)
+  \item Chiffrement au repos du stockage si exigé (disques chiffrés, HSM chiffré)
+\end{itemize}

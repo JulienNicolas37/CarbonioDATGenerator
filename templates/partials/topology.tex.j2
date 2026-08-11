@@ -1,0 +1,22 @@
+\clearpage
+\section{Topologie retenue}
+\label{sec:topologie}
+Topologie effective de la plateforme \VAR{ client.name }, telle que décrite dans le fichier de configuration~:
+
+\begin{longtable}{|p{2.3cm}|p{3.8cm}|p{2.3cm}|p{3.2cm}|p{2cm}|}
+\hline
+\rowcolor{primary}\tblhead{Nœud} & \tblhead{Hostname / IP} & \tblhead{IP publique} & \tblhead{Composants hébergés} & \tblhead{Zone} \\
+\hline
+\endhead
+\BLOCK{ for n in nodes }
+\BLOCK{ if not n.external }
+\VAR{ n.id } & \VAR{ n.hostname }\newline\VAR{ n.ip } & \VAR{ n.public_ip if n.public_ip else '---' } & \VAR{ n.components_display } & \VAR{ n.zone_label } \\
+\hline
+\BLOCK{ endif }
+\BLOCK{ endfor }
+\end{longtable}
+
+\begin{itemize}[nosep]
+  \item Les zones de type « DMZ » sont exposées publiquement ; les zones de type « LAN » restent internes et masquées derrière le(s) nœud(s) frontal(aux).
+  \item \placeholder{Adapter selon le contexte réel : haute disponibilité, répartition géographique, redondance}
+\end{itemize}

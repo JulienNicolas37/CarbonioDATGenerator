@@ -1,0 +1,57 @@
+# Descriptions "service rendu à l'utilisateur final" pour la section
+# "Services rendus aux utilisateurs" du DAT. Volontairement distinct de
+# components_catalog.yaml (qui est technique) et de son champ "commercial"
+# (technico-commercial, destiné aux décideurs) : ici, le ton s'adresse à
+# l'utilisateur final ("qu'est-ce que je peux faire avec ça").
+#
+# "trigger" indique quelle clé de "services:" active cette description
+# (plusieurs entrées de ce catalogue --- mail/calendar/contacts --- peuvent
+# être déclenchées par un seul et même composant technique "mailbox").
+
+mail:
+  order: 10
+  trigger: mailbox
+  name: "Messagerie électronique"
+  text: "Chaque utilisateur dispose d'une boîte aux lettres complète accessible depuis un navigateur, un client de messagerie (Outlook, Thunderbird...) ou un smartphone. Recherche, dossiers, règles de filtrage et signatures sont disponibles nativement."
+
+calendar:
+  order: 20
+  trigger: mailbox
+  name: "Agenda"
+  text: "Un agenda personnel et des agendas partagés permettent d'organiser des réunions, de consulter la disponibilité des collègues et de réserver des ressources (salles, matériel), avec synchronisation sur mobile."
+
+contacts:
+  order: 30
+  trigger: mailbox
+  name: "Contacts"
+  text: "Un carnet d'adresses personnel ainsi qu'un annuaire d'entreprise partagé (GAL) sont accessibles depuis tous les clients, avec suggestion automatique des contacts internes."
+
+files:
+  order: 40
+  trigger: files
+  name: "Fichiers"
+  text: "Un espace de stockage et de partage de fichiers, intégré au webmail, permet d'envoyer des pièces jointes volumineuses sous forme de lien plutôt qu'en pièce jointe, et de collaborer à plusieurs sur un même dossier."
+
+docs:
+  order: 50
+  trigger: docs
+  name: "Édition collaborative"
+  text: "Les documents bureautiques (texte, tableur, présentation) s'ouvrent et s'éditent directement dans le navigateur, à plusieurs simultanément, sans avoir besoin d'installer de suite bureautique sur le poste de travail."
+
+chat:
+  order: 60
+  trigger: chat
+  name: "Chat"
+  text: "Une messagerie instantanée d'entreprise permet des échanges en 1:1 ou en groupe, avec historique et notifications, intégrée à la même plateforme que la messagerie électronique."
+
+videoconf:
+  order: 70
+  trigger: videoconf
+  name: "Visioconférence"
+  text: "Des réunions vidéo peuvent être organisées et rejointes directement depuis l'agenda ou le Chat, sans dépendre d'un outil de visioconférence tiers ni d'un compte supplémentaire."
+
+tasks:
+  order: 80
+  trigger: tasks
+  name: "Tâches"
+  text: "Des listes de tâches personnelles ou partagées permettent de suivre des actions à faire, avec échéances et rappels, intégrées au webmail et à l'agenda."

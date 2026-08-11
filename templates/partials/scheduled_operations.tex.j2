@@ -1,0 +1,16 @@
+\section{Opérations planifiées}
+Le tableau ci-dessous liste l'ensemble des opérations planifiées (tâches cron) connues sur cette plateforme, tous nœuds confondus --- y compris, mais sans s'y limiter, les sauvegardes détaillées au \S4.2.
+
+\begin{longtable}{|p{2.6cm}|p{5.4cm}|p{5.2cm}|}
+\hline
+\rowcolor{primary}\tblhead{Nœud} & \tblhead{Opération} & \tblhead{Planification} \\
+\hline
+\endhead
+\BLOCK{ for op in scheduled_operations }
+\VAR{ op.node } & \VAR{ op.operation } & \VAR{ op.schedule_display } \\
+\hline
+\BLOCK{ endfor }
+\end{longtable}
+\BLOCK{ if not scheduled_operations }
+\placeholder{Aucune opération planifiée renseignée dans le fichier de configuration --- compléter la section \texttt{scheduled\_operations} si des tâches cron existent sur cette plateforme.}
+\BLOCK{ endif }

@@ -1,0 +1,31 @@
+\VAR{ comp.commercial }
+
+\textbf{Rôle~:} \VAR{ comp.role }
+
+\textbf{Paquets principaux~:} \BLOCK{ for p in comp.packages_list }\texttt{\VAR{ p }}\BLOCK{ if not loop.last }, \BLOCK{ endif }\BLOCK{ endfor }
+
+
+\textbf{Ports par défaut~:} \VAR{ comp.default_ports }
+
+\BLOCK{ if comp.nodes }
+\textbf{Nœud(s) hébergeant ce composant chez \VAR{ client.name }~:}
+\begin{longtable}{|p{3.2cm}|p{4.5cm}|p{3.2cm}|p{2.3cm}|}
+\hline
+\rowcolor{primary}\tblhead{Nœud} & \tblhead{Hostname} & \tblhead{IP} & \tblhead{Zone} \\
+\hline
+\endhead
+\BLOCK{ for n in comp.nodes }
+\VAR{ n.id } & \VAR{ n.hostname } & \VAR{ n.ip } & \VAR{ n.zone_label } \\
+\hline
+\BLOCK{ endfor }
+\end{longtable}
+\BLOCK{ else }
+\placeholder{Aucun nœud n'est explicitement associé à ce composant --- à compléter}
+\BLOCK{ endif }
+
+\textbf{Points d'attention réseau~:}
+\begin{itemize}[nosep]
+  \item La plage de ports UDP 20000-40000 doit être ouverte/redirigée vers ce nœud (flux RTP WebRTC) --- dimensionner le pare-feu et le NAT en conséquence.
+  \item Le paramètre \texttt{nat\_1\_1\_mapping} du fichier \texttt{/etc/janus/janus.jcfg} doit correspondre à l'IP publique réellement joignable par les clients (attention aux configurations avec IP entrante/sortante différentes).
+  \item Le Video Server historique (« Legacy Videoserver ») est déprécié au profit du composant Video Server \& Video Recording actuel ; vérifier la version effectivement déployée chez le client.
+\end{itemize}

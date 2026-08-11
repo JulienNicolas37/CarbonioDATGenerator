@@ -1,0 +1,34 @@
+# Fonctionnalités Carbonio confirmées absentes de la Community Edition
+# (CE) --- catalogue VOLONTAIREMENT CONSERVATEUR : seules les restrictions
+# confirmées par au moins une source officielle Zextras (zextras.com,
+# forum communautaire) y figurent (voir CLAUDE.md pour le détail des
+# sources). Julien : à étendre avec le tableau de comparaison officiel
+# Zextras si une couverture plus large est nécessaire.
+#
+# Utilisé par generate_dex.py (champ "ce_feature:" d'une brique) pour
+# retirer automatiquement les briques sans objet chez un client en
+# Community Edition. Utilisé aussi par generate_dat.py pour signaler une
+# configuration incohérente (ex. HSM activé alors que le client est en CE).
+
+restrictions:
+  backup:
+    name: "Sauvegarde native Carbonio (Carbonio Backup)"
+    ce_available: false
+    note: "Carbonio CE n'a pas de système de sauvegarde intégré --- un outil externe est nécessaire."
+
+  hsm:
+    name: "Hierarchical Storage Management (HSM)"
+    ce_available: false
+    note: "Gestion multi-niveaux du stockage (primaire/secondaire, ex. S3) --- édition payante uniquement."
+
+  legal_hold:
+    name: "Legal Hold"
+    ce_available: false
+
+  mdm:
+    name: "Gestion des terminaux mobiles (Mobile Device Management)"
+    ce_available: false
+
+  white_labeling:
+    name: "Personnalisation de marque (white-labeling)"
+    ce_available: false

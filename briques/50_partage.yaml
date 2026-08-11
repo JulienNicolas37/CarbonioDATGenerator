@@ -1,0 +1,29 @@
+brique: "Partages"
+# "components" : nœuds concernés listés en mode --client (meilleure
+# estimation --- à ajuster si besoin). Pas de "services" ici : brique
+# universelle, toujours incluse quelle que soit la config client.
+components: [mailbox]
+
+intro: |
+  Carbonio permet de partager tout ou partie de son espace personnel
+  (dossiers de messagerie, agenda, contacts) avec d'autres comptes de la
+  plateforme, avec un niveau de droit précis (lecture, écriture,
+  administration...). Le "partage racine" décrit ici est le cas le plus
+  large : il porte sur l'intégralité de l'arborescence d'un compte.
+
+operations:
+  - title: "Ajout d'un partage racine"
+    description: |
+      Cette procédure indique comment créer un partage racine entre deux comptes de
+      messagerie. Le partage inclut toute l'arborescence :
+    items:
+      - "Des dossiers mails"
+      - "Des dossiers calendriers"
+      - "Des dossiers contacts"
+    explanation: |
+      D'où le terme partage « racine ». Dans la commande qui suit, nous désignons
+      albert@domaine.tld comme le compte émetteur du partage et john@domaine.tld comme
+      le compte receveur.
+    commands:
+      - "zmprov sm albert@domaine.tld modifyFolderGrant / account john@domaine.tld rdwxia"
+    warning: "john@domaine.tld reçoit l'accès à l'arborescence complète du compte albert@domaine.tld, en écriture et lecture."

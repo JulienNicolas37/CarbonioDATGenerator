@@ -1,0 +1,1936 @@
+\documentclass[11pt,a4paper]{report}
+
+\usepackage{fontspec}
+\setmainfont{Open Sans}
+\usepackage[french]{babel}
+\usepackage[a4paper,top=3.1cm,bottom=2.7cm,left=2.3cm,right=2.3cm,headheight=1.6cm,headsep=0.5cm]{geometry}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{longtable}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{colortbl}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{tabularx}
+\usepackage{parskip}
+\usepackage{lastpage}
+\usepackage{tikz}
+\usepackage{adjustbox}
+\usepackage{pdflscape}
+\usetikzlibrary{arrows.meta, positioning, fit, backgrounds, shapes.geometric}
+
+% ---------- Couleurs ----------
+\definecolor{primary}{HTML}{1F3864}
+\definecolor{accent}{HTML}{2E74B5}
+\definecolor{lightbg}{HTML}{DDEBF7}
+\definecolor{graytxt}{HTML}{595959}
+\definecolor{placeholdercol}{HTML}{C00000}
+
+% ---------- Titres ----------
+\titleformat{\chapter}[hang]{\Large\bfseries\color{primary}}{\thechapter.}{0.6em}{}
+\titlespacing{\chapter}{0pt}{0pt}{1.2em}
+\titleformat{\section}{\large\bfseries\color{accent}}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\normalsize\bfseries\color{graytxt}}{\thesubsection}{0.6em}{}
+\titleformat{\subsubsection}{\normalsize\bfseries\color{graytxt}}{\thesubsubsection}{0.6em}{}
+\titleformat{\paragraph}{\normalsize\bfseries\itshape\color{graytxt}}{}{0em}{}
+\titlespacing{\paragraph}{0pt}{0.8em}{0.4em}
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+
+% ---------- En-tête / pied de page (logos client + intégrateur) ----------
+\pagestyle{fancy}
+\fancyhf{}
+% \chapter réinitialise normalement le style de page en "plain" sur sa
+% première page (comportement standard des classes report/book) : on force
+% ici la conservation du style "fancy" (logos) sur CETTE page également.
+\assignpagestyle{\chapter}{fancy}
+\renewcommand{\headrulewidth}{0.4pt}
+\fancyhead[L]{\includegraphics[height=1.1cm]{client_logo.png}}
+\fancyhead[R]{\includegraphics[height=1.1cm]{integrator_logo.png}}
+% Le pied de page (date de génération + pagination) n'est activé qu'à
+% partir de la première page du chapitre 1 (voir intro.tex.j2) : la page de
+% garde, l'historique des révisions et le sommaire n'en ont pas.
+
+% ---------- Commande pour placeholders ----------
+\newcommand{\placeholder}[1]{\textit{\textcolor{placeholdercol}{[#1]}}\par\vspace{4pt}}
+\newcommand{\dnswarning}[1]{\textbf{\textcolor{placeholdercol}{\textbullet\ Attention~: #1}}\par\vspace{4pt}}
+
+% ---------- Hyperliens ----------
+\hypersetup{
+  colorlinks=true,
+  linkcolor=accent,
+  citecolor=accent,
+  urlcolor=accent,
+  pdftitle={DAT - Université d'Amboise},
+  pdfauthor={Julien Nicolas}
+}
+
+% ---------- En-tête de tableau réutilisable ----------
+% \rowcolor doit être appelé UNE SEULE FOIS par ligne (avant la 1re cellule) :
+% utiliser \rowcolor{primary} au début de la ligne, puis \tblhead{...} par cellule.
+\newcommand{\tblhead}[1]{\textcolor{white}{\textbf{#1}}}
+
+% Le contenu de ce document est en partie généré dynamiquement (hostnames,
+% noms de paquets...) et peut donc contenir des chaînes longues et non
+% césurables par les règles d'hyphénation françaises. \sloppy assouplit les
+% contraintes de justification pour éviter les dépassements de marge.
+\sloppy
+
+\begin{document}
+
+\begin{titlepage}
+\centering
+\vspace*{1.5cm}
+\includegraphics[height=3cm]{client_logo.png}\par
+\vspace{1.2cm}
+{\Huge\bfseries\color{primary} DOCUMENT D'ARCHITECTURE TECHNIQUE (DAT)\par}
+\vspace{0.8cm}
+{\LARGE\bfseries\color{accent} Infrastructure de messagerie Zextras Carbonio\par}
+\vspace{0.5cm}
+{\Large\itshape\color{graytxt} Maintien en Conditions Opérationnelles (MCO)\par}
+\vspace{3cm}
+
+\renewcommand{\arraystretch}{1.8}
+\begin{tabular}{|>{\columncolor{primary}\color{white}\bfseries}m{4.2cm}|m{9cm}|}
+\hline
+Client & Université d'Amboise \\
+\hline
+Périmètre & Messagerie, agenda, contacts, mobilité, chat, tâches, fichiers, visioconférence -\allowbreak{}-\allowbreak{}-\allowbreak{} infrastructure haute disponibilité \\
+\hline
+Prestataire & Zextras Services \\
+\hline
+Rédacteur & Julien Nicolas \\
+\hline
+Version du document & 1.\allowbreak{}0 \\
+\hline
+Date & 04/08/2026 \\
+\hline
+Classification & Confidentiel \\
+\hline
+\end{tabular}
+\end{titlepage}
+
+\clearpage
+
+\chapter*{Historique des révisions}
+\addcontentsline{toc}{chapter}{Historique des révisions}
+\renewcommand{\arraystretch}{1.3}
+\begin{longtable}{|p{1.8cm}|p{2.5cm}|p{3.5cm}|p{6.5cm}|}
+\hline
+\rowcolor{primary}\tblhead{Version} & \tblhead{Date} & \tblhead{Auteur} & \tblhead{Nature de la modification} \\
+\hline
+\endhead
+0.\allowbreak{}1 & [date] & Julien Nicolas & Création initiale \\
+\hline
+1.\allowbreak{}0 & 04/08/2026 & Julien Nicolas & Version générée automatiquement \\
+\hline
+\end{longtable}
+
+\clearpage
+\tableofcontents
+\clearpage
+
+% Pied de page actif à partir de cette page et jusqu'à la fin du document
+% (rien avant : page de garde, historique des révisions, sommaire).
+\renewcommand{\footrulewidth}{0.4pt}
+\fancyfoot[L]{\small\color{graytxt}Document du 07/08/2026}
+\fancyfoot[R]{\small\color{graytxt}Page \thepage\ / \pageref{LastPage}}
+
+\chapter{Introduction et cadrage}
+
+\section{Objet du document}
+Ce Document d'Architecture Technique (DAT) décrit l'architecture cible et/ou existante de l'infrastructure de messagerie collaborative basée sur Zextras Carbonio pour le compte de Université d'Amboise. Il a pour vocation de servir de référentiel technique partagé entre les équipes d'exploitation (MCO), l'éditeur/intégrateur Zextras et le client, tout au long du cycle de vie de la plateforme.
+
+\section{Contexte et enjeux}
+\placeholder{Décrire le contexte : migration depuis Zimbra/Exchange, hébergement on-premise ou cloud souverain, contraintes réglementaires (RGPD, hébergement France/UE), volumétrie utilisateurs, enjeux de continuité de service}
+
+\section{Périmètre du document}
+Sont couverts par le présent DAT, sur la base des services activés pour ce client~:
+\begin{itemize}[nosep]
+  \item Authentification et annuaire d'entreprise -\allowbreak{}-\allowbreak{}-\allowbreak{} nœud maître (LDAP)
+  \item Authentification et annuaire d'entreprise -\allowbreak{}-\allowbreak{}-\allowbreak{} réplique(s) en lecture (LDAP)
+  \item Persistance des données applicatives (PostgreSQL)
+  \item Messagerie électronique (SMTP/IMAP/POP3), agenda et contacts
+  \item Accès webmail et synchronisation mobile (ActiveSync / EAS)
+  \item Réception du courrier entrant (antispam/antivirus, SPF/DKIM/DMARC)
+  \item Émission du courrier sortant (signature DKIM)
+  \item Soumission authentifiée des e-\allowbreak{}mails sortants des utilisateurs
+  \item Stockage de fichiers et partage documentaire (Carbonio Files)
+  \item Édition collaborative de documents bureautiques en ligne (Collabora Online / LibreOffice Online)
+  \item Messagerie instantanée d'entreprise (Chat -\allowbreak{}-\allowbreak{}-\allowbreak{} Carbonio Workstream Collaboration)
+  \item Visioconférence et réunions vidéo (Carbonio Workstream Collaboration -\allowbreak{}-\allowbreak{}-\allowbreak{} Video Server)
+  \item Gestion de tâches et listes de choses à faire (Carbonio Tasks)
+  \item Supervision et remontée de métriques de la plateforme
+\end{itemize}
+
+Sont explicitement exclus du périmètre~:
+\placeholder{Ex. : postes de travail clients, infrastructure réseau opérateur, applications tierces non intégrées à Carbonio}
+
+\section{Documents de référence}
+\begin{longtable}{|p{2cm}|p{8.5cm}|p{2.5cm}|}
+\hline
+\rowcolor{primary}\tblhead{Référence} & \tblhead{Titre} & \tblhead{Version} \\
+\hline
+\endhead
+REF-01 & Cahier des charges / expression de besoin & [v] \\
+\hline
+REF-02 & Plan d'Assurance Sécurité (PAS) & [v] \\
+\hline
+REF-03 & Contrat de service et SLA & [v] \\
+\hline
+REF-04 & Documentation officielle Carbonio (docs.zextras.com) & en ligne \\
+\hline
+\end{longtable}
+
+\section{Glossaire et acronymes}
+\begin{longtable}{|p{3.5cm}|p{9.5cm}|}
+\hline
+\rowcolor{primary}\tblhead{Terme} & \tblhead{Définition} \\
+\hline
+\endhead
+MTA & Mail Transfer Agent --- composant Carbonio en charge du routage SMTP entrant/sortant \\
+\hline
+LDAP & Lightweight Directory Access Protocol --- annuaire d'authentification et de profils \\
+\hline
+HSM & Hierarchical Storage Management --- gestion multi-niveaux du stockage des messages \\
+\hline
+RTO / RPO & Recovery Time/Point Objective --- délais cibles de reprise après incident \\
+\hline
+SPF / DKIM / DMARC & Mécanismes d'authentification et de lutte contre l'usurpation d'e-mails \\
+\hline
+MCO & Maintien en Conditions Opérationnelles \\
+\hline
+\end{longtable}
+
+\chapter{Parties prenantes}
+
+\section{Client --- Université d'Amboise}
+Université d'Amboise (fictive) -\allowbreak{}-\allowbreak{}-\allowbreak{} établissement d'enseignement supérieur utilisé comme cas d'exemple d'infrastructure haute disponibilité pour ce générateur de DAT, avec une population mixte personnel/étudiants (deux domaines de messagerie distincts).\allowbreak{}
+
+\begin{itemize}[nosep]
+  \item Site web~: \url{https://www.univ-amboise.fr }
+  \item Adresse~: Place du Château, 37400 Amboise
+  \item Téléphone d'urgence~: +33 2 47 00 00 00
+\end{itemize}
+
+\begin{longtable}{|p{3cm}|p{3cm}|p{4.3cm}|p{2.7cm}|}
+\hline
+\rowcolor{primary}\tblhead{Nom} & \tblhead{Rôle} & \tblhead{E-mail} & \tblhead{Téléphone} \\
+\hline
+\endhead
+Sophie Durand & Responsable de projet & \href{mailto:sophie.durand@univ-amboise.fr}{sophie.\allowbreak{}durand@\allowbreak{}univ-\allowbreak{}amboise.\allowbreak{}fr} & +33 2 47 00 00 01 \\
+\hline
+Marc Lefèvre & Responsable technique & \href{mailto:marc.lefevre@univ-amboise.fr}{marc.\allowbreak{}lefevre@\allowbreak{}univ-\allowbreak{}amboise.\allowbreak{}fr} & +33 2 47 00 00 02 \\
+\hline
+Amina Kaced & Intervenant technique & \href{mailto:amina.kaced@univ-amboise.fr}{amina.\allowbreak{}kaced@\allowbreak{}univ-\allowbreak{}amboise.\allowbreak{}fr} &  \\
+\hline
+Thomas Roux & Intervenant technique & \href{mailto:thomas.roux@univ-amboise.fr}{thomas.\allowbreak{}roux@\allowbreak{}univ-\allowbreak{}amboise.\allowbreak{}fr} &  \\
+\hline
+\end{longtable}
+
+\section{Intégrateur --- Zextras Services}
+Zextras Services est la filiale française du groupe Zextras, présente en France depuis 2017 et spécialisée dans l'accompagnement des organisations dans la mise en œuvre, l'exploitation et l'évolution de leurs plateformes collaboratives.\allowbreak{} Forte d'une équipe d'experts reconnus pour leur maîtrise d'environnements critiques et à grande échelle, l'entreprise intervient à chaque étape des projets, depuis les phases de conception jusqu'au maintien en conditions opérationnelles.\allowbreak{} Ses compétences couvrent le déploiement de solutions en cloud souverain, sur site ou en architecture hybride, ainsi que la migration de plateformes complexes tout en garantissant la continuité des services.\allowbreak{} Zextras Services accompagne également les organisations dans la conduite du changement, le transfert de compétences et la montée en autonomie des équipes techniques et fonctionnelles.\allowbreak{} L'entreprise assure l'exploitation et le maintien en conditions opérationnelles d'infrastructures pouvant accueillir jusqu'à près d'un million d'utilisateurs, avec des exigences élevées en matière de disponibilité, de sécurité et de performance.\allowbreak{} Son offre comprend enfin un support technique de niveaux 2 et 3, assuré par des ingénieurs spécialisés, afin d'apporter une expertise avancée et un accompagnement durable tout au long du cycle de vie des plateformes.\allowbreak{}
+
+\begin{itemize}[nosep]
+  \item Site web~: \url{https://www.zextras-services.fr }
+  \item Adresse~: 1 allée Ferdinand de Lesseps, 37200 Tours
+\end{itemize}
+
+\begin{longtable}{|p{3cm}|p{3cm}|p{4.3cm}|p{2.7cm}|}
+\hline
+\rowcolor{primary}\tblhead{Nom} & \tblhead{Rôle} & \tblhead{E-mail} & \tblhead{Téléphone} \\
+\hline
+\endhead
+Julien NICOLAS & Responsable projet & \href{mailto:julien.nicolas@zextras.fr}{julien.\allowbreak{}nicolas@\allowbreak{}zextras.\allowbreak{}fr} & 06 69 40 25 96 \\
+\hline
+Laurent FRANÇOISE & Responsable technique & \href{mailto:laurent.francoise@zextras.fr}{laurent.\allowbreak{}francoise@\allowbreak{}zextras.\allowbreak{}fr} &  \\
+\hline
+\end{longtable}
+
+
+\chapter{Solution Zextras Carbonio}
+
+\section{Présentation générale}
+Zextras Carbonio est une plateforme collaborative unifiée conçue pour centraliser l'ensemble des outils de communication et de collaboration au sein d'une seule solution. Elle intègre les services de messagerie électronique, calendriers, contacts, gestion des tâches, partage de fichiers, messagerie instantanée, visioconférence et collaboration documentaire, accessibles depuis une interface web moderne ainsi que depuis des applications mobiles.
+
+Pensée autour des principes de souveraineté numérique, la plateforme permet aux organisations de conserver la maîtrise de leurs données, de leur infrastructure et de leurs politiques de sécurité, qu'elles choisissent un déploiement sur site ou dans un environnement cloud maîtrisé. Son architecture modulaire offre une grande souplesse de déploiement et d'évolution afin de répondre aux besoins d'organisations de toutes tailles.
+
+La plateforme met l'accent sur la sécurité des données grâce à des mécanismes d'authentification avancés, au chiffrement des communications et à une gestion fine des droits d'accès. Elle s'appuie sur des standards ouverts afin de favoriser l'interopérabilité avec les outils et infrastructures existants.
+
+Les fonctionnalités de partage, de coédition et de communication en temps réel facilitent le travail collaboratif, aussi bien en présentiel qu'à distance. Les outils d'administration permettent de gérer les utilisateurs, les domaines, les politiques de sécurité et les ressources de manière centralisée. La solution intègre également des mécanismes de sauvegarde, d'archivage et de restauration afin d'assurer la protection et la continuité des données.
+
+Grâce à son interface intuitive et à son approche centrée sur l'expérience utilisateur, Zextras Carbonio constitue un environnement de travail numérique complet, sécurisé, évolutif et résolument orienté vers la maîtrise des données et la souveraineté des systèmes d'information.
+
+Carbonio se déploie aussi bien on-premise que chez un hébergeur partenaire, ce qui permet de maîtriser la localisation des données --- point d'attention fréquent des clients publics ou soumis à des contraintes réglementaires (RGPD, hébergement en France/UE).
+
+\section{Version déployée et documentation}
+\begin{longtable}{|p{4.5cm}|p{8.5cm}|}
+\hline
+\rowcolor{primary}\tblhead{Information} & \tblhead{Valeur} \\
+\hline
+\endhead
+Version déployée & 25.\allowbreak{}9.\allowbreak{}0 \\
+\hline
+Date de sortie de cette version & 30/09/2025 \\
+\hline
+Vérifier la version actuellement supportée & \url{https://docs.zextras.com/en/carbonio-release-notes/latest } \\
+\hline
+Documentation utilisateur & \url{https://docs.zextras.com/en/user-guide } \\
+\hline
+Documentation administrateur & \url{https://docs.zextras.com/en/carbonio-admin-guide } \\
+\hline
+\end{longtable}
+\placeholder{Vérifier périodiquement que la version déployée est toujours dans son cycle de support --- se référer au lien ci-dessus.}
+
+Les modules effectivement activés sur cette plateforme sont listés au \S\ref{sec:archi-detaillee} (« Composants Carbonio et rôles »), chacun introduit par une description de son intérêt technico-commercial.
+
+\section{Licence}
+Les fonctionnalités et volumétries ci-dessous sont celles couvertes par le contrat de licence en vigueur pour Université d'Amboise. Toute évolution (ajout de comptes, activation d'un module) nécessite un avenant au contrat de licence.
+\begin{longtable}{|p{7cm}|p{6cm}|}
+\hline
+\rowcolor{primary}\tblhead{Élément de licence} & \tblhead{Valeur} \\
+\hline
+\endhead
+Nombre de comptes & 6000 \\
+\hline
+Nombre d'accès ActiveSync (mobilité) & 2000 \\
+\hline
+Chat & Oui \\
+\hline
+Authentification à deux facteurs (2FA) & Oui \\
+\hline
+Stockage compatible S3 & Oui \\
+\hline
+Visioconférence & Oui \\
+\hline
+Fichiers (Drive) & Oui \\
+\hline
+\end{longtable}
+
+\chapter{Architecture fonctionnelle}
+
+\section{Services rendus aux utilisateurs}
+\subsection{Messagerie électronique}
+Chaque utilisateur dispose d'une boîte aux lettres complète accessible depuis un navigateur, un client de messagerie (Outlook, Thunderbird.\allowbreak{}.\allowbreak{}.\allowbreak{}) ou un smartphone.\allowbreak{} Recherche, dossiers, règles de filtrage et signatures sont disponibles nativement.\allowbreak{}
+
+\subsection{Agenda}
+Un agenda personnel et des agendas partagés permettent d'organiser des réunions, de consulter la disponibilité des collègues et de réserver des ressources (salles, matériel), avec synchronisation sur mobile.\allowbreak{}
+
+\subsection{Contacts}
+Un carnet d'adresses personnel ainsi qu'un annuaire d'entreprise partagé (GAL) sont accessibles depuis tous les clients, avec suggestion automatique des contacts internes.\allowbreak{}
+
+\subsection{Fichiers}
+Un espace de stockage et de partage de fichiers, intégré au webmail, permet d'envoyer des pièces jointes volumineuses sous forme de lien plutôt qu'en pièce jointe, et de collaborer à plusieurs sur un même dossier.\allowbreak{}
+
+\subsection{Édition collaborative}
+Les documents bureautiques (texte, tableur, présentation) s'ouvrent et s'éditent directement dans le navigateur, à plusieurs simultanément, sans avoir besoin d'installer de suite bureautique sur le poste de travail.\allowbreak{}
+
+\subsection{Chat}
+Une messagerie instantanée d'entreprise permet des échanges en 1:1 ou en groupe, avec historique et notifications, intégrée à la même plateforme que la messagerie électronique.\allowbreak{}
+
+\subsection{Visioconférence}
+Des réunions vidéo peuvent être organisées et rejointes directement depuis l'agenda ou le Chat, sans dépendre d'un outil de visioconférence tiers ni d'un compte supplémentaire.\allowbreak{}
+
+\subsection{Tâches}
+Des listes de tâches personnelles ou partagées permettent de suivre des actions à faire, avec échéances et rappels, intégrées au webmail et à l'agenda.\allowbreak{}
+
+
+\subsection{Authentification et protocoles d'accès}
+Méthode(s) d'authentification activée(s) sur cette plateforme (voir le détail complet au chapitre Authentification)~:
+\begin{itemize}[nosep]
+  \item Authentification native (login/mot de passe Carbonio)
+  \item Authentification externe LDAP/AD
+  \item Authentification SAML2 (SSO)
+\end{itemize}
+
+Protocole(s) d'accès autorisés pour les utilisateurs~:
+\begin{itemize}[nosep]
+  \item HTTPS (webmail)
+  \item IMAPS
+  \item POP3S
+  \item ActiveSync (EAS, mobilité)
+  \item SMTP submission authentifié (587)
+\end{itemize}
+
+\subsection{Protection anti-spam et anti-virus}
+Voir le détail complet au \S\ref{sec:reputation} (« Légitimité et réputation de la plateforme »). Paramètres retenus pour Université d'Amboise~:
+
+\begin{longtable}{|p{7cm}|p{6cm}|}
+\hline
+\rowcolor{primary}\tblhead{Paramètre} & \tblhead{Valeur} \\
+\hline
+\endhead
+Nom du système anti-spam / anti-virus & Vade for Zextras \\
+\hline
+Filtrage sortant & Oui \\
+\hline
+Filtrage entrant & Oui \\
+\hline
+Quarantaine possible & Oui \\
+\hline
+Domaines dont le DKIM est géré par l'AS/AV & etu.\allowbreak{}univ-\allowbreak{}amboise.\allowbreak{}fr \\
+\hline
+\end{longtable}
+
+\chapter{Architecture technique détaillée}
+\label{sec:archi-detaillee}
+
+\section{Vue d'ensemble de l'infrastructure}
+\begin{longtable}{|p{2.6cm}|p{5cm}|p{1.6cm}|p{1.6cm}|p{2.7cm}|}
+\hline
+\rowcolor{primary}\tblhead{Nœud} & \tblhead{Rôle(s)} & \tblhead{RAM} & \tblhead{CPU} & \tblhead{OS} \\
+\hline
+\endhead
+proxy01 & Proxy & 8 Go & 4 vCPU & Rocky Linux 9 \\
+\hline
+proxy02 & Proxy & 8 Go & 4 vCPU & Rocky Linux 9 \\
+\hline
+mta\_in01 & MTA IN & 4 Go & 2 vCPU & Rocky Linux 9 \\
+\hline
+mta\_in02 & MTA IN & 4 Go & 2 vCPU & Rocky Linux 9 \\
+\hline
+mta\_out01 & MTA OUT & 4 Go & 2 vCPU & Rocky Linux 9 \\
+\hline
+mta\_out02 & MTA OUT & 4 Go & 2 vCPU & Rocky Linux 9 \\
+\hline
+mta\_auth01 & MTA AUTH & 4 Go & 2 vCPU & Rocky Linux 9 \\
+\hline
+mta\_auth02 & MTA AUTH & 4 Go & 2 vCPU & Rocky Linux 9 \\
+\hline
+video01 & Visioconférence (Video Server) & 8 Go & 4 vCPU & Rocky Linux 9 \\
+\hline
+mail01 & Mesh, Mailstore & 16 Go & 8 vCPU & Rocky Linux 9 \\
+\hline
+mail02 & Mesh, Mailstore & 16 Go & 8 vCPU & Rocky Linux 9 \\
+\hline
+mail03 & Mesh, Mailstore & 16 Go & 8 vCPU & Rocky Linux 9 \\
+\hline
+application01 & Mesh, Chat (Workstream Collaboration), Tasks & 8 Go & 4 vCPU & Rocky Linux 9 \\
+\hline
+application02 & Mesh, Files, Docs (édition collaborative) & 8 Go & 4 vCPU & Rocky Linux 9 \\
+\hline
+services01 & Mesh, Directory Master (LDAP) & 8 Go & 4 vCPU & Rocky Linux 9 \\
+\hline
+services02 & Mesh, Directory Replica (LDAP) & 8 Go & 4 vCPU & Rocky Linux 9 \\
+\hline
+services03 & Mesh, Database & 8 Go & 4 vCPU & Rocky Linux 9 \\
+\hline
+\end{longtable}
+
+\clearpage
+\section{Topologie retenue}
+\label{sec:topologie}
+Topologie effective de la plateforme Université d'Amboise, telle que décrite dans le fichier de configuration~:
+
+\begin{longtable}{|p{2.3cm}|p{3.8cm}|p{2.3cm}|p{3.2cm}|p{2cm}|}
+\hline
+\rowcolor{primary}\tblhead{Nœud} & \tblhead{Hostname / IP} & \tblhead{IP publique} & \tblhead{Composants hébergés} & \tblhead{Zone} \\
+\hline
+\endhead
+proxy01 & proxy01.\allowbreak{}exemple.\allowbreak{}fr\newline192.\allowbreak{}0.\allowbreak{}2.\allowbreak{}11 & 203.\allowbreak{}0.\allowbreak{}113.\allowbreak{}11 & Proxy & Zone Publique (DMZ) \\
+\hline
+proxy02 & proxy02.\allowbreak{}exemple.\allowbreak{}fr\newline192.\allowbreak{}0.\allowbreak{}2.\allowbreak{}12 & 203.\allowbreak{}0.\allowbreak{}113.\allowbreak{}12 & Proxy & Zone Publique (DMZ) \\
+\hline
+mta\_in01 & mta-\allowbreak{}in01.\allowbreak{}exemple.\allowbreak{}fr\newline192.\allowbreak{}0.\allowbreak{}2.\allowbreak{}21 & 203.\allowbreak{}0.\allowbreak{}113.\allowbreak{}21 & MTA IN & Zone Publique (DMZ) \\
+\hline
+mta\_in02 & mta-\allowbreak{}in02.\allowbreak{}exemple.\allowbreak{}fr\newline192.\allowbreak{}0.\allowbreak{}2.\allowbreak{}22 & 203.\allowbreak{}0.\allowbreak{}113.\allowbreak{}22 & MTA IN & Zone Publique (DMZ) \\
+\hline
+mta\_out01 & mta-\allowbreak{}out01.\allowbreak{}exemple.\allowbreak{}fr\newline192.\allowbreak{}0.\allowbreak{}2.\allowbreak{}23 & 203.\allowbreak{}0.\allowbreak{}113.\allowbreak{}23 & MTA OUT & Zone Publique (DMZ) \\
+\hline
+mta\_out02 & mta-\allowbreak{}out02.\allowbreak{}exemple.\allowbreak{}fr\newline192.\allowbreak{}0.\allowbreak{}2.\allowbreak{}24 & 203.\allowbreak{}0.\allowbreak{}113.\allowbreak{}24 & MTA OUT & Zone Publique (DMZ) \\
+\hline
+mta\_auth01 & mta-\allowbreak{}auth01.\allowbreak{}exemple.\allowbreak{}fr\newline192.\allowbreak{}0.\allowbreak{}2.\allowbreak{}25 & 203.\allowbreak{}0.\allowbreak{}113.\allowbreak{}25 & MTA AUTH & Zone Publique (DMZ) \\
+\hline
+mta\_auth02 & mta-\allowbreak{}auth02.\allowbreak{}exemple.\allowbreak{}fr\newline192.\allowbreak{}0.\allowbreak{}2.\allowbreak{}26 & 203.\allowbreak{}0.\allowbreak{}113.\allowbreak{}26 & MTA AUTH & Zone Publique (DMZ) \\
+\hline
+video01 & video01.\allowbreak{}exemple.\allowbreak{}fr\newline192.\allowbreak{}0.\allowbreak{}2.\allowbreak{}30 & 203.\allowbreak{}0.\allowbreak{}113.\allowbreak{}30 & Visioconférence (Video Server) & Zone Publique (DMZ) \\
+\hline
+mail01 & mailstore01.\allowbreak{}exemple.\allowbreak{}local\newline10.\allowbreak{}0.\allowbreak{}1.\allowbreak{}11 & --- & Mesh, Mailstore & Zone Privée (LAN) \\
+\hline
+mail02 & mailstore02.\allowbreak{}exemple.\allowbreak{}local\newline10.\allowbreak{}0.\allowbreak{}1.\allowbreak{}12 & --- & Mesh, Mailstore & Zone Privée (LAN) \\
+\hline
+mail03 & mailstore03.\allowbreak{}exemple.\allowbreak{}local\newline10.\allowbreak{}0.\allowbreak{}1.\allowbreak{}13 & --- & Mesh, Mailstore & Zone Privée (LAN) \\
+\hline
+application01 & application01.\allowbreak{}exemple.\allowbreak{}local\newline10.\allowbreak{}0.\allowbreak{}1.\allowbreak{}20 & --- & Mesh, Chat (Workstream Collaboration), Tasks & Zone Privée (LAN) \\
+\hline
+application02 & application02.\allowbreak{}exemple.\allowbreak{}local\newline10.\allowbreak{}0.\allowbreak{}1.\allowbreak{}21 & --- & Mesh, Files, Docs (édition collaborative) & Zone Privée (LAN) \\
+\hline
+services01 & services01.\allowbreak{}exemple.\allowbreak{}local\newline10.\allowbreak{}0.\allowbreak{}1.\allowbreak{}30 & --- & Mesh, Directory Master (LDAP) & Zone Privée (LAN) \\
+\hline
+services02 & services02.\allowbreak{}exemple.\allowbreak{}local\newline10.\allowbreak{}0.\allowbreak{}1.\allowbreak{}31 & --- & Mesh, Directory Replica (LDAP) & Zone Privée (LAN) \\
+\hline
+services03 & services03.\allowbreak{}exemple.\allowbreak{}local\newline10.\allowbreak{}0.\allowbreak{}1.\allowbreak{}32 & --- & Mesh, Database & Zone Privée (LAN) \\
+\hline
+\end{longtable}
+
+\begin{itemize}[nosep]
+  \item Les zones de type « DMZ » sont exposées publiquement ; les zones de type « LAN » restent internes et masquées derrière le(s) nœud(s) frontal(aux).
+  \item \placeholder{Adapter selon le contexte réel : haute disponibilité, répartition géographique, redondance}
+\end{itemize}
+
+\section{Système de sauvegarde des nœuds}
+Le tableau ci-dessous indique, pour chaque nœud applicatif, si une sauvegarde est planifiée ainsi que sa fréquence et ses horaires d'exécution.
+
+\begin{longtable}{|p{3.2cm}|p{2.4cm}|p{7.6cm}|}
+\hline
+\rowcolor{primary}\tblhead{Nœud} & \tblhead{Sauvegarde} & \tblhead{Planification} \\
+\hline
+\endhead
+proxy01 & Non & --- \\
+\hline
+proxy02 & Non & --- \\
+\hline
+mta\_in01 & Non & --- \\
+\hline
+mta\_in02 & Non & --- \\
+\hline
+mta\_out01 & Non & --- \\
+\hline
+mta\_out02 & Non & --- \\
+\hline
+mta\_auth01 & Non & --- \\
+\hline
+mta\_auth02 & Non & --- \\
+\hline
+video01 & Non & --- \\
+\hline
+mail01 & Oui & Lundi-\allowbreak{}Vendredi : 01:00; Samedi-\allowbreak{}Dimanche : 01:00, 13:00 \\
+\hline
+mail02 & Oui & Lundi-\allowbreak{}Vendredi : 01:15; Samedi-\allowbreak{}Dimanche : 01:15, 13:15 \\
+\hline
+mail03 & Oui & Lundi-\allowbreak{}Vendredi : 01:30; Samedi-\allowbreak{}Dimanche : 01:30, 13:30 \\
+\hline
+application01 & Non & --- \\
+\hline
+application02 & Non & --- \\
+\hline
+services01 & Non & --- \\
+\hline
+services02 & Non & --- \\
+\hline
+services03 & Non & --- \\
+\hline
+\end{longtable}
+
+\section{Légende des catégories de flux}
+Seules les catégories de flux effectivement utilisées dans cette infrastructure sont listées ci-dessous ; cette légende est reprise sur chacun des schémas suivants.
+
+\definecolor{flowcat_web}{HTML}{2E74B5}
+\definecolor{flowcat_smtp}{HTML}{B08600}
+\definecolor{flowcat_ldap}{HTML}{6A3D9A}
+\definecolor{flowcat_udp_video}{HTML}{C0392B}
+\definecolor{flowcat_interne}{HTML}{595959}
+\definecolor{flowcat_mesh}{HTML}{2E9E5B}
+
+
+\begin{longtable}{|p{1.2cm}|p{5.5cm}|p{6.5cm}|}
+\hline
+\rowcolor{primary}\tblhead{Couleur} & \tblhead{Catégorie} & \tblhead{Ports typiques} \\
+\hline
+\endhead
+\tikz{\fill[flowcat_web] (0,0) rectangle (0.3,0.3);} & Web (HTTPS / IMAPS / POP3S) & 443, 993, 995 \\
+\hline
+\tikz{\fill[flowcat_smtp] (0,0) rectangle (0.3,0.3);} & SMTP & 25, 587 \\
+\hline
+\tikz{\fill[flowcat_ldap] (0,0) rectangle (0.3,0.3);} & Service Discover / LDAP & 389, 636 \\
+\hline
+\tikz{\fill[flowcat_udp_video] (0,0) rectangle (0.3,0.3);} & UDP (visioconférence / RTP) & 20000-\allowbreak{}40000 \\
+\hline
+\tikz{\fill[flowcat_interne] (0,0) rectangle (0.3,0.3);} & Flux applicatif interne (SOAP / REST) & variable selon le service \\
+\hline
+\tikz{\fill[flowcat_mesh] (0,0) rectangle (0.3,0.3);} & Mesh (coordination inter-\allowbreak{}nœuds) & interne uniquement \\
+\hline
+\end{longtable}
+
+\section{Schéma d'architecture}
+Le schéma ci-dessous est généré automatiquement à partir du fichier de configuration de la plateforme (nœuds, zones, flux) et donne une vue topologique d'ensemble, volontairement sans les flèches de flux (voir la légende des catégories ci-avant et les schémas détaillés ci-dessous pour le détail des flux ; la matrice exhaustive des règles d'ouverture de flux figure en fin de document).
+
+\begin{landscape}
+\begin{figure}[h!]
+\centering
+\begin{adjustbox}{max width=\textwidth, max height=0.85\textheight}
+\begin{tikzpicture}[
+  comp/.style={draw, rounded corners, fill=lightbg, text width=3.1cm, align=center, inner sep=0.18cm, font=\small},
+  ext/.style={draw, rounded corners, fill=white, text width=3.4cm, align=center, inner sep=0.18cm, font=\small, dashed},
+  equip/.style={draw=graytxt, rounded corners, fill=white, text=graytxt, text width=1.9cm, align=center, inner sep=0.14cm, font=\scriptsize},
+  equipcloud/.style={draw=graytxt, ellipse, fill=white, text=graytxt, text width=1.7cm, align=center, inner sep=0.1cm, font=\scriptsize},
+  zone/.style={draw, dashed, thick, color=graytxt, inner sep=0.55cm, rounded corners},
+  colgroup/.style={draw=accent, densely dotted, thin, rounded corners, inner sep=0.22cm},
+  flow/.style={-{Stealth[length=2.2mm]}, thick},
+  eqlink/.style={-{Stealth[length=1.8mm]}, thin, color=graytxt},
+]
+\node[equipcloud] (nd_internet) at (-3.40,0.00) {Internet};
+\node[equip] (nd_router01) at (0.00,0.00) {Routeur};
+\node[equip] (nd_firewall01) at (3.40,0.00) {Pare-\allowbreak{}feu};
+\draw[eqlink] (nd_internet.east) -- (nd_router01.west);
+\draw[eqlink] (nd_router01.east) -- (nd_firewall01.west);
+\node[comp] (nd_proxy01) at (-9.60,-2.60) {\textbf{proxy01}\\{\scriptsize Proxy}\\{\scriptsize proxy01.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_proxy02) at (-9.60,-4.50) {\textbf{proxy02}\\{\scriptsize Proxy}\\{\scriptsize proxy02.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_mta_in01) at (-4.80,-2.60) {\textbf{mta\_in01}\\{\scriptsize MTA IN}\\{\scriptsize mta-\allowbreak{}in01.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_mta_in02) at (-4.80,-4.50) {\textbf{mta\_in02}\\{\scriptsize MTA IN}\\{\scriptsize mta-\allowbreak{}in02.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_mta_out01) at (0.00,-2.60) {\textbf{mta\_out01}\\{\scriptsize MTA OUT}\\{\scriptsize mta-\allowbreak{}out01.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_mta_out02) at (0.00,-4.50) {\textbf{mta\_out02}\\{\scriptsize MTA OUT}\\{\scriptsize mta-\allowbreak{}out02.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_mta_auth01) at (4.80,-2.60) {\textbf{mta\_auth01}\\{\scriptsize MTA AUTH}\\{\scriptsize mta-\allowbreak{}auth01.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_mta_auth02) at (4.80,-4.50) {\textbf{mta\_auth02}\\{\scriptsize MTA AUTH}\\{\scriptsize mta-\allowbreak{}auth02.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_video01) at (9.60,-2.60) {\textbf{video01}\\{\scriptsize Visioconférence (Video Server)}\\{\scriptsize video01.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_mail01) at (-4.80,-7.40) {\textbf{mail01}\\{\scriptsize Mailstore}\\{\scriptsize mailstore01.\allowbreak{}exemple.\allowbreak{}local}};
+\node[comp] (nd_mail02) at (-4.80,-9.30) {\textbf{mail02}\\{\scriptsize Mailstore}\\{\scriptsize mailstore02.\allowbreak{}exemple.\allowbreak{}local}};
+\node[comp] (nd_mail03) at (-4.80,-11.20) {\textbf{mail03}\\{\scriptsize Mailstore}\\{\scriptsize mailstore03.\allowbreak{}exemple.\allowbreak{}local}};
+\node[comp] (nd_application01) at (-0.00,-7.40) {\textbf{application01}\\{\scriptsize Chat (Workstream Collaboration), Tasks}\\{\scriptsize application01.\allowbreak{}exemple.\allowbreak{}local}};
+\node[comp] (nd_application02) at (-0.00,-9.30) {\textbf{application02}\\{\scriptsize Files, Docs (édition collaborative)}\\{\scriptsize application02.\allowbreak{}exemple.\allowbreak{}local}};
+\node[comp] (nd_services01) at (4.80,-7.40) {\textbf{services01}\\{\scriptsize Directory Master (LDAP)}\\{\scriptsize services01.\allowbreak{}exemple.\allowbreak{}local}};
+\node[comp] (nd_services02) at (4.80,-9.30) {\textbf{services02}\\{\scriptsize Directory Replica (LDAP)}\\{\scriptsize services02.\allowbreak{}exemple.\allowbreak{}local}};
+\node[comp] (nd_services03) at (4.80,-11.20) {\textbf{services03}\\{\scriptsize Database}\\{\scriptsize services03.\allowbreak{}exemple.\allowbreak{}local}};
+\begin{scope}[on background layer]
+  \node[zone, fit=(nd_proxy01) (nd_proxy02) (nd_mta_in01) (nd_mta_in02) (nd_mta_out01) (nd_mta_out02) (nd_mta_auth01) (nd_mta_auth02) (nd_video01)] (nd_DMZ_box) {};
+  \node[zone, fit=(nd_mail01) (nd_mail02) (nd_mail03) (nd_application01) (nd_application02) (nd_services01) (nd_services02) (nd_services03)] (nd_LAN_box) {};
+  \node[anchor=north west, font=\scriptsize\bfseries, color=primary, inner sep=0pt] at ([xshift=4pt,yshift=-3pt]nd_DMZ_box.north west) {Publique (DMZ)};
+  \node[anchor=north west, font=\scriptsize\bfseries, color=primary, inner sep=0pt] at ([xshift=4pt,yshift=-3pt]nd_LAN_box.north west) {Privée (LAN)};
+  \node[colgroup, fit=(nd_proxy01) (nd_proxy02)] (nd_DMZ_proxy_grp) {};
+  \node[colgroup, fit=(nd_mta_in01) (nd_mta_in02)] (nd_DMZ_mta_in_grp) {};
+  \node[colgroup, fit=(nd_mta_out01) (nd_mta_out02)] (nd_DMZ_mta_out_grp) {};
+  \node[colgroup, fit=(nd_mta_auth01) (nd_mta_auth02)] (nd_DMZ_mta_auth_grp) {};
+  \node[colgroup, fit=(nd_mail01) (nd_mail02) (nd_mail03)] (nd_LAN_mail_grp) {};
+  \node[colgroup, fit=(nd_application01) (nd_application02)] (nd_LAN_application_grp) {};
+  \node[colgroup, fit=(nd_services01) (nd_services02) (nd_services03)] (nd_LAN_services_grp) {};
+\end{scope}
+\end{tikzpicture}
+\end{adjustbox}
+\caption{Architecture réseau --- Université d'Amboise (généré depuis \texttt{client\_exemple\_grande\_infra.\allowbreak{}yaml})}
+\label{fig:archi-carbonio}
+\end{figure}
+
+\subsection{Schémas détaillés par type de flux}
+Le schéma d'ensemble ci-dessus ne représente pas les flux ; les schémas suivants isolent chaque catégorie pour en faciliter la lecture (mêmes nœuds, mêmes positions).
+
+\begin{figure}[h!]
+\centering
+\begin{adjustbox}{max width=\textwidth, max height=0.8\textheight}
+\begin{tikzpicture}[
+  comp/.style={draw, rounded corners, fill=lightbg, text width=3.1cm, align=center, inner sep=0.18cm, font=\small},
+  ext/.style={draw, rounded corners, fill=white, text width=3.4cm, align=center, inner sep=0.18cm, font=\small, dashed},
+  equip/.style={draw=graytxt, rounded corners, fill=white, text=graytxt, text width=1.9cm, align=center, inner sep=0.14cm, font=\scriptsize},
+  equipcloud/.style={draw=graytxt, ellipse, fill=white, text=graytxt, text width=1.7cm, align=center, inner sep=0.1cm, font=\scriptsize},
+  zone/.style={draw, dashed, thick, color=graytxt, inner sep=0.55cm, rounded corners},
+  colgroup/.style={draw=accent, densely dotted, thin, rounded corners, inner sep=0.22cm},
+  flow/.style={-{Stealth[length=2.2mm]}, thick},
+  eqlink/.style={-{Stealth[length=1.8mm]}, thin, color=graytxt},
+]
+\node[equipcloud] (nd_internet) at (-3.40,0.00) {Internet};
+\node[equip] (nd_router01) at (0.00,0.00) {Routeur};
+\node[equip] (nd_firewall01) at (3.40,0.00) {Pare-\allowbreak{}feu};
+\draw[eqlink] (nd_internet.east) -- (nd_router01.west);
+\draw[eqlink] (nd_router01.east) -- (nd_firewall01.west);
+\node[comp] (nd_proxy01) at (-9.60,-2.60) {\textbf{proxy01}\\{\scriptsize Proxy}\\{\scriptsize proxy01.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_proxy02) at (-9.60,-4.50) {\textbf{proxy02}\\{\scriptsize Proxy}\\{\scriptsize proxy02.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_mta_in01) at (-4.80,-2.60) {\textbf{mta\_in01}\\{\scriptsize MTA IN}\\{\scriptsize mta-\allowbreak{}in01.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_mta_in02) at (-4.80,-4.50) {\textbf{mta\_in02}\\{\scriptsize MTA IN}\\{\scriptsize mta-\allowbreak{}in02.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_mta_out01) at (0.00,-2.60) {\textbf{mta\_out01}\\{\scriptsize MTA OUT}\\{\scriptsize mta-\allowbreak{}out01.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_mta_out02) at (0.00,-4.50) {\textbf{mta\_out02}\\{\scriptsize MTA OUT}\\{\scriptsize mta-\allowbreak{}out02.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_mta_auth01) at (4.80,-2.60) {\textbf{mta\_auth01}\\{\scriptsize MTA AUTH}\\{\scriptsize mta-\allowbreak{}auth01.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_mta_auth02) at (4.80,-4.50) {\textbf{mta\_auth02}\\{\scriptsize MTA AUTH}\\{\scriptsize mta-\allowbreak{}auth02.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_video01) at (9.60,-2.60) {\textbf{video01}\\{\scriptsize Visioconférence (Video Server)}\\{\scriptsize video01.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_mail01) at (-4.80,-7.40) {\textbf{mail01}\\{\scriptsize Mailstore}\\{\scriptsize mailstore01.\allowbreak{}exemple.\allowbreak{}local}};
+\node[comp] (nd_mail02) at (-4.80,-9.30) {\textbf{mail02}\\{\scriptsize Mailstore}\\{\scriptsize mailstore02.\allowbreak{}exemple.\allowbreak{}local}};
+\node[comp] (nd_mail03) at (-4.80,-11.20) {\textbf{mail03}\\{\scriptsize Mailstore}\\{\scriptsize mailstore03.\allowbreak{}exemple.\allowbreak{}local}};
+\node[comp] (nd_application01) at (-0.00,-7.40) {\textbf{application01}\\{\scriptsize Chat (Workstream Collaboration), Tasks}\\{\scriptsize application01.\allowbreak{}exemple.\allowbreak{}local}};
+\node[comp] (nd_application02) at (-0.00,-9.30) {\textbf{application02}\\{\scriptsize Files, Docs (édition collaborative)}\\{\scriptsize application02.\allowbreak{}exemple.\allowbreak{}local}};
+\node[comp] (nd_services01) at (4.80,-7.40) {\textbf{services01}\\{\scriptsize Directory Master (LDAP)}\\{\scriptsize services01.\allowbreak{}exemple.\allowbreak{}local}};
+\node[comp] (nd_services02) at (4.80,-9.30) {\textbf{services02}\\{\scriptsize Directory Replica (LDAP)}\\{\scriptsize services02.\allowbreak{}exemple.\allowbreak{}local}};
+\node[comp] (nd_services03) at (4.80,-11.20) {\textbf{services03}\\{\scriptsize Database}\\{\scriptsize services03.\allowbreak{}exemple.\allowbreak{}local}};
+\begin{scope}[on background layer]
+  \node[zone, fit=(nd_proxy01) (nd_proxy02) (nd_mta_in01) (nd_mta_in02) (nd_mta_out01) (nd_mta_out02) (nd_mta_auth01) (nd_mta_auth02) (nd_video01)] (nd_DMZ_box) {};
+  \node[zone, fit=(nd_mail01) (nd_mail02) (nd_mail03) (nd_application01) (nd_application02) (nd_services01) (nd_services02) (nd_services03)] (nd_LAN_box) {};
+  \node[anchor=north west, font=\scriptsize\bfseries, color=primary, inner sep=0pt] at ([xshift=4pt,yshift=-3pt]nd_DMZ_box.north west) {Publique (DMZ)};
+  \node[anchor=north west, font=\scriptsize\bfseries, color=primary, inner sep=0pt] at ([xshift=4pt,yshift=-3pt]nd_LAN_box.north west) {Privée (LAN)};
+  \node[colgroup, fit=(nd_proxy01) (nd_proxy02)] (nd_DMZ_proxy_grp) {};
+  \node[colgroup, fit=(nd_mta_in01) (nd_mta_in02)] (nd_DMZ_mta_in_grp) {};
+  \node[colgroup, fit=(nd_mta_out01) (nd_mta_out02)] (nd_DMZ_mta_out_grp) {};
+  \node[colgroup, fit=(nd_mta_auth01) (nd_mta_auth02)] (nd_DMZ_mta_auth_grp) {};
+  \node[colgroup, fit=(nd_mail01) (nd_mail02) (nd_mail03)] (nd_LAN_mail_grp) {};
+  \node[colgroup, fit=(nd_application01) (nd_application02)] (nd_LAN_application_grp) {};
+  \node[colgroup, fit=(nd_services01) (nd_services02) (nd_services03)] (nd_LAN_services_grp) {};
+\end{scope}
+\draw[flow, color=flowcat_web] (nd_firewall01.south) -- node[sloped, above, font=\scriptsize, text=flowcat_web, pos=0.3] {443 / 993 / 995} (nd_proxy01.north);
+\draw[flow, color=flowcat_web] (nd_firewall01.south) -- node[sloped, above, font=\scriptsize, text=flowcat_web, pos=0.3] {443 / 993 / 995} (nd_proxy02.north);
+\end{tikzpicture}
+\end{adjustbox}
+\caption{Flux --- Web (HTTPS / IMAPS / POP3S)}
+\end{figure}
+
+\begin{figure}[h!]
+\centering
+\begin{adjustbox}{max width=\textwidth, max height=0.8\textheight}
+\begin{tikzpicture}[
+  comp/.style={draw, rounded corners, fill=lightbg, text width=3.1cm, align=center, inner sep=0.18cm, font=\small},
+  ext/.style={draw, rounded corners, fill=white, text width=3.4cm, align=center, inner sep=0.18cm, font=\small, dashed},
+  equip/.style={draw=graytxt, rounded corners, fill=white, text=graytxt, text width=1.9cm, align=center, inner sep=0.14cm, font=\scriptsize},
+  equipcloud/.style={draw=graytxt, ellipse, fill=white, text=graytxt, text width=1.7cm, align=center, inner sep=0.1cm, font=\scriptsize},
+  zone/.style={draw, dashed, thick, color=graytxt, inner sep=0.55cm, rounded corners},
+  colgroup/.style={draw=accent, densely dotted, thin, rounded corners, inner sep=0.22cm},
+  flow/.style={-{Stealth[length=2.2mm]}, thick},
+  eqlink/.style={-{Stealth[length=1.8mm]}, thin, color=graytxt},
+]
+\node[equipcloud] (nd_internet) at (-3.40,0.00) {Internet};
+\node[equip] (nd_router01) at (0.00,0.00) {Routeur};
+\node[equip] (nd_firewall01) at (3.40,0.00) {Pare-\allowbreak{}feu};
+\draw[eqlink] (nd_internet.east) -- (nd_router01.west);
+\draw[eqlink] (nd_router01.east) -- (nd_firewall01.west);
+\node[comp] (nd_proxy01) at (-9.60,-2.60) {\textbf{proxy01}\\{\scriptsize Proxy}\\{\scriptsize proxy01.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_proxy02) at (-9.60,-4.50) {\textbf{proxy02}\\{\scriptsize Proxy}\\{\scriptsize proxy02.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_mta_in01) at (-4.80,-2.60) {\textbf{mta\_in01}\\{\scriptsize MTA IN}\\{\scriptsize mta-\allowbreak{}in01.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_mta_in02) at (-4.80,-4.50) {\textbf{mta\_in02}\\{\scriptsize MTA IN}\\{\scriptsize mta-\allowbreak{}in02.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_mta_out01) at (0.00,-2.60) {\textbf{mta\_out01}\\{\scriptsize MTA OUT}\\{\scriptsize mta-\allowbreak{}out01.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_mta_out02) at (0.00,-4.50) {\textbf{mta\_out02}\\{\scriptsize MTA OUT}\\{\scriptsize mta-\allowbreak{}out02.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_mta_auth01) at (4.80,-2.60) {\textbf{mta\_auth01}\\{\scriptsize MTA AUTH}\\{\scriptsize mta-\allowbreak{}auth01.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_mta_auth02) at (4.80,-4.50) {\textbf{mta\_auth02}\\{\scriptsize MTA AUTH}\\{\scriptsize mta-\allowbreak{}auth02.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_video01) at (9.60,-2.60) {\textbf{video01}\\{\scriptsize Visioconférence (Video Server)}\\{\scriptsize video01.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_mail01) at (-4.80,-7.40) {\textbf{mail01}\\{\scriptsize Mailstore}\\{\scriptsize mailstore01.\allowbreak{}exemple.\allowbreak{}local}};
+\node[comp] (nd_mail02) at (-4.80,-9.30) {\textbf{mail02}\\{\scriptsize Mailstore}\\{\scriptsize mailstore02.\allowbreak{}exemple.\allowbreak{}local}};
+\node[comp] (nd_mail03) at (-4.80,-11.20) {\textbf{mail03}\\{\scriptsize Mailstore}\\{\scriptsize mailstore03.\allowbreak{}exemple.\allowbreak{}local}};
+\node[comp] (nd_application01) at (-0.00,-7.40) {\textbf{application01}\\{\scriptsize Chat (Workstream Collaboration), Tasks}\\{\scriptsize application01.\allowbreak{}exemple.\allowbreak{}local}};
+\node[comp] (nd_application02) at (-0.00,-9.30) {\textbf{application02}\\{\scriptsize Files, Docs (édition collaborative)}\\{\scriptsize application02.\allowbreak{}exemple.\allowbreak{}local}};
+\node[comp] (nd_services01) at (4.80,-7.40) {\textbf{services01}\\{\scriptsize Directory Master (LDAP)}\\{\scriptsize services01.\allowbreak{}exemple.\allowbreak{}local}};
+\node[comp] (nd_services02) at (4.80,-9.30) {\textbf{services02}\\{\scriptsize Directory Replica (LDAP)}\\{\scriptsize services02.\allowbreak{}exemple.\allowbreak{}local}};
+\node[comp] (nd_services03) at (4.80,-11.20) {\textbf{services03}\\{\scriptsize Database}\\{\scriptsize services03.\allowbreak{}exemple.\allowbreak{}local}};
+\begin{scope}[on background layer]
+  \node[zone, fit=(nd_proxy01) (nd_proxy02) (nd_mta_in01) (nd_mta_in02) (nd_mta_out01) (nd_mta_out02) (nd_mta_auth01) (nd_mta_auth02) (nd_video01)] (nd_DMZ_box) {};
+  \node[zone, fit=(nd_mail01) (nd_mail02) (nd_mail03) (nd_application01) (nd_application02) (nd_services01) (nd_services02) (nd_services03)] (nd_LAN_box) {};
+  \node[anchor=north west, font=\scriptsize\bfseries, color=primary, inner sep=0pt] at ([xshift=4pt,yshift=-3pt]nd_DMZ_box.north west) {Publique (DMZ)};
+  \node[anchor=north west, font=\scriptsize\bfseries, color=primary, inner sep=0pt] at ([xshift=4pt,yshift=-3pt]nd_LAN_box.north west) {Privée (LAN)};
+  \node[colgroup, fit=(nd_proxy01) (nd_proxy02)] (nd_DMZ_proxy_grp) {};
+  \node[colgroup, fit=(nd_mta_in01) (nd_mta_in02)] (nd_DMZ_mta_in_grp) {};
+  \node[colgroup, fit=(nd_mta_out01) (nd_mta_out02)] (nd_DMZ_mta_out_grp) {};
+  \node[colgroup, fit=(nd_mta_auth01) (nd_mta_auth02)] (nd_DMZ_mta_auth_grp) {};
+  \node[colgroup, fit=(nd_mail01) (nd_mail02) (nd_mail03)] (nd_LAN_mail_grp) {};
+  \node[colgroup, fit=(nd_application01) (nd_application02)] (nd_LAN_application_grp) {};
+  \node[colgroup, fit=(nd_services01) (nd_services02) (nd_services03)] (nd_LAN_services_grp) {};
+\end{scope}
+\draw[flow, color=flowcat_smtp] (nd_firewall01.south) -- node[sloped, above, font=\scriptsize, text=flowcat_smtp, pos=0.3] {25} (nd_mta_in01.north);
+\draw[flow, color=flowcat_smtp] (nd_firewall01.south) -- node[sloped, above, font=\scriptsize, text=flowcat_smtp, pos=0.3] {25} (nd_mta_in02.north);
+\draw[flow, color=flowcat_smtp] (nd_firewall01.south) -- node[sloped, below, font=\scriptsize, text=flowcat_smtp, pos=0.3] {587} (nd_mta_auth01.north);
+\draw[flow, color=flowcat_smtp] (nd_mta_out01.south) -- node[sloped, below, font=\scriptsize, text=flowcat_smtp, pos=0.3] {25} (nd_firewall01.north);
+\draw[flow, color=flowcat_smtp] (nd_mta_out02.south) -- node[sloped, below, font=\scriptsize, text=flowcat_smtp, pos=0.3] {25} (nd_firewall01.north);
+\end{tikzpicture}
+\end{adjustbox}
+\caption{Flux --- SMTP}
+\end{figure}
+
+\begin{figure}[h!]
+\centering
+\begin{adjustbox}{max width=\textwidth, max height=0.8\textheight}
+\begin{tikzpicture}[
+  comp/.style={draw, rounded corners, fill=lightbg, text width=3.1cm, align=center, inner sep=0.18cm, font=\small},
+  ext/.style={draw, rounded corners, fill=white, text width=3.4cm, align=center, inner sep=0.18cm, font=\small, dashed},
+  equip/.style={draw=graytxt, rounded corners, fill=white, text=graytxt, text width=1.9cm, align=center, inner sep=0.14cm, font=\scriptsize},
+  equipcloud/.style={draw=graytxt, ellipse, fill=white, text=graytxt, text width=1.7cm, align=center, inner sep=0.1cm, font=\scriptsize},
+  zone/.style={draw, dashed, thick, color=graytxt, inner sep=0.55cm, rounded corners},
+  colgroup/.style={draw=accent, densely dotted, thin, rounded corners, inner sep=0.22cm},
+  flow/.style={-{Stealth[length=2.2mm]}, thick},
+  eqlink/.style={-{Stealth[length=1.8mm]}, thin, color=graytxt},
+]
+\node[equipcloud] (nd_internet) at (-3.40,0.00) {Internet};
+\node[equip] (nd_router01) at (0.00,0.00) {Routeur};
+\node[equip] (nd_firewall01) at (3.40,0.00) {Pare-\allowbreak{}feu};
+\draw[eqlink] (nd_internet.east) -- (nd_router01.west);
+\draw[eqlink] (nd_router01.east) -- (nd_firewall01.west);
+\node[comp] (nd_proxy01) at (-9.60,-2.60) {\textbf{proxy01}\\{\scriptsize Proxy}\\{\scriptsize proxy01.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_proxy02) at (-9.60,-4.50) {\textbf{proxy02}\\{\scriptsize Proxy}\\{\scriptsize proxy02.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_mta_in01) at (-4.80,-2.60) {\textbf{mta\_in01}\\{\scriptsize MTA IN}\\{\scriptsize mta-\allowbreak{}in01.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_mta_in02) at (-4.80,-4.50) {\textbf{mta\_in02}\\{\scriptsize MTA IN}\\{\scriptsize mta-\allowbreak{}in02.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_mta_out01) at (0.00,-2.60) {\textbf{mta\_out01}\\{\scriptsize MTA OUT}\\{\scriptsize mta-\allowbreak{}out01.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_mta_out02) at (0.00,-4.50) {\textbf{mta\_out02}\\{\scriptsize MTA OUT}\\{\scriptsize mta-\allowbreak{}out02.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_mta_auth01) at (4.80,-2.60) {\textbf{mta\_auth01}\\{\scriptsize MTA AUTH}\\{\scriptsize mta-\allowbreak{}auth01.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_mta_auth02) at (4.80,-4.50) {\textbf{mta\_auth02}\\{\scriptsize MTA AUTH}\\{\scriptsize mta-\allowbreak{}auth02.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_video01) at (9.60,-2.60) {\textbf{video01}\\{\scriptsize Visioconférence (Video Server)}\\{\scriptsize video01.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_mail01) at (-4.80,-7.40) {\textbf{mail01}\\{\scriptsize Mailstore}\\{\scriptsize mailstore01.\allowbreak{}exemple.\allowbreak{}local}};
+\node[comp] (nd_mail02) at (-4.80,-9.30) {\textbf{mail02}\\{\scriptsize Mailstore}\\{\scriptsize mailstore02.\allowbreak{}exemple.\allowbreak{}local}};
+\node[comp] (nd_mail03) at (-4.80,-11.20) {\textbf{mail03}\\{\scriptsize Mailstore}\\{\scriptsize mailstore03.\allowbreak{}exemple.\allowbreak{}local}};
+\node[comp] (nd_application01) at (-0.00,-7.40) {\textbf{application01}\\{\scriptsize Chat (Workstream Collaboration), Tasks}\\{\scriptsize application01.\allowbreak{}exemple.\allowbreak{}local}};
+\node[comp] (nd_application02) at (-0.00,-9.30) {\textbf{application02}\\{\scriptsize Files, Docs (édition collaborative)}\\{\scriptsize application02.\allowbreak{}exemple.\allowbreak{}local}};
+\node[comp] (nd_services01) at (4.80,-7.40) {\textbf{services01}\\{\scriptsize Directory Master (LDAP)}\\{\scriptsize services01.\allowbreak{}exemple.\allowbreak{}local}};
+\node[comp] (nd_services02) at (4.80,-9.30) {\textbf{services02}\\{\scriptsize Directory Replica (LDAP)}\\{\scriptsize services02.\allowbreak{}exemple.\allowbreak{}local}};
+\node[comp] (nd_services03) at (4.80,-11.20) {\textbf{services03}\\{\scriptsize Database}\\{\scriptsize services03.\allowbreak{}exemple.\allowbreak{}local}};
+\begin{scope}[on background layer]
+  \node[zone, fit=(nd_proxy01) (nd_proxy02) (nd_mta_in01) (nd_mta_in02) (nd_mta_out01) (nd_mta_out02) (nd_mta_auth01) (nd_mta_auth02) (nd_video01)] (nd_DMZ_box) {};
+  \node[zone, fit=(nd_mail01) (nd_mail02) (nd_mail03) (nd_application01) (nd_application02) (nd_services01) (nd_services02) (nd_services03)] (nd_LAN_box) {};
+  \node[anchor=north west, font=\scriptsize\bfseries, color=primary, inner sep=0pt] at ([xshift=4pt,yshift=-3pt]nd_DMZ_box.north west) {Publique (DMZ)};
+  \node[anchor=north west, font=\scriptsize\bfseries, color=primary, inner sep=0pt] at ([xshift=4pt,yshift=-3pt]nd_LAN_box.north west) {Privée (LAN)};
+  \node[colgroup, fit=(nd_proxy01) (nd_proxy02)] (nd_DMZ_proxy_grp) {};
+  \node[colgroup, fit=(nd_mta_in01) (nd_mta_in02)] (nd_DMZ_mta_in_grp) {};
+  \node[colgroup, fit=(nd_mta_out01) (nd_mta_out02)] (nd_DMZ_mta_out_grp) {};
+  \node[colgroup, fit=(nd_mta_auth01) (nd_mta_auth02)] (nd_DMZ_mta_auth_grp) {};
+  \node[colgroup, fit=(nd_mail01) (nd_mail02) (nd_mail03)] (nd_LAN_mail_grp) {};
+  \node[colgroup, fit=(nd_application01) (nd_application02)] (nd_LAN_application_grp) {};
+  \node[colgroup, fit=(nd_services01) (nd_services02) (nd_services03)] (nd_LAN_services_grp) {};
+\end{scope}
+\draw[flow, color=flowcat_ldap] (nd_mail01.east) -- node[above, font=\scriptsize, text=flowcat_ldap] {389/636} (nd_services01.west);
+\draw[flow, color=flowcat_ldap] (nd_mail02.south) -- node[sloped, below, font=\scriptsize, text=flowcat_ldap, pos=0.3] {389/636} (nd_services01.north);
+\draw[flow, color=flowcat_ldap] (nd_mail03.south) -- node[sloped, below, font=\scriptsize, text=flowcat_ldap, pos=0.3] {389/636} (nd_services01.north);
+\draw[flow, color=flowcat_ldap] (nd_application01.east) -- node[above, font=\scriptsize, text=flowcat_ldap] {389/636} (nd_services01.west);
+\draw[flow, color=flowcat_ldap] (nd_application02.south) -- node[sloped, below, font=\scriptsize, text=flowcat_ldap, pos=0.3] {389/636} (nd_services01.north);
+\draw[flow, color=flowcat_ldap] (nd_proxy01.south) -- node[sloped, below, font=\scriptsize, text=flowcat_ldap, pos=0.3] {389/636} (nd_services01.north);
+\draw[flow, color=flowcat_ldap] (nd_proxy02.south) -- node[sloped, below, font=\scriptsize, text=flowcat_ldap, pos=0.3] {389/636} (nd_services01.north);
+\draw[flow, color=flowcat_ldap] (nd_mta_auth01.south) -- node[right, font=\scriptsize, text=flowcat_ldap, pos=0.3] {389/636} (nd_services01.north);
+\draw[flow, color=flowcat_ldap] (nd_mta_auth02.south) -- node[right, font=\scriptsize, text=flowcat_ldap, pos=0.3] {389/636} (nd_services01.north);
+\end{tikzpicture}
+\end{adjustbox}
+\caption{Flux --- Service Discover / LDAP}
+\end{figure}
+
+\begin{figure}[h!]
+\centering
+\begin{adjustbox}{max width=\textwidth, max height=0.8\textheight}
+\begin{tikzpicture}[
+  comp/.style={draw, rounded corners, fill=lightbg, text width=3.1cm, align=center, inner sep=0.18cm, font=\small},
+  ext/.style={draw, rounded corners, fill=white, text width=3.4cm, align=center, inner sep=0.18cm, font=\small, dashed},
+  equip/.style={draw=graytxt, rounded corners, fill=white, text=graytxt, text width=1.9cm, align=center, inner sep=0.14cm, font=\scriptsize},
+  equipcloud/.style={draw=graytxt, ellipse, fill=white, text=graytxt, text width=1.7cm, align=center, inner sep=0.1cm, font=\scriptsize},
+  zone/.style={draw, dashed, thick, color=graytxt, inner sep=0.55cm, rounded corners},
+  colgroup/.style={draw=accent, densely dotted, thin, rounded corners, inner sep=0.22cm},
+  flow/.style={-{Stealth[length=2.2mm]}, thick},
+  eqlink/.style={-{Stealth[length=1.8mm]}, thin, color=graytxt},
+]
+\node[equipcloud] (nd_internet) at (-3.40,0.00) {Internet};
+\node[equip] (nd_router01) at (0.00,0.00) {Routeur};
+\node[equip] (nd_firewall01) at (3.40,0.00) {Pare-\allowbreak{}feu};
+\draw[eqlink] (nd_internet.east) -- (nd_router01.west);
+\draw[eqlink] (nd_router01.east) -- (nd_firewall01.west);
+\node[comp] (nd_proxy01) at (-9.60,-2.60) {\textbf{proxy01}\\{\scriptsize Proxy}\\{\scriptsize proxy01.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_proxy02) at (-9.60,-4.50) {\textbf{proxy02}\\{\scriptsize Proxy}\\{\scriptsize proxy02.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_mta_in01) at (-4.80,-2.60) {\textbf{mta\_in01}\\{\scriptsize MTA IN}\\{\scriptsize mta-\allowbreak{}in01.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_mta_in02) at (-4.80,-4.50) {\textbf{mta\_in02}\\{\scriptsize MTA IN}\\{\scriptsize mta-\allowbreak{}in02.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_mta_out01) at (0.00,-2.60) {\textbf{mta\_out01}\\{\scriptsize MTA OUT}\\{\scriptsize mta-\allowbreak{}out01.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_mta_out02) at (0.00,-4.50) {\textbf{mta\_out02}\\{\scriptsize MTA OUT}\\{\scriptsize mta-\allowbreak{}out02.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_mta_auth01) at (4.80,-2.60) {\textbf{mta\_auth01}\\{\scriptsize MTA AUTH}\\{\scriptsize mta-\allowbreak{}auth01.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_mta_auth02) at (4.80,-4.50) {\textbf{mta\_auth02}\\{\scriptsize MTA AUTH}\\{\scriptsize mta-\allowbreak{}auth02.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_video01) at (9.60,-2.60) {\textbf{video01}\\{\scriptsize Visioconférence (Video Server)}\\{\scriptsize video01.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_mail01) at (-4.80,-7.40) {\textbf{mail01}\\{\scriptsize Mailstore}\\{\scriptsize mailstore01.\allowbreak{}exemple.\allowbreak{}local}};
+\node[comp] (nd_mail02) at (-4.80,-9.30) {\textbf{mail02}\\{\scriptsize Mailstore}\\{\scriptsize mailstore02.\allowbreak{}exemple.\allowbreak{}local}};
+\node[comp] (nd_mail03) at (-4.80,-11.20) {\textbf{mail03}\\{\scriptsize Mailstore}\\{\scriptsize mailstore03.\allowbreak{}exemple.\allowbreak{}local}};
+\node[comp] (nd_application01) at (-0.00,-7.40) {\textbf{application01}\\{\scriptsize Chat (Workstream Collaboration), Tasks}\\{\scriptsize application01.\allowbreak{}exemple.\allowbreak{}local}};
+\node[comp] (nd_application02) at (-0.00,-9.30) {\textbf{application02}\\{\scriptsize Files, Docs (édition collaborative)}\\{\scriptsize application02.\allowbreak{}exemple.\allowbreak{}local}};
+\node[comp] (nd_services01) at (4.80,-7.40) {\textbf{services01}\\{\scriptsize Directory Master (LDAP)}\\{\scriptsize services01.\allowbreak{}exemple.\allowbreak{}local}};
+\node[comp] (nd_services02) at (4.80,-9.30) {\textbf{services02}\\{\scriptsize Directory Replica (LDAP)}\\{\scriptsize services02.\allowbreak{}exemple.\allowbreak{}local}};
+\node[comp] (nd_services03) at (4.80,-11.20) {\textbf{services03}\\{\scriptsize Database}\\{\scriptsize services03.\allowbreak{}exemple.\allowbreak{}local}};
+\begin{scope}[on background layer]
+  \node[zone, fit=(nd_proxy01) (nd_proxy02) (nd_mta_in01) (nd_mta_in02) (nd_mta_out01) (nd_mta_out02) (nd_mta_auth01) (nd_mta_auth02) (nd_video01)] (nd_DMZ_box) {};
+  \node[zone, fit=(nd_mail01) (nd_mail02) (nd_mail03) (nd_application01) (nd_application02) (nd_services01) (nd_services02) (nd_services03)] (nd_LAN_box) {};
+  \node[anchor=north west, font=\scriptsize\bfseries, color=primary, inner sep=0pt] at ([xshift=4pt,yshift=-3pt]nd_DMZ_box.north west) {Publique (DMZ)};
+  \node[anchor=north west, font=\scriptsize\bfseries, color=primary, inner sep=0pt] at ([xshift=4pt,yshift=-3pt]nd_LAN_box.north west) {Privée (LAN)};
+  \node[colgroup, fit=(nd_proxy01) (nd_proxy02)] (nd_DMZ_proxy_grp) {};
+  \node[colgroup, fit=(nd_mta_in01) (nd_mta_in02)] (nd_DMZ_mta_in_grp) {};
+  \node[colgroup, fit=(nd_mta_out01) (nd_mta_out02)] (nd_DMZ_mta_out_grp) {};
+  \node[colgroup, fit=(nd_mta_auth01) (nd_mta_auth02)] (nd_DMZ_mta_auth_grp) {};
+  \node[colgroup, fit=(nd_mail01) (nd_mail02) (nd_mail03)] (nd_LAN_mail_grp) {};
+  \node[colgroup, fit=(nd_application01) (nd_application02)] (nd_LAN_application_grp) {};
+  \node[colgroup, fit=(nd_services01) (nd_services02) (nd_services03)] (nd_LAN_services_grp) {};
+\end{scope}
+\draw[flow, color=flowcat_udp_video] (nd_firewall01.south) -- node[sloped, below, font=\scriptsize, text=flowcat_udp_video, pos=0.3] {UDP 20000-\allowbreak{}40000} (nd_video01.north);
+\end{tikzpicture}
+\end{adjustbox}
+\caption{Flux --- UDP (visioconférence / RTP)}
+\end{figure}
+
+\begin{figure}[h!]
+\centering
+\begin{adjustbox}{max width=\textwidth, max height=0.8\textheight}
+\begin{tikzpicture}[
+  comp/.style={draw, rounded corners, fill=lightbg, text width=3.1cm, align=center, inner sep=0.18cm, font=\small},
+  ext/.style={draw, rounded corners, fill=white, text width=3.4cm, align=center, inner sep=0.18cm, font=\small, dashed},
+  equip/.style={draw=graytxt, rounded corners, fill=white, text=graytxt, text width=1.9cm, align=center, inner sep=0.14cm, font=\scriptsize},
+  equipcloud/.style={draw=graytxt, ellipse, fill=white, text=graytxt, text width=1.7cm, align=center, inner sep=0.1cm, font=\scriptsize},
+  zone/.style={draw, dashed, thick, color=graytxt, inner sep=0.55cm, rounded corners},
+  colgroup/.style={draw=accent, densely dotted, thin, rounded corners, inner sep=0.22cm},
+  flow/.style={-{Stealth[length=2.2mm]}, thick},
+  eqlink/.style={-{Stealth[length=1.8mm]}, thin, color=graytxt},
+]
+\node[equipcloud] (nd_internet) at (-3.40,0.00) {Internet};
+\node[equip] (nd_router01) at (0.00,0.00) {Routeur};
+\node[equip] (nd_firewall01) at (3.40,0.00) {Pare-\allowbreak{}feu};
+\draw[eqlink] (nd_internet.east) -- (nd_router01.west);
+\draw[eqlink] (nd_router01.east) -- (nd_firewall01.west);
+\node[comp] (nd_proxy01) at (-9.60,-2.60) {\textbf{proxy01}\\{\scriptsize Proxy}\\{\scriptsize proxy01.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_proxy02) at (-9.60,-4.50) {\textbf{proxy02}\\{\scriptsize Proxy}\\{\scriptsize proxy02.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_mta_in01) at (-4.80,-2.60) {\textbf{mta\_in01}\\{\scriptsize MTA IN}\\{\scriptsize mta-\allowbreak{}in01.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_mta_in02) at (-4.80,-4.50) {\textbf{mta\_in02}\\{\scriptsize MTA IN}\\{\scriptsize mta-\allowbreak{}in02.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_mta_out01) at (0.00,-2.60) {\textbf{mta\_out01}\\{\scriptsize MTA OUT}\\{\scriptsize mta-\allowbreak{}out01.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_mta_out02) at (0.00,-4.50) {\textbf{mta\_out02}\\{\scriptsize MTA OUT}\\{\scriptsize mta-\allowbreak{}out02.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_mta_auth01) at (4.80,-2.60) {\textbf{mta\_auth01}\\{\scriptsize MTA AUTH}\\{\scriptsize mta-\allowbreak{}auth01.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_mta_auth02) at (4.80,-4.50) {\textbf{mta\_auth02}\\{\scriptsize MTA AUTH}\\{\scriptsize mta-\allowbreak{}auth02.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_video01) at (9.60,-2.60) {\textbf{video01}\\{\scriptsize Visioconférence (Video Server)}\\{\scriptsize video01.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_mail01) at (-4.80,-7.40) {\textbf{mail01}\\{\scriptsize Mailstore}\\{\scriptsize mailstore01.\allowbreak{}exemple.\allowbreak{}local}};
+\node[comp] (nd_mail02) at (-4.80,-9.30) {\textbf{mail02}\\{\scriptsize Mailstore}\\{\scriptsize mailstore02.\allowbreak{}exemple.\allowbreak{}local}};
+\node[comp] (nd_mail03) at (-4.80,-11.20) {\textbf{mail03}\\{\scriptsize Mailstore}\\{\scriptsize mailstore03.\allowbreak{}exemple.\allowbreak{}local}};
+\node[comp] (nd_application01) at (-0.00,-7.40) {\textbf{application01}\\{\scriptsize Chat (Workstream Collaboration), Tasks}\\{\scriptsize application01.\allowbreak{}exemple.\allowbreak{}local}};
+\node[comp] (nd_application02) at (-0.00,-9.30) {\textbf{application02}\\{\scriptsize Files, Docs (édition collaborative)}\\{\scriptsize application02.\allowbreak{}exemple.\allowbreak{}local}};
+\node[comp] (nd_services01) at (4.80,-7.40) {\textbf{services01}\\{\scriptsize Directory Master (LDAP)}\\{\scriptsize services01.\allowbreak{}exemple.\allowbreak{}local}};
+\node[comp] (nd_services02) at (4.80,-9.30) {\textbf{services02}\\{\scriptsize Directory Replica (LDAP)}\\{\scriptsize services02.\allowbreak{}exemple.\allowbreak{}local}};
+\node[comp] (nd_services03) at (4.80,-11.20) {\textbf{services03}\\{\scriptsize Database}\\{\scriptsize services03.\allowbreak{}exemple.\allowbreak{}local}};
+\begin{scope}[on background layer]
+  \node[zone, fit=(nd_proxy01) (nd_proxy02) (nd_mta_in01) (nd_mta_in02) (nd_mta_out01) (nd_mta_out02) (nd_mta_auth01) (nd_mta_auth02) (nd_video01)] (nd_DMZ_box) {};
+  \node[zone, fit=(nd_mail01) (nd_mail02) (nd_mail03) (nd_application01) (nd_application02) (nd_services01) (nd_services02) (nd_services03)] (nd_LAN_box) {};
+  \node[anchor=north west, font=\scriptsize\bfseries, color=primary, inner sep=0pt] at ([xshift=4pt,yshift=-3pt]nd_DMZ_box.north west) {Publique (DMZ)};
+  \node[anchor=north west, font=\scriptsize\bfseries, color=primary, inner sep=0pt] at ([xshift=4pt,yshift=-3pt]nd_LAN_box.north west) {Privée (LAN)};
+  \node[colgroup, fit=(nd_proxy01) (nd_proxy02)] (nd_DMZ_proxy_grp) {};
+  \node[colgroup, fit=(nd_mta_in01) (nd_mta_in02)] (nd_DMZ_mta_in_grp) {};
+  \node[colgroup, fit=(nd_mta_out01) (nd_mta_out02)] (nd_DMZ_mta_out_grp) {};
+  \node[colgroup, fit=(nd_mta_auth01) (nd_mta_auth02)] (nd_DMZ_mta_auth_grp) {};
+  \node[colgroup, fit=(nd_mail01) (nd_mail02) (nd_mail03)] (nd_LAN_mail_grp) {};
+  \node[colgroup, fit=(nd_application01) (nd_application02)] (nd_LAN_application_grp) {};
+  \node[colgroup, fit=(nd_services01) (nd_services02) (nd_services03)] (nd_LAN_services_grp) {};
+\end{scope}
+\draw[flow, color=flowcat_interne] (nd_proxy01.south) -- node[sloped, below, font=\scriptsize, text=flowcat_interne, pos=0.3] {SOAP/REST} (nd_mail01.north);
+\draw[flow, color=flowcat_interne] (nd_proxy01.south) -- node[sloped, below, font=\scriptsize, text=flowcat_interne, pos=0.3] {SOAP/REST} (nd_mail02.north);
+\draw[flow, color=flowcat_interne] (nd_proxy01.south) -- node[sloped, below, font=\scriptsize, text=flowcat_interne, pos=0.3] {SOAP/REST} (nd_mail03.north);
+\draw[flow, color=flowcat_interne] (nd_proxy02.south) -- node[sloped, below, font=\scriptsize, text=flowcat_interne, pos=0.3] {SOAP/REST} (nd_mail01.north);
+\draw[flow, color=flowcat_interne] (nd_proxy02.south) -- node[sloped, below, font=\scriptsize, text=flowcat_interne, pos=0.3] {SOAP/REST} (nd_mail02.north);
+\draw[flow, color=flowcat_interne] (nd_proxy02.south) -- node[sloped, below, font=\scriptsize, text=flowcat_interne, pos=0.3] {SOAP/REST} (nd_mail03.north);
+\draw[flow, color=flowcat_interne] (nd_proxy01.south) -- node[sloped, below, font=\scriptsize, text=flowcat_interne, pos=0.3] {HTTPS / WSS} (nd_application01.north);
+\draw[flow, color=flowcat_interne] (nd_proxy02.south) -- node[sloped, below, font=\scriptsize, text=flowcat_interne, pos=0.3] {HTTPS / WSS} (nd_application01.north);
+\draw[flow, color=flowcat_interne] (nd_proxy01.south) -- node[sloped, below, font=\scriptsize, text=flowcat_interne, pos=0.3] {HTTPS} (nd_application02.north);
+\draw[flow, color=flowcat_interne] (nd_proxy02.south) -- node[sloped, below, font=\scriptsize, text=flowcat_interne, pos=0.3] {HTTPS} (nd_application02.north);
+\draw[flow, color=flowcat_interne] (nd_mta_in01.south) -- node[right, font=\scriptsize, text=flowcat_interne, pos=0.3] {LMTP} (nd_mail01.north);
+\draw[flow, color=flowcat_interne] (nd_mta_in01.south) -- node[right, font=\scriptsize, text=flowcat_interne, pos=0.3] {LMTP} (nd_mail02.north);
+\draw[flow, color=flowcat_interne] (nd_mta_in01.south) -- node[right, font=\scriptsize, text=flowcat_interne, pos=0.3] {LMTP} (nd_mail03.north);
+\draw[flow, color=flowcat_interne] (nd_mta_in02.south) -- node[right, font=\scriptsize, text=flowcat_interne, pos=0.3] {LMTP} (nd_mail01.north);
+\draw[flow, color=flowcat_interne] (nd_mta_in02.south) -- node[right, font=\scriptsize, text=flowcat_interne, pos=0.3] {LMTP} (nd_mail02.north);
+\draw[flow, color=flowcat_interne] (nd_mta_in02.south) -- node[right, font=\scriptsize, text=flowcat_interne, pos=0.3] {LMTP} (nd_mail03.north);
+\draw[flow, color=flowcat_interne] (nd_mail01.south) -- node[sloped, below, font=\scriptsize, text=flowcat_interne, pos=0.3] {SMTP} (nd_mta_out01.north);
+\draw[flow, color=flowcat_interne] (nd_mail01.south) -- node[sloped, below, font=\scriptsize, text=flowcat_interne, pos=0.3] {SMTP} (nd_mta_out02.north);
+\draw[flow, color=flowcat_interne] (nd_mail02.south) -- node[sloped, below, font=\scriptsize, text=flowcat_interne, pos=0.3] {SMTP} (nd_mta_out01.north);
+\draw[flow, color=flowcat_interne] (nd_mail02.south) -- node[sloped, below, font=\scriptsize, text=flowcat_interne, pos=0.3] {SMTP} (nd_mta_out02.north);
+\draw[flow, color=flowcat_interne] (nd_mail03.south) -- node[sloped, below, font=\scriptsize, text=flowcat_interne, pos=0.3] {SMTP} (nd_mta_out01.north);
+\draw[flow, color=flowcat_interne] (nd_mail03.south) -- node[sloped, below, font=\scriptsize, text=flowcat_interne, pos=0.3] {SMTP} (nd_mta_out02.north);
+\draw[flow, color=flowcat_interne] (nd_mail01.south) -- node[sloped, below, font=\scriptsize, text=flowcat_interne, pos=0.3] {5432} (nd_services03.north);
+\draw[flow, color=flowcat_interne] (nd_mail02.south) -- node[sloped, below, font=\scriptsize, text=flowcat_interne, pos=0.3] {5432} (nd_services03.north);
+\draw[flow, color=flowcat_interne] (nd_mail03.east) -- node[above, font=\scriptsize, text=flowcat_interne] {5432} (nd_services03.west);
+\draw[flow, color=flowcat_interne] (nd_application01.south) -- node[sloped, below, font=\scriptsize, text=flowcat_interne, pos=0.3] {5432} (nd_services03.north);
+\draw[flow, color=flowcat_interne] (nd_application02.south) -- node[sloped, below, font=\scriptsize, text=flowcat_interne, pos=0.3] {5432} (nd_services03.north);
+\end{tikzpicture}
+\end{adjustbox}
+\caption{Flux --- Flux applicatif interne (SOAP / REST)}
+\end{figure}
+
+\begin{figure}[h!]
+\centering
+\begin{adjustbox}{max width=\textwidth, max height=0.8\textheight}
+\begin{tikzpicture}[
+  comp/.style={draw, rounded corners, fill=lightbg, text width=3.1cm, align=center, inner sep=0.18cm, font=\small},
+  ext/.style={draw, rounded corners, fill=white, text width=3.4cm, align=center, inner sep=0.18cm, font=\small, dashed},
+  equip/.style={draw=graytxt, rounded corners, fill=white, text=graytxt, text width=1.9cm, align=center, inner sep=0.14cm, font=\scriptsize},
+  equipcloud/.style={draw=graytxt, ellipse, fill=white, text=graytxt, text width=1.7cm, align=center, inner sep=0.1cm, font=\scriptsize},
+  zone/.style={draw, dashed, thick, color=graytxt, inner sep=0.55cm, rounded corners},
+  colgroup/.style={draw=accent, densely dotted, thin, rounded corners, inner sep=0.22cm},
+  flow/.style={-{Stealth[length=2.2mm]}, thick},
+  eqlink/.style={-{Stealth[length=1.8mm]}, thin, color=graytxt},
+]
+\node[equipcloud] (nd_internet) at (-3.40,0.00) {Internet};
+\node[equip] (nd_router01) at (0.00,0.00) {Routeur};
+\node[equip] (nd_firewall01) at (3.40,0.00) {Pare-\allowbreak{}feu};
+\draw[eqlink] (nd_internet.east) -- (nd_router01.west);
+\draw[eqlink] (nd_router01.east) -- (nd_firewall01.west);
+\node[comp] (nd_proxy01) at (-9.60,-2.60) {\textbf{proxy01}\\{\scriptsize Proxy}\\{\scriptsize proxy01.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_proxy02) at (-9.60,-4.50) {\textbf{proxy02}\\{\scriptsize Proxy}\\{\scriptsize proxy02.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_mta_in01) at (-4.80,-2.60) {\textbf{mta\_in01}\\{\scriptsize MTA IN}\\{\scriptsize mta-\allowbreak{}in01.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_mta_in02) at (-4.80,-4.50) {\textbf{mta\_in02}\\{\scriptsize MTA IN}\\{\scriptsize mta-\allowbreak{}in02.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_mta_out01) at (0.00,-2.60) {\textbf{mta\_out01}\\{\scriptsize MTA OUT}\\{\scriptsize mta-\allowbreak{}out01.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_mta_out02) at (0.00,-4.50) {\textbf{mta\_out02}\\{\scriptsize MTA OUT}\\{\scriptsize mta-\allowbreak{}out02.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_mta_auth01) at (4.80,-2.60) {\textbf{mta\_auth01}\\{\scriptsize MTA AUTH}\\{\scriptsize mta-\allowbreak{}auth01.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_mta_auth02) at (4.80,-4.50) {\textbf{mta\_auth02}\\{\scriptsize MTA AUTH}\\{\scriptsize mta-\allowbreak{}auth02.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_video01) at (9.60,-2.60) {\textbf{video01}\\{\scriptsize Visioconférence (Video Server)}\\{\scriptsize video01.\allowbreak{}exemple.\allowbreak{}fr}};
+\node[comp] (nd_mail01) at (-4.80,-7.40) {\textbf{mail01}\\{\scriptsize Mailstore}\\{\scriptsize mailstore01.\allowbreak{}exemple.\allowbreak{}local}};
+\node[comp] (nd_mail02) at (-4.80,-9.30) {\textbf{mail02}\\{\scriptsize Mailstore}\\{\scriptsize mailstore02.\allowbreak{}exemple.\allowbreak{}local}};
+\node[comp] (nd_mail03) at (-4.80,-11.20) {\textbf{mail03}\\{\scriptsize Mailstore}\\{\scriptsize mailstore03.\allowbreak{}exemple.\allowbreak{}local}};
+\node[comp] (nd_application01) at (-0.00,-7.40) {\textbf{application01}\\{\scriptsize Chat (Workstream Collaboration), Tasks}\\{\scriptsize application01.\allowbreak{}exemple.\allowbreak{}local}};
+\node[comp] (nd_application02) at (-0.00,-9.30) {\textbf{application02}\\{\scriptsize Files, Docs (édition collaborative)}\\{\scriptsize application02.\allowbreak{}exemple.\allowbreak{}local}};
+\node[comp] (nd_services01) at (4.80,-7.40) {\textbf{services01}\\{\scriptsize Directory Master (LDAP)}\\{\scriptsize services01.\allowbreak{}exemple.\allowbreak{}local}};
+\node[comp] (nd_services02) at (4.80,-9.30) {\textbf{services02}\\{\scriptsize Directory Replica (LDAP)}\\{\scriptsize services02.\allowbreak{}exemple.\allowbreak{}local}};
+\node[comp] (nd_services03) at (4.80,-11.20) {\textbf{services03}\\{\scriptsize Database}\\{\scriptsize services03.\allowbreak{}exemple.\allowbreak{}local}};
+\begin{scope}[on background layer]
+  \node[zone, fit=(nd_proxy01) (nd_proxy02) (nd_mta_in01) (nd_mta_in02) (nd_mta_out01) (nd_mta_out02) (nd_mta_auth01) (nd_mta_auth02) (nd_video01)] (nd_DMZ_box) {};
+  \node[zone, fit=(nd_mail01) (nd_mail02) (nd_mail03) (nd_application01) (nd_application02) (nd_services01) (nd_services02) (nd_services03)] (nd_LAN_box) {};
+  \node[anchor=north west, font=\scriptsize\bfseries, color=primary, inner sep=0pt] at ([xshift=4pt,yshift=-3pt]nd_DMZ_box.north west) {Publique (DMZ)};
+  \node[anchor=north west, font=\scriptsize\bfseries, color=primary, inner sep=0pt] at ([xshift=4pt,yshift=-3pt]nd_LAN_box.north west) {Privée (LAN)};
+  \node[colgroup, fit=(nd_proxy01) (nd_proxy02)] (nd_DMZ_proxy_grp) {};
+  \node[colgroup, fit=(nd_mta_in01) (nd_mta_in02)] (nd_DMZ_mta_in_grp) {};
+  \node[colgroup, fit=(nd_mta_out01) (nd_mta_out02)] (nd_DMZ_mta_out_grp) {};
+  \node[colgroup, fit=(nd_mta_auth01) (nd_mta_auth02)] (nd_DMZ_mta_auth_grp) {};
+  \node[colgroup, fit=(nd_mail01) (nd_mail02) (nd_mail03)] (nd_LAN_mail_grp) {};
+  \node[colgroup, fit=(nd_application01) (nd_application02)] (nd_LAN_application_grp) {};
+  \node[colgroup, fit=(nd_services01) (nd_services02) (nd_services03)] (nd_LAN_services_grp) {};
+\end{scope}
+\draw[flow, color=flowcat_mesh] (nd_mail01.south) -- node[right, font=\scriptsize, text=flowcat_mesh, pos=0.3] {Interne (service discovery)} (nd_mail02.north);
+\draw[flow, color=flowcat_mesh] (nd_mail01.south) -- node[right, font=\scriptsize, text=flowcat_mesh, pos=0.3] {Interne (service discovery)} (nd_mail03.north);
+\draw[flow, color=flowcat_mesh] (nd_mail01.east) -- node[above, font=\scriptsize, text=flowcat_mesh] {Interne (service discovery)} (nd_application01.west);
+\draw[flow, color=flowcat_mesh] (nd_mail01.south) -- node[sloped, below, font=\scriptsize, text=flowcat_mesh, pos=0.3] {Interne (service discovery)} (nd_application02.north);
+\draw[flow, color=flowcat_mesh] (nd_mail01.east) -- node[above, font=\scriptsize, text=flowcat_mesh] {Interne (service discovery)} (nd_services01.west);
+\draw[flow, color=flowcat_mesh] (nd_mail01.south) -- node[sloped, below, font=\scriptsize, text=flowcat_mesh, pos=0.3] {Interne (service discovery)} (nd_services02.north);
+\draw[flow, color=flowcat_mesh] (nd_mail01.south) -- node[sloped, below, font=\scriptsize, text=flowcat_mesh, pos=0.3] {Interne (service discovery)} (nd_services03.north);
+\draw[flow, color=flowcat_mesh] (nd_mail02.south) -- node[sloped, below, font=\scriptsize, text=flowcat_mesh, pos=0.3] {Interne (service discovery)} (nd_application01.north);
+\draw[flow, color=flowcat_mesh] (nd_mail02.east) -- node[above, font=\scriptsize, text=flowcat_mesh] {Interne (service discovery)} (nd_application02.west);
+\draw[flow, color=flowcat_mesh] (nd_mail02.south) -- node[sloped, below, font=\scriptsize, text=flowcat_mesh, pos=0.3] {Interne (service discovery)} (nd_services01.north);
+\draw[flow, color=flowcat_mesh] (nd_mail02.east) -- node[above, font=\scriptsize, text=flowcat_mesh] {Interne (service discovery)} (nd_services02.west);
+\draw[flow, color=flowcat_mesh] (nd_mail02.south) -- node[sloped, below, font=\scriptsize, text=flowcat_mesh, pos=0.3] {Interne (service discovery)} (nd_services03.north);
+\draw[flow, color=flowcat_mesh] (nd_mail03.south) -- node[sloped, below, font=\scriptsize, text=flowcat_mesh, pos=0.3] {Interne (service discovery)} (nd_application01.north);
+\draw[flow, color=flowcat_mesh] (nd_mail03.south) -- node[sloped, below, font=\scriptsize, text=flowcat_mesh, pos=0.3] {Interne (service discovery)} (nd_application02.north);
+\draw[flow, color=flowcat_mesh] (nd_mail03.south) -- node[sloped, below, font=\scriptsize, text=flowcat_mesh, pos=0.3] {Interne (service discovery)} (nd_services01.north);
+\draw[flow, color=flowcat_mesh] (nd_mail03.south) -- node[sloped, below, font=\scriptsize, text=flowcat_mesh, pos=0.3] {Interne (service discovery)} (nd_services02.north);
+\draw[flow, color=flowcat_mesh] (nd_mail03.east) -- node[above, font=\scriptsize, text=flowcat_mesh] {Interne (service discovery)} (nd_services03.west);
+\draw[flow, color=flowcat_mesh] (nd_application01.south) -- node[right, font=\scriptsize, text=flowcat_mesh, pos=0.3] {Interne (service discovery)} (nd_application02.north);
+\draw[flow, color=flowcat_mesh] (nd_application01.east) -- node[above, font=\scriptsize, text=flowcat_mesh] {Interne (service discovery)} (nd_services01.west);
+\draw[flow, color=flowcat_mesh] (nd_application01.south) -- node[sloped, below, font=\scriptsize, text=flowcat_mesh, pos=0.3] {Interne (service discovery)} (nd_services02.north);
+\draw[flow, color=flowcat_mesh] (nd_application01.south) -- node[sloped, below, font=\scriptsize, text=flowcat_mesh, pos=0.3] {Interne (service discovery)} (nd_services03.north);
+\draw[flow, color=flowcat_mesh] (nd_application02.south) -- node[sloped, below, font=\scriptsize, text=flowcat_mesh, pos=0.3] {Interne (service discovery)} (nd_services01.north);
+\draw[flow, color=flowcat_mesh] (nd_application02.east) -- node[above, font=\scriptsize, text=flowcat_mesh] {Interne (service discovery)} (nd_services02.west);
+\draw[flow, color=flowcat_mesh] (nd_application02.south) -- node[sloped, below, font=\scriptsize, text=flowcat_mesh, pos=0.3] {Interne (service discovery)} (nd_services03.north);
+\draw[flow, color=flowcat_mesh] (nd_services01.south) -- node[right, font=\scriptsize, text=flowcat_mesh, pos=0.3] {Interne (service discovery)} (nd_services02.north);
+\draw[flow, color=flowcat_mesh] (nd_services01.south) -- node[right, font=\scriptsize, text=flowcat_mesh, pos=0.3] {Interne (service discovery)} (nd_services03.north);
+\draw[flow, color=flowcat_mesh] (nd_services02.south) -- node[right, font=\scriptsize, text=flowcat_mesh, pos=0.3] {Interne (service discovery)} (nd_services03.north);
+\end{tikzpicture}
+\end{adjustbox}
+\caption{Flux --- Mesh (coordination inter-\allowbreak{}nœuds)}
+\end{figure}
+
+\end{landscape}
+
+\clearpage
+\section{Composants Carbonio et rôles}
+La plateforme Carbonio repose sur une architecture modulaire par composants. Seuls les composants activés dans le fichier de configuration de ce client sont détaillés ci-dessous.
+
+\subsection{Mesh}
+
+Brique d'infrastructure invisible pour l'utilisateur final, mais indispensable : elle permet aux différents modules Carbonio de se découvrir et de communiquer entre eux quel que soit le nombre de serveurs.\allowbreak{} Sans valeur commerciale directe, elle est incluse dans toutes les éditions Carbonio.\allowbreak{}
+
+\textbf{Rôle~:} Agent de coordination inter-\allowbreak{}nœuds et de découverte de services (service discovery).\allowbreak{} Présent sur l'ensemble des nœuds d'infrastructure Carbonio, qu'ils hébergent ou non LDAP/PostgreSQL.\allowbreak{}
+
+\textbf{Paquets principaux~:} \texttt{service-\allowbreak{}discover-\allowbreak{}server}, \texttt{carbonio-\allowbreak{}message-\allowbreak{}broker}, \texttt{carbonio-\allowbreak{}storages}
+
+\textbf{Ports par défaut~:} interne uniquement (Consul / service discovery)
+
+\textbf{Nœud(s) hébergeant ce composant chez Université d'Amboise~:}
+\begin{longtable}{|p{3.2cm}|p{4.5cm}|p{3.2cm}|p{2.3cm}|}
+\hline
+\rowcolor{primary}\tblhead{Nœud} & \tblhead{Hostname} & \tblhead{IP} & \tblhead{Zone} \\
+\hline
+\endhead
+mail01 & mailstore01.\allowbreak{}exemple.\allowbreak{}local & 10.\allowbreak{}0.\allowbreak{}1.\allowbreak{}11 & Zone Privée (LAN) \\
+\hline
+mail02 & mailstore02.\allowbreak{}exemple.\allowbreak{}local & 10.\allowbreak{}0.\allowbreak{}1.\allowbreak{}12 & Zone Privée (LAN) \\
+\hline
+mail03 & mailstore03.\allowbreak{}exemple.\allowbreak{}local & 10.\allowbreak{}0.\allowbreak{}1.\allowbreak{}13 & Zone Privée (LAN) \\
+\hline
+application01 & application01.\allowbreak{}exemple.\allowbreak{}local & 10.\allowbreak{}0.\allowbreak{}1.\allowbreak{}20 & Zone Privée (LAN) \\
+\hline
+application02 & application02.\allowbreak{}exemple.\allowbreak{}local & 10.\allowbreak{}0.\allowbreak{}1.\allowbreak{}21 & Zone Privée (LAN) \\
+\hline
+services01 & services01.\allowbreak{}exemple.\allowbreak{}local & 10.\allowbreak{}0.\allowbreak{}1.\allowbreak{}30 & Zone Privée (LAN) \\
+\hline
+services02 & services02.\allowbreak{}exemple.\allowbreak{}local & 10.\allowbreak{}0.\allowbreak{}1.\allowbreak{}31 & Zone Privée (LAN) \\
+\hline
+services03 & services03.\allowbreak{}exemple.\allowbreak{}local & 10.\allowbreak{}0.\allowbreak{}1.\allowbreak{}32 & Zone Privée (LAN) \\
+\hline
+\end{longtable}
+
+
+\subsection{Directory Master (LDAP)}
+
+Annuaire d'entreprise qui centralise les identités (comptes, mots de passe, groupes, domaines).\allowbreak{} C'est le socle d'authentification de toute la plateforme -\allowbreak{}-\allowbreak{}-\allowbreak{} inclus dans toutes les éditions Carbonio.\allowbreak{}
+
+\textbf{Rôle~:} Annuaire LDAP maître : seul nœud acceptant les écritures (création de comptes, domaines, classes de service).\allowbreak{} Point de référence pour la réplication vers les Directory Replica.\allowbreak{}
+
+
+\textbf{Paquets principaux~:} \texttt{carbonio-\allowbreak{}directory-\allowbreak{}server}
+
+\textbf{Ports par défaut~:} 389 (LDAP) / 636 (LDAPS) -\allowbreak{}-\allowbreak{}-\allowbreak{} interne uniquement ; réplique vers les nœuds Replica
+
+\textbf{Nœud(s) hébergeant ce composant chez Université d'Amboise~:}
+\begin{longtable}{|p{3.2cm}|p{4.5cm}|p{3.2cm}|p{2.3cm}|}
+\hline
+\rowcolor{primary}\tblhead{Nœud} & \tblhead{Hostname} & \tblhead{IP} & \tblhead{Zone} \\
+\hline
+\endhead
+services01 & services01.\allowbreak{}exemple.\allowbreak{}local & 10.\allowbreak{}0.\allowbreak{}1.\allowbreak{}30 & Zone Privée (LAN) \\
+\hline
+\end{longtable}
+
+\textbf{Points d'attention exploitation~:}
+\begin{itemize}[nosep]
+  \item Un seul nœud Master doit exister à un instant donné --- une double-écriture (« split-brain ») corromprait l'annuaire.
+  \item Ce Master réplique vers~: services02 (services02.\allowbreak{}exemple.\allowbreak{}local).
+  \item En cas de panne prolongée du Master, une procédure de promotion manuelle d'un Replica en Master doit être documentée et testée (voir le PCA/PRA, \S\ref{sec:pca-pra}).
+\end{itemize}
+
+\subsection{Directory Replica (LDAP)}
+
+Réplique de l'annuaire d'entreprise, dédiée à la haute disponibilité de l'authentification.\allowbreak{} Recommandée dès qu'une continuité de service est exigée sur l'accès aux boîtes mail.\allowbreak{}
+
+\textbf{Rôle~:} Annuaire LDAP en lecture seule, synchronisé en continu depuis le Directory Master.\allowbreak{} Sert les requêtes d'authentification pour répartir la charge et assurer une continuité de service si le Master est indisponible.\allowbreak{}
+
+
+\textbf{Paquets principaux~:} \texttt{carbonio-\allowbreak{}directory-\allowbreak{}server}
+
+\textbf{Ports par défaut~:} 389 (LDAP) / 636 (LDAPS) -\allowbreak{}-\allowbreak{}-\allowbreak{} interne uniquement ; synchronisé depuis le Master
+
+\textbf{Nœud(s) hébergeant ce composant chez Université d'Amboise~:}
+\begin{longtable}{|p{3.2cm}|p{4.5cm}|p{3.2cm}|p{2.3cm}|}
+\hline
+\rowcolor{primary}\tblhead{Nœud} & \tblhead{Hostname} & \tblhead{IP} & \tblhead{Zone} \\
+\hline
+\endhead
+services02 & services02.\allowbreak{}exemple.\allowbreak{}local & 10.\allowbreak{}0.\allowbreak{}1.\allowbreak{}31 & Zone Privée (LAN) \\
+\hline
+\end{longtable}
+
+\textbf{Points d'attention exploitation~:}
+\begin{itemize}[nosep]
+  \item Ces nœuds sont en lecture seule : toute tentative d'écriture doit être dirigée vers le Directory Master.
+  \item Synchronisés depuis~: services01 (services01.\allowbreak{}exemple.\allowbreak{}local).
+  \item Utiles pour répartir la charge des requêtes d'authentification et assurer une continuité de service en cas d'indisponibilité temporaire du Master (lecture seule).
+\end{itemize}
+
+\subsection{Database}
+
+Moteur de persistance des données applicatives (hors messages eux-\allowbreak{}mêmes).\allowbreak{} Composant standard, sans coût de licence additionnel.\allowbreak{}
+
+\textbf{Rôle~:} Bases de données PostgreSQL des différents services (mailbox, files, docs, tâches, chat).\allowbreak{}
+
+\textbf{Paquets principaux~:} \texttt{postgresql}, \texttt{carbonio-\allowbreak{}mailbox-\allowbreak{}db}, \texttt{carbonio-\allowbreak{}files-\allowbreak{}db}, \texttt{carbonio-\allowbreak{}docs-\allowbreak{}connector-\allowbreak{}db}, \texttt{carbonio-\allowbreak{}tasks-\allowbreak{}db}, \texttt{carbonio-\allowbreak{}ws-\allowbreak{}collaboration-\allowbreak{}db}
+
+\textbf{Ports par défaut~:} 5432 (PostgreSQL) -\allowbreak{}-\allowbreak{}-\allowbreak{} interne uniquement
+
+\textbf{Nœud(s) hébergeant ce composant chez Université d'Amboise~:}
+\begin{longtable}{|p{3.2cm}|p{4.5cm}|p{3.2cm}|p{2.3cm}|}
+\hline
+\rowcolor{primary}\tblhead{Nœud} & \tblhead{Hostname} & \tblhead{IP} & \tblhead{Zone} \\
+\hline
+\endhead
+services03 & services03.\allowbreak{}exemple.\allowbreak{}local & 10.\allowbreak{}0.\allowbreak{}1.\allowbreak{}32 & Zone Privée (LAN) \\
+\hline
+\end{longtable}
+
+
+\subsection{Mailstore}
+
+Le cœur de l'offre Carbonio : messagerie électronique, agenda partagé et contacts, accessible depuis le webmail, les clients lourds (IMAP/POP3) et les terminaux mobiles.\allowbreak{}
+
+\textbf{Rôle~:} Cœur applicatif : stockage des messages, calendriers, contacts ; API SOAP/REST ; IMAP/POP3.\allowbreak{}
+
+
+\textbf{Paquets principaux~:} \texttt{carbonio-\allowbreak{}appserver}, \texttt{carbonio-\allowbreak{}mailbox (store}, \texttt{soap}, \texttt{client)}
+
+\textbf{Ports par défaut~:} 7071 (SOAP interne), 143/993 (IMAP), 110/995 (POP3)
+
+\textbf{Nœud(s) hébergeant ce composant chez Université d'Amboise~:}
+\begin{longtable}{|p{2.6cm}|p{4cm}|p{2.6cm}|p{2cm}|p{2.3cm}|}
+\hline
+\rowcolor{primary}\tblhead{Nœud} & \tblhead{Hostname} & \tblhead{IP} & \tblhead{Zone} & \tblhead{Rétention backup} \\
+\hline
+\endhead
+mail01 & mailstore01.\allowbreak{}exemple.\allowbreak{}local & 10.\allowbreak{}0.\allowbreak{}1.\allowbreak{}11 & Zone Privée (LAN) & 30 jours \\
+\hline
+mail02 & mailstore02.\allowbreak{}exemple.\allowbreak{}local & 10.\allowbreak{}0.\allowbreak{}1.\allowbreak{}12 & Zone Privée (LAN) & 30 jours \\
+\hline
+mail03 & mailstore03.\allowbreak{}exemple.\allowbreak{}local & 10.\allowbreak{}0.\allowbreak{}1.\allowbreak{}13 & Zone Privée (LAN) & 45 jours \\
+\hline
+\end{longtable}
+
+\textbf{Rétention des sauvegardes~:} le système de sauvegarde Carbonio retient les données utilisateur (item-level~: e-mails, contacts, agenda) selon une politique de rétention définie \emph{par mailstore} --- voir la colonne « Rétention backup » ci-dessus. Cette rétention peut être ajustée indépendamment sur chaque nœud selon les contraintes propres à sa population d'utilisateurs.
+
+\textbf{Gestion hiérarchique du stockage (HSM) --- données chaudes / froides~:} les mailstores suivants disposent d'un module HSM (Hierarchical Storage Management) actif, qui bascule automatiquement les données anciennes (« froides ») du stockage primaire rapide vers un stockage secondaire économique (S3, MinIO, Ceph...), tout en conservant les données récentes (« chaudes ») sur le stockage primaire pour un accès rapide.
+\begin{longtable}{|p{4cm}|p{4cm}|p{5cm}|}
+\hline
+\rowcolor{primary}\tblhead{Nœud} & \tblhead{Rétention données chaudes (primaire)} & \tblhead{Stockage secondaire} \\
+\hline
+\endhead
+mail01 & 90 jours & S3 (bucket univ-\allowbreak{}amboise-\allowbreak{}hsm-\allowbreak{}cold) \\
+\hline
+mail03 & 60 jours & S3 (bucket univ-\allowbreak{}amboise-\allowbreak{}hsm-\allowbreak{}cold) \\
+\hline
+\end{longtable}
+\placeholder{Documenter la politique de purge/archivage légal éventuellement applicable aux données froides (durée de conservation réglementaire).}
+
+
+\subsection{Proxy}
+
+Point d'accès unique et sécurisé à la plateforme pour les utilisateurs externes.\allowbreak{} Composant d'infrastructure inclus, sans coût de licence additionnel.\allowbreak{}
+
+\textbf{Rôle~:} Reverse-\allowbreak{}proxy HTTP/S et proxy mail ; point d'entrée unique pour les clients externes (webmail, IMAP/POP3, ActiveSync).\allowbreak{}
+
+\textbf{Paquets principaux~:} \texttt{carbonio-\allowbreak{}proxy}, \texttt{carbonio-\allowbreak{}webui}
+
+\textbf{Ports par défaut~:} 443 (HTTPS), 993 (IMAPS), 995 (POP3S)
+
+\textbf{Nœud(s) hébergeant ce composant chez Université d'Amboise~:}
+\begin{longtable}{|p{3.2cm}|p{4.5cm}|p{3.2cm}|p{2.3cm}|}
+\hline
+\rowcolor{primary}\tblhead{Nœud} & \tblhead{Hostname} & \tblhead{IP} & \tblhead{Zone} \\
+\hline
+\endhead
+proxy01 & proxy01.\allowbreak{}exemple.\allowbreak{}fr & 192.\allowbreak{}0.\allowbreak{}2.\allowbreak{}11 & Zone Publique (DMZ) \\
+\hline
+proxy02 & proxy02.\allowbreak{}exemple.\allowbreak{}fr & 192.\allowbreak{}0.\allowbreak{}2.\allowbreak{}12 & Zone Publique (DMZ) \\
+\hline
+\end{longtable}
+
+\textbf{Point d'exposition~:} ce composant constitue le point d'entrée unique exposé publiquement ; les nœuds de stockage (mailbox, annuaire, base) restent masqués derrière lui et ne doivent pas être directement accessibles depuis l'extérieur.
+
+\textbf{Méthode de répartition de charge~:} Répartiteur de charge externe (couche 4, round-\allowbreak{}robin) devant proxy01/proxy02
+
+
+\subsection{MTA (Mail Transfer Agent)}
+Le MTA (Mail Transfer Agent) est le composant Carbonio responsable du transport SMTP du courrier électronique, aussi bien en réception qu'en émission.\allowbreak{} Sur Carbonio, ce rôle est volontairement scindé en trois fonctions distinctes -\allowbreak{}-\allowbreak{}-\allowbreak{} MTA IN (réception), MTA OUT (émission) et MTA AUTH (soumission authentifiée) -\allowbreak{}-\allowbreak{}-\allowbreak{} qui peuvent être colocalisées sur un même nœud pour une petite infrastructure, ou réparties sur des nœuds dédiés en haute disponibilité pour une infrastructure de taille réelle.\allowbreak{} Cette séparation logique reste pertinente dans les deux cas : elle clarifie les règles de pare-\allowbreak{}feu, la supervision et l'imputabilité de chaque flux SMTP.\allowbreak{}
+
+\subsubsection{MTA IN}
+
+Filtre la première ligne de défense contre le spam et les virus à la réception des e-\allowbreak{}mails.\allowbreak{} Un dimensionnement et une politique anti-\allowbreak{}spam/anti-\allowbreak{}virus robustes sur ce composant conditionnent directement la réputation du domaine du client.\allowbreak{}
+
+\textbf{Rôle~:} Réception du courrier entrant depuis Internet.\allowbreak{} Applique le filtrage antispam/antivirus et vérifie l'authentification de l'expéditeur (SPF, DKIM, DMARC) avant remise en boîte.\allowbreak{}
+
+
+\textbf{Paquets principaux~:} \texttt{carbonio-\allowbreak{}mta}
+
+\textbf{Ports par défaut~:} 25 (SMTP entrant)
+
+\textbf{Nœud(s) hébergeant ce composant chez Université d'Amboise~:}
+\begin{longtable}{|p{3.2cm}|p{4.5cm}|p{3.2cm}|p{2.3cm}|}
+\hline
+\rowcolor{primary}\tblhead{Nœud} & \tblhead{Hostname} & \tblhead{IP} & \tblhead{Zone} \\
+\hline
+\endhead
+mta\_in01 & mta-\allowbreak{}in01.\allowbreak{}exemple.\allowbreak{}fr & 192.\allowbreak{}0.\allowbreak{}2.\allowbreak{}21 & Zone Publique (DMZ) \\
+\hline
+mta\_in02 & mta-\allowbreak{}in02.\allowbreak{}exemple.\allowbreak{}fr & 192.\allowbreak{}0.\allowbreak{}2.\allowbreak{}22 & Zone Publique (DMZ) \\
+\hline
+\end{longtable}
+
+\textbf{Authentification et anti-usurpation~:} vérification SPF, DKIM et DMARC pour chaque domaine géré. Politique DMARC recommandée en \texttt{p=quarantine} puis \texttt{p=reject} après une période probatoire, avec surveillance des rapports d'agrégation (\texttt{rua}) pour détecter les échecs SPF/DKIM (\texttt{HARD\_FAIL}).
+
+\textbf{Méthode de répartition de charge~:} Enregistrements MX à priorité égale (round-\allowbreak{}robin SMTP côté expéditeurs)
+
+
+\subsubsection{MTA OUT}
+
+Garantit que les e-\allowbreak{}mails envoyés par les utilisateurs du client sont correctement authentifiés (DKIM) avant d'atteindre les serveurs destinataires, ce qui limite le risque de classement en spam chez les tiers.\allowbreak{}
+
+\textbf{Rôle~:} Émission du courrier sortant vers Internet.\allowbreak{} Signe les messages sortants (DKIM) pour le compte des domaines gérés.\allowbreak{}
+
+
+\textbf{Paquets principaux~:} \texttt{carbonio-\allowbreak{}mta}
+
+\textbf{Ports par défaut~:} 25 (SMTP sortant vers MTA distants)
+
+\textbf{Nœud(s) hébergeant ce composant chez Université d'Amboise~:}
+\begin{longtable}{|p{3.2cm}|p{4.5cm}|p{3.2cm}|p{2.3cm}|}
+\hline
+\rowcolor{primary}\tblhead{Nœud} & \tblhead{Hostname} & \tblhead{IP} & \tblhead{Zone} \\
+\hline
+\endhead
+mta\_out01 & mta-\allowbreak{}out01.\allowbreak{}exemple.\allowbreak{}fr & 192.\allowbreak{}0.\allowbreak{}2.\allowbreak{}23 & Zone Publique (DMZ) \\
+\hline
+mta\_out02 & mta-\allowbreak{}out02.\allowbreak{}exemple.\allowbreak{}fr & 192.\allowbreak{}0.\allowbreak{}2.\allowbreak{}24 & Zone Publique (DMZ) \\
+\hline
+\end{longtable}
+
+\textbf{Signature sortante~:} chaque message sortant est signé DKIM pour le compte du domaine expéditeur. La clé privée DKIM doit être protégée et sa clé publique publiée dans la zone DNS de chaque domaine géré.
+
+\textbf{Méthode de répartition de charge~:} Round-\allowbreak{}robin applicatif (Postfix) entre mta\_out01/mta\_out02
+
+
+\subsubsection{MTA AUTH}
+
+Point d'entrée dédié à l'envoi de courrier pour les utilisateurs authentifiés (clients de messagerie externes, applications tierces).\allowbreak{} Permet d'isoler ce trafic du flux SMTP entrant/sortant pour la sécurité et la supervision.\allowbreak{}
+
+\textbf{Rôle~:} Point de soumission authentifiée pour les clients de messagerie (envoi via un compte utilisateur authentifié).\allowbreak{}
+
+
+\textbf{Paquets principaux~:} \texttt{carbonio-\allowbreak{}mta}
+
+\textbf{Ports par défaut~:} 587 (Submission / SMTP AUTH)
+
+\textbf{Nœud(s) hébergeant ce composant chez Université d'Amboise~:}
+\begin{longtable}{|p{3.2cm}|p{4.5cm}|p{3.2cm}|p{2.3cm}|}
+\hline
+\rowcolor{primary}\tblhead{Nœud} & \tblhead{Hostname} & \tblhead{IP} & \tblhead{Zone} \\
+\hline
+\endhead
+mta\_auth01 & mta-\allowbreak{}auth01.\allowbreak{}exemple.\allowbreak{}fr & 192.\allowbreak{}0.\allowbreak{}2.\allowbreak{}25 & Zone Publique (DMZ) \\
+\hline
+mta\_auth02 & mta-\allowbreak{}auth02.\allowbreak{}exemple.\allowbreak{}fr & 192.\allowbreak{}0.\allowbreak{}2.\allowbreak{}26 & Zone Publique (DMZ) \\
+\hline
+\end{longtable}
+
+\textbf{Contrôle d'accès~:} l'accès à ce point de soumission nécessite une authentification SMTP (compte utilisateur valide). Un rate-limiting par compte est recommandé pour limiter l'impact d'un compte compromis.
+
+\textbf{Méthode de répartition de charge~:} Répartiteur de charge externe (couche 4, round-\allowbreak{}robin) devant mta\_auth01/mta\_auth02
+
+
+\subsection{Files}
+
+Module de stockage et de partage de fichiers (équivalent fonctionnel à un Drive d'entreprise), intégré nativement à la messagerie.\allowbreak{} Fonctionnalité soumise à licence -\allowbreak{}-\allowbreak{}-\allowbreak{} voir la section Licence.\allowbreak{}
+
+\textbf{Rôle~:} Stockage de fichiers et partage documentaire (équivalent Drive), intégré au webmail et aux autres applications Carbonio.\allowbreak{} Souvent colocalisé avec Docs sur un même nœud applicatif.\allowbreak{}
+
+\textbf{Paquets principaux~:} \texttt{carbonio-\allowbreak{}files-\allowbreak{}ce (ou -\allowbreak{}ee)}, \texttt{carbonio-\allowbreak{}files-\allowbreak{}db}, \texttt{carbonio-\allowbreak{}files-\allowbreak{}ui}, \texttt{carbonio-\allowbreak{}storages}
+
+\textbf{Ports par défaut~:} N/A (interne, via API mailbox/proxy)
+
+\textbf{Nœud(s) hébergeant ce composant chez Université d'Amboise~:}
+\begin{longtable}{|p{3.2cm}|p{4.5cm}|p{3.2cm}|p{2.3cm}|}
+\hline
+\rowcolor{primary}\tblhead{Nœud} & \tblhead{Hostname} & \tblhead{IP} & \tblhead{Zone} \\
+\hline
+\endhead
+application02 & application02.\allowbreak{}exemple.\allowbreak{}local & 10.\allowbreak{}0.\allowbreak{}1.\allowbreak{}21 & Zone Privée (LAN) \\
+\hline
+\end{longtable}
+
+
+\subsection{Docs (édition collaborative)}
+
+Édition collaborative de documents bureautiques (texte, tableur, présentation) directement dans le navigateur, sans installation de suite bureautique sur le poste utilisateur.\allowbreak{} Nécessite le module Files et est soumis à licence.\allowbreak{}
+
+\textbf{Rôle~:} Édition collaborative de documents bureautiques (Writer/Calc/Impress) directement dans le navigateur, via Collabora Online (moteur LibreOffice Online) intégré en WOPI.\allowbreak{} Souvent colocalisé avec Files.\allowbreak{}
+
+\textbf{Paquets principaux~:} \texttt{carbonio-\allowbreak{}docs-\allowbreak{}connector-\allowbreak{}ce}, \texttt{carbonio-\allowbreak{}docs-\allowbreak{}connector-\allowbreak{}db}, \texttt{carbonio-\allowbreak{}docs-\allowbreak{}editor (Collabora Online / coolwsd)}
+
+\textbf{Ports par défaut~:} 10000 (coolwsd, interne) -\allowbreak{}-\allowbreak{}-\allowbreak{} exposé aux utilisateurs via le Proxy en HTTPS
+
+\textbf{Nœud(s) hébergeant ce composant chez Université d'Amboise~:}
+\begin{longtable}{|p{3.2cm}|p{4.5cm}|p{3.2cm}|p{2.3cm}|}
+\hline
+\rowcolor{primary}\tblhead{Nœud} & \tblhead{Hostname} & \tblhead{IP} & \tblhead{Zone} \\
+\hline
+\endhead
+application02 & application02.\allowbreak{}exemple.\allowbreak{}local & 10.\allowbreak{}0.\allowbreak{}1.\allowbreak{}21 & Zone Privée (LAN) \\
+\hline
+\end{longtable}
+
+
+\subsection{Chat (Workstream Collaboration)}
+
+Messagerie instantanée d'entreprise intégrée à la plateforme de messagerie (Carbonio Workstream Collaboration).\allowbreak{} Fonctionnalité soumise à licence -\allowbreak{}-\allowbreak{}-\allowbreak{} voir la section Licence.\allowbreak{}
+
+\textbf{Rôle~:} Messagerie instantanée temps réel (1:1 et groupes), notifications, intégration avec les autres services Carbonio.\allowbreak{} Souvent colocalisé avec Tasks.\allowbreak{}
+
+\textbf{Paquets principaux~:} \texttt{carbonio-\allowbreak{}ws-\allowbreak{}collaboration}, \texttt{carbonio-\allowbreak{}ws-\allowbreak{}collaboration-\allowbreak{}db}, \texttt{carbonio-\allowbreak{}ws-\allowbreak{}collaboration-\allowbreak{}ui}, \texttt{carbonio-\allowbreak{}message-\allowbreak{}dispatcher}, \texttt{carbonio-\allowbreak{}push-\allowbreak{}connector}, \texttt{carbonio-\allowbreak{}notification-\allowbreak{}push}
+
+\textbf{Ports par défaut~:} WebSocket (WSS) via le Proxy -\allowbreak{}-\allowbreak{}-\allowbreak{} le protocole WebSocket doit être explicitement autorisé sur le nœud Proxy
+
+\textbf{Nœud(s) hébergeant ce composant chez Université d'Amboise~:}
+\begin{longtable}{|p{3.2cm}|p{4.5cm}|p{3.2cm}|p{2.3cm}|}
+\hline
+\rowcolor{primary}\tblhead{Nœud} & \tblhead{Hostname} & \tblhead{IP} & \tblhead{Zone} \\
+\hline
+\endhead
+application01 & application01.\allowbreak{}exemple.\allowbreak{}local & 10.\allowbreak{}0.\allowbreak{}1.\allowbreak{}20 & Zone Privée (LAN) \\
+\hline
+\end{longtable}
+
+\textbf{Point d'attention réseau~:} le protocole WebSocket (WSS) doit être explicitement autorisé sur le nœud hébergeant le rôle Proxy (souvent désactivé par défaut au niveau des reverse-proxies/pare-feux intermédiaires). Le composant Chat ne peut pas être installé sur le même nœud que le Video Server historique (« Legacy Videoserver », déprécié).
+
+\subsection{Visioconférence (Video Server)}
+
+Réunions vidéo intégrées à la plateforme, sans dépendance à un outil de visioconférence tiers.\allowbreak{} Fonctionnalité soumise à licence -\allowbreak{}-\allowbreak{}-\allowbreak{} voir la section Licence.\allowbreak{}
+
+\textbf{Rôle~:} Hébergement et agrégation des flux WebRTC des réunions vidéo (Carbonio VideoServer).\allowbreak{} Placé en zone publique (DMZ) car il nécessite un NAT 1:1 direct, incompatible avec un relais proxy classique.\allowbreak{}
+
+\textbf{Paquets principaux~:} \texttt{carbonio-\allowbreak{}videoserver}, \texttt{carbonio-\allowbreak{}videoserver-\allowbreak{}recorder}
+
+\textbf{Ports par défaut~:} 8188 (API du serveur vidéo), 8090 (enregistreur) -\allowbreak{}-\allowbreak{}-\allowbreak{} ports RTP UDP 20000-\allowbreak{}40000 à ouvrir vers Internet
+
+\textbf{Nœud(s) hébergeant ce composant chez Université d'Amboise~:}
+\begin{longtable}{|p{3.2cm}|p{4.5cm}|p{3.2cm}|p{2.3cm}|}
+\hline
+\rowcolor{primary}\tblhead{Nœud} & \tblhead{Hostname} & \tblhead{IP} & \tblhead{Zone} \\
+\hline
+\endhead
+video01 & video01.\allowbreak{}exemple.\allowbreak{}fr & 192.\allowbreak{}0.\allowbreak{}2.\allowbreak{}30 & Zone Publique (DMZ) \\
+\hline
+\end{longtable}
+
+\textbf{Points d'attention réseau~:}
+\begin{itemize}[nosep]
+  \item La plage de ports UDP 20000-40000 doit être ouverte/redirigée vers ce nœud (flux RTP WebRTC) --- dimensionner le pare-feu et le NAT en conséquence.
+  \item Le paramètre \texttt{nat\_1\_1\_mapping} du fichier \texttt{/etc/janus/janus.jcfg} doit correspondre à l'IP publique réellement joignable par les clients (attention aux configurations avec IP entrante/sortante différentes).
+  \item Le Video Server historique (« Legacy Videoserver ») est déprécié au profit du composant Video Server \& Video Recording actuel ; vérifier la version effectivement déployée chez le client.
+\end{itemize}
+
+\subsection{Tasks}
+
+Gestion de tâches et de listes de choses à faire, intégrée au webmail et aux calendriers -\allowbreak{}-\allowbreak{}-\allowbreak{} confort d'usage pour les utilisateurs, sans configuration additionnelle côté administrateur.\allowbreak{}
+
+\textbf{Rôle~:} Gestion de tâches et listes de choses à faire, intégrée au webmail et aux calendriers Carbonio.\allowbreak{} Souvent colocalisé avec Chat.\allowbreak{}
+
+\textbf{Paquets principaux~:} \texttt{carbonio-\allowbreak{}tasks}, \texttt{carbonio-\allowbreak{}tasks-\allowbreak{}db}, \texttt{carbonio-\allowbreak{}tasks-\allowbreak{}ui}
+
+\textbf{Ports par défaut~:} N/A (interne, via API mailbox)
+
+\textbf{Nœud(s) hébergeant ce composant chez Université d'Amboise~:}
+\begin{longtable}{|p{3.2cm}|p{4.5cm}|p{3.2cm}|p{2.3cm}|}
+\hline
+\rowcolor{primary}\tblhead{Nœud} & \tblhead{Hostname} & \tblhead{IP} & \tblhead{Zone} \\
+\hline
+\endhead
+application01 & application01.\allowbreak{}exemple.\allowbreak{}local & 10.\allowbreak{}0.\allowbreak{}1.\allowbreak{}20 & Zone Privée (LAN) \\
+\hline
+\end{longtable}
+
+
+\section{Haute disponibilité et résilience}
+\begin{itemize}[nosep]
+  \item Réplication de l'annuaire LDAP (Directory Replica) pour éviter le point de défaillance unique
+  \item Répartition de charge entre plusieurs nœuds Proxy si volumétrie ou criticité l'exigent
+  \item Réplication PostgreSQL (streaming replication) selon le niveau de service visé
+  \item Message Broker et Event Streaming pour la cohérence inter-services en configuration distribuée
+\end{itemize}
+Niveau de disponibilité cible~: 99,95 \% hors fenêtres de maintenance planifiées.
+
+\section{Sauvegarde et restauration}
+\begin{itemize}[nosep]
+  \item Sauvegarde native Carbonio (item-level, dossier, compte) sans outillage tiers obligatoire
+  \item Politique de rétention~: 30 jours glissants, sauvegarde quotidienne
+  \item RTO cible~: 2h --- RPO cible~: 30 min
+  \item Tests de restauration périodiques~: \placeholder{fréquence et procédure de validation}
+\end{itemize}
+
+\section{Sécurité}
+
+\subsection{Authentification et contrôle d'accès}
+\begin{itemize}[nosep]
+  \item Authentification via Carbonio Directory Server (LDAP) ou fédération avec AD/LDAP existant
+  \item Politique de mots de passe et verrouillage de compte conformes au PAS
+  \item SSO / authentification multi-facteurs si requis par le client
+\end{itemize}
+
+\subsection{Chiffrement}
+\begin{itemize}[nosep]
+  \item TLS en transit sur tous les flux clients et inter-composants (SMTP, IMAP, HTTPS)
+  \item Chiffrement au repos du stockage si exigé (disques chiffrés, HSM chiffré)
+\end{itemize}
+
+\section{Opérations planifiées}
+Le tableau ci-dessous liste l'ensemble des opérations planifiées (tâches cron) connues sur cette plateforme, tous nœuds confondus --- y compris, mais sans s'y limiter, les sauvegardes détaillées au \S4.2.
+
+\begin{longtable}{|p{2.6cm}|p{5.4cm}|p{5.2cm}|}
+\hline
+\rowcolor{primary}\tblhead{Nœud} & \tblhead{Opération} & \tblhead{Planification} \\
+\hline
+\endhead
+mail01 & Sauvegarde Carbonio (backup.\allowbreak{}sh) & Lundi-\allowbreak{}Vendredi : 01:00; Samedi-\allowbreak{}Dimanche : 01:00, 13:00 \\
+\hline
+mail02 & Sauvegarde Carbonio (backup.\allowbreak{}sh) & Lundi-\allowbreak{}Vendredi : 01:15; Samedi-\allowbreak{}Dimanche : 01:15, 13:15 \\
+\hline
+mail03 & Sauvegarde Carbonio (backup.\allowbreak{}sh) & Lundi-\allowbreak{}Vendredi : 01:30; Samedi-\allowbreak{}Dimanche : 01:30, 13:30 \\
+\hline
+services03 & Synchronisation AD (ad-\allowbreak{}sync.\allowbreak{}sh) & Tous les jours : 00:00, 00:15, 00:30 (toutes les 15 min) \\
+\hline
+services01 & Purge des logs applicatifs (logrotate) & Tous les jours : 03:30 \\
+\hline
+services02 & Vérification intégrité réplication LDAP & Tous les jours : 04:00 \\
+\hline
+\end{longtable}
+
+
+\chapter{DNS, légitimité et réputation de la plateforme}
+
+\section{Domaines et alias de domaine}
+
+\subsection{Qu'est-ce qu'un alias de domaine ?}
+Un \textbf{alias de domaine}, dans Carbonio, est un domaine secondaire qui ne permet pas de créer ses propres comptes~: il applique automatiquement, à l'ensemble des comptes déjà existants sur un domaine principal, une adresse supplémentaire portant le suffixe de l'alias.
+
+\textbf{Exemple~:} si \texttt{domaine-alias.fr} est déclaré comme alias du domaine principal \texttt{domaine-principal.fr}, alors un message envoyé à \texttt{moncompte@domaine-alias.fr} est automatiquement remis dans la boîte du compte \texttt{moncompte@domaine-principal.fr} --- sans qu'aucun compte distinct n'existe sur \texttt{domaine-alias.fr}. C'est un moyen simple de faire répondre une plateforme à plusieurs noms de domaine (fusion d'entités, changement de marque, fautes de frappe courantes...) sans dupliquer les comptes.
+
+\subsection{Domaines gérés par cette plateforme}
+Chaque alias de domaine est présenté ci-dessous comme une sous-section du domaine principal auquel il est attaché.
+
+\subsubsection{Domaine principal --- univ-\allowbreak{}amboise.\allowbreak{}fr}
+\begin{itemize}[nosep]
+  \item \textbf{MX~:} mx1.\allowbreak{}univ-\allowbreak{}amboise.\allowbreak{}fr (priorité 10), mx2.\allowbreak{}univ-\allowbreak{}amboise.\allowbreak{}fr (priorité 20)  \item \textbf{SPF~:} \texttt{v=spf1 mx ip4:192.\allowbreak{}0.\allowbreak{}2.\allowbreak{}11 ip4:192.\allowbreak{}0.\allowbreak{}2.\allowbreak{}12 -\allowbreak{}all}  \item \textbf{DKIM~:} \texttt{carbonio} (Carbonio (MTA OUT))  \item \textbf{DMARC~:} \texttt{v=DMARC1; p=reject; rua=mailto:dmarc-\allowbreak{}reports@univ-\allowbreak{}amboise.\allowbreak{}fr; pct=100}\end{itemize}
+
+
+\subsubsection{Domaine principal --- etu.\allowbreak{}univ-\allowbreak{}amboise.\allowbreak{}fr}
+\begin{itemize}[nosep]
+  \item \textbf{MX~:} mx1.\allowbreak{}univ-\allowbreak{}amboise.\allowbreak{}fr (priorité 10), mx2.\allowbreak{}univ-\allowbreak{}amboise.\allowbreak{}fr (priorité 20)  \item \textbf{SPF~:} \texttt{v=spf1 mx ip4:192.\allowbreak{}0.\allowbreak{}2.\allowbreak{}11 ip4:192.\allowbreak{}0.\allowbreak{}2.\allowbreak{}12 -\allowbreak{}all}  \item \textbf{DKIM~:} \texttt{carbonio} (AS/AV (Vade for Zextras))  \item \textbf{DMARC~:} \texttt{v=DMARC1; p=reject; rua=mailto:dmarc-\allowbreak{}reports@univ-\allowbreak{}amboise.\allowbreak{}fr; pct=100}\end{itemize}
+
+
+\placeholder{Vérifier la cohérence de cette liste avec la zone DNS réellement publiée pour chaque domaine géré par cette plateforme.}
+
+\section{Légitimité et réputation de la plateforme}
+\label{sec:reputation}
+La délivrabilité du courrier électronique --- c'est-à-dire la capacité des e-mails envoyés à atteindre la boîte de réception du destinataire plutôt que son dossier spam --- dépend directement de la réputation du domaine et des adresses IP d'envoi. Cette réputation se construit et se dégrade au fil du temps, en fonction du volume envoyé, des taux de plainte, et surtout de la rigueur des mécanismes d'authentification mis en place (SPF, DKIM, DMARC détaillés ci-après).
+
+\subsection{Nécessité d'un antispam et d'un antivirus}
+Un filtrage antispam et antivirus efficace en entrée protège les utilisateurs, mais joue aussi un rôle de \textbf{protection de la réputation sortante} : une boîte compromise qui relaie du spam sortant dégrade immédiatement la réputation de l'ensemble du domaine, avec un impact sur la délivrabilité de tous les utilisateurs, pas seulement du compte compromis.
+
+\textbf{Recommandation~:} pour les flux entrants comme pour les flux sortants, l'externalisation du filtrage antispam/antivirus auprès d'un service spécialisé tiers est recommandée. Un service externalisé dispose de bases de réputation mises à jour en continu à l'échelle de son ensemble de clients, ce qu'une solution auto-hébergée ne peut pas répliquer seule.
+
+Pour rappel (voir le détail complet au chapitre Architecture fonctionnelle), la configuration retenue pour Université d'Amboise est~:
+\begin{longtable}{|p{7cm}|p{6cm}|}
+\hline
+\rowcolor{primary}\tblhead{Paramètre} & \tblhead{Valeur} \\
+\hline
+\endhead
+Nom du système anti-spam / anti-virus & Vade for Zextras \\
+\hline
+Filtrage sortant & Oui \\
+\hline
+Filtrage entrant & Oui \\
+\hline
+Quarantaine possible & Oui \\
+\hline
+Domaines dont le DKIM est géré par l'AS/AV & etu.\allowbreak{}univ-\allowbreak{}amboise.\allowbreak{}fr \\
+\hline
+\end{longtable}
+
+\subsection{SPF, DKIM, DMARC --- fonctionnement et conséquences}
+\label{sec:dns-consequences}
+
+\subsubsection{MX (Mail Exchanger)}
+Un enregistrement \textbf{MX} indique, pour un nom de domaine donné, quel(s) serveur(s) sont autorisés à recevoir le courrier électronique destiné à ce domaine. Chaque enregistrement MX porte une \textbf{priorité} (plus la valeur est basse, plus le serveur est prioritaire) : un domaine peut ainsi déclarer plusieurs MX pour assurer une redondance.
+
+\textbf{Conséquence si absent~:} sans enregistrement MX, aucun serveur n'est déclaré comme autorisé à recevoir le courrier pour ce domaine --- les messages à destination de ce domaine sont rejetés immédiatement par les serveurs expéditeurs (l'envoi échoue, sans remise possible).
+
+\subsubsection{SPF (Sender Policy Framework)}
+Le SPF liste, dans un enregistrement DNS TXT, les serveurs autorisés à envoyer des e-mails pour le compte d'un domaine. Un serveur destinataire qui reçoit un message prétendant venir de ce domaine, mais depuis une IP absente de cette liste, peut le rejeter ou le marquer comme suspect.
+
+\textbf{Conséquence si absent~:} rien n'empêche alors un tiers d'usurper ce domaine à l'envoi ; de nombreux serveurs destinataires pénalisent (mise en spam, voire rejet) les messages provenant d'un domaine sans SPF publié, et DMARC (voir ci-dessous) ne peut s'appuyer sur cette vérification.
+
+\subsubsection{DKIM (DomainKeys Identified Mail)}
+Le DKIM signe cryptographiquement chaque message sortant avec une clé privée. Selon le domaine, cette signature peut être portée soit par le MTA OUT de Carbonio, soit par la solution anti-spam/anti-virus externalisée lorsque celle-ci prend en charge le relais SMTP sortant pour ce domaine. Le destinataire vérifie la signature à l'aide de la clé publique, publiée dans un enregistrement DNS TXT sous un sélecteur donné (enregistrement \texttt{<sélecteur>.\_domainkey.<domaine>}).
+
+\textbf{Conséquence si absent~:} l'authenticité des messages sortants ne peut plus être vérifiée par le destinataire ; le risque de classement en spam augmente, et DMARC (voir ci-dessous) ne peut pas non plus s'appuyer sur cette vérification.
+
+\subsubsection{DMARC (Domain-based Message Authentication, Reporting \& Conformance)}
+Le DMARC s'appuie sur SPF et DKIM pour définir la politique à appliquer par le destinataire lorsqu'un message échoue ces vérifications (accepter, mettre en quarantaine, rejeter), ainsi qu'une adresse de réception des rapports d'agrégation permettant de surveiller les tentatives d'usurpation du domaine.
+
+\textbf{Conséquence si absent~:} aucune politique n'indique aux serveurs destinataires quoi faire en cas d'échec SPF/DKIM (chacun applique alors sa propre politique par défaut, généralement peu protectrice), et aucun rapport de tentative d'usurpation du domaine n'est reçu --- une usurpation peut donc passer inaperçue.
+
+\textbf{Recommandation de paramétrage~:} déployer la politique progressivement --- \texttt{p=none} (observation) puis \texttt{p=quarantine} après analyse des rapports, puis \texttt{p=reject} une fois la confiance établie dans la liste des expéditeurs légitimes.
+
+\chapter{Authentification}
+L'annuaire LDAP de la plateforme (voir Directory Master/Replica, \S\ref{sec:archi-detaillee}) ne se limite pas à la gestion des identités et de l'authentification~: il sert également de base de données pour l'ensemble des attributs de compte (quotas, classes de service, préférences...). La méthode d'authentification retenue détermine uniquement \emph{comment} un utilisateur prouve son identité --- les données du compte restent toujours portées par LDAP.
+
+\section{Méthodes d'authentification disponibles sur Carbonio}
+Carbonio prend en charge plusieurs méthodes d'authentification, activables indépendamment ou en combinaison (par exemple LDAP externe avec repli sur l'authentification native)~:
+\begin{itemize}[nosep]
+  \item \textbf{Authentification native} --- login/mot de passe géré directement par Carbonio (hash stocké dans LDAP local).
+  \item \textbf{Authentification externe LDAP/AD} --- délégation de la vérification du mot de passe à un annuaire d'entreprise existant, avec repli (fallback) optionnel sur l'authentification native en cas d'indisponibilité de l'annuaire externe.
+  \item \textbf{Authentification SAML2} --- authentification unique (SSO) déléguée à un fournisseur d'identité (IdP) tiers.
+  \item \textbf{Authentification par preauth} --- mécanisme de confiance préétablie entre Carbonio et une application tierce, qui authentifie l'utilisateur en amont et transmet un jeton signé à Carbonio (utile pour les portails applicatifs internes).
+\end{itemize}
+
+\section{Configuration en production chez Université d'Amboise}
+
+\subsection{Nom d'hôte et URL de connexion}
+\begin{itemize}[nosep]
+  \item V-Host~: \texttt{webmail.\allowbreak{}univ-\allowbreak{}amboise.\allowbreak{}fr }
+  \item URL de connexion~: \url{https://webmail.univ-amboise.fr }
+\end{itemize}
+
+Méthode(s) effectivement activée(s) sur cette plateforme~:
+\begin{itemize}[nosep]
+  \item Authentification native (login/mot de passe Carbonio)
+  \item Authentification externe LDAP/AD
+  \item Authentification SAML2 (SSO)
+\end{itemize}
+
+\subsection{Authentification native}
+\begin{itemize}[nosep]
+  \item Politique de mots de passe~: 14 caractères minimum, renouvellement tous les 90 jours
+  \item Politique de verrouillage de compte~: 5 tentatives échouées -\allowbreak{}-\allowbreak{}-\allowbreak{} verrouillage 30 minutes
+\end{itemize}
+
+\subsection{Authentification externe LDAP/AD}
+Repli sur l'authentification native en cas d'indisponibilité~: Oui.
+
+\begin{longtable}{|p{5.5cm}|p{5.5cm}|}
+\hline
+\rowcolor{primary}\tblhead{Serveur} & \tblhead{IP} \\
+\hline
+\endhead
+ad01.\allowbreak{}univ-\allowbreak{}amboise.\allowbreak{}local & 10.\allowbreak{}0.\allowbreak{}5.\allowbreak{}10 \\
+\hline
+ad02.\allowbreak{}univ-\allowbreak{}amboise.\allowbreak{}local & 10.\allowbreak{}0.\allowbreak{}5.\allowbreak{}11 \\
+\hline
+\end{longtable}
+\placeholder{Compléter avec le DN de bind, la base de recherche (base DN) et le filtre LDAP utilisés.}
+
+\subsection{Authentification SAML2}
+Fournisseur d'identité (IdP)~: https://sso.\allowbreak{}univ-\allowbreak{}amboise.\allowbreak{}fr/metadata.
+\placeholder{Compléter avec le nom de l'IdP, le mode de provisioning des attributs (JIT ou pré-provisionné), et le point de contact côté client pour la fédération d'identité.}
+
+
+\section{Politiques de sécurité liées aux comptes}
+
+\subsection{Information importante}
+\textit{L'Agence nationale de la sécurité des systèmes d'information (ANSSI), dans son guide « Recommandations relatives à l'authentification multifacteur et aux mots de passe » (v2.0, 08/10/2021, coécrit avec la CNIL), a fait évoluer sa position~: imposer un renouvellement périodique du mot de passe pousse les utilisateurs à adopter des stratégies prévisibles (légère modification du mot de passe précédent), ce qui abaisse le niveau de sécurité effectif sans bénéfice réel. L'ANSSI recommande désormais un mot de passe robuste (ou une phrase de passe) changé rarement, plutôt qu'un renouvellement fréquent --- sauf en cas de suspicion de compromission. Source~: \url{https://messervices.cyber.gouv.fr/guides/recommandations-relatives-lauthentification-multifacteur-et-aux-mots-de-passe}.}
+
+\subsection{Paramètres retenus pour cette plateforme}
+\begin{itemize}[nosep]
+  \item Politique de mots de passe (comptes natifs)~: 14 caractères minimum, renouvellement tous les 90 jours
+  \item Politique de blocage de compte~: 5 tentatives échouées -\allowbreak{}-\allowbreak{}-\allowbreak{} verrouillage 30 minutes
+  \item Protection contre les attaques par force brute (type fail2ban)~: Oui
+  \item Outil~: fail2ban
+  \item Détail du paramétrage~: Bannissement 30 minutes après 5 échecs en 10 minutes, sur proxy01/02 et mta\_auth01/02
+\end{itemize}
+
+\chapter{Mécanisme d'ajout / Modification / Suppression de comptes automatisé}
+Cette plateforme utilise un mécanisme d'auto-provisionnement : les comptes, listes de distribution, ressources et/ou signatures sont synchronisés automatiquement depuis un annuaire externe (LDAP ou Active Directory) plutôt que créés manuellement dans Carbonio.
+
+\section{Paramètres de synchronisation}
+\begin{longtable}{|p{5.5cm}|p{7.5cm}|}
+\hline
+\rowcolor{primary}\tblhead{Paramètre} & \tblhead{Valeur} \\
+\hline
+\endhead
+Nœud exécutant le script & services03 \\
+\hline
+Nom du script & \texttt{ad-\allowbreak{}sync.\allowbreak{}sh } \\
+\hline
+Serveur LDAP/AD source & ad01.\allowbreak{}univ-\allowbreak{}amboise.\allowbreak{}local (10.\allowbreak{}0.\allowbreak{}5.\allowbreak{}10) \\
+\hline
+Arguments du script & \texttt{-\allowbreak{}-\allowbreak{}full-\allowbreak{}sync -\allowbreak{}-\allowbreak{}domain univ-\allowbreak{}amboise.\allowbreak{}fr -\allowbreak{}-\allowbreak{}ou 'OU=Users,DC=univ-\allowbreak{}amboise,DC=fr' } \\
+\hline
+Fréquence d'exécution & Toutes les 15 minutes (cron) \\
+\hline
+\end{longtable}
+
+\section{Opérations couvertes}
+\begin{longtable}{|p{9cm}|p{4cm}|}
+\hline
+\rowcolor{primary}\tblhead{Opération} & \tblhead{Couverte ?} \\
+\hline
+\endhead
+Synchronisation des comptes & Oui \\
+\hline
+Synchronisation des listes de distribution & Oui \\
+\hline
+Synchronisation des ressources (salles, matériel) & Non \\
+\hline
+Synchronisation des signatures & Oui \\
+\hline
+\end{longtable}
+\placeholder{Documenter ici le comportement en cas d'échec de synchronisation (alerting, rattrapage) et la procédure de resynchronisation manuelle si nécessaire.}
+
+\chapter{Interfaces et intégrations}
+\begin{longtable}{|p{4.5cm}|p{4.5cm}|p{3.5cm}|}
+\hline
+\rowcolor{primary}\tblhead{Système tiers} & \tblhead{Nature de l'intégration} & \tblhead{Protocole/API} \\
+\hline
+\endhead
+Solution de supervision (Zabbix) & Collecte de métriques et alerting & Prometheus exporters / SNMP \\
+\hline
+Outil de ticketing (GLPI) & Ouverture automatique de tickets sur alerte & API REST \\
+\hline
+\end{longtable}
+\placeholder{Ajouter toute intégration spécifique au client : coffre-fort numérique, archivage légal, outil d'e-discovery, etc.}
+
+\chapter{Exploitation et MCO}
+
+\section{Administration courante}
+\begin{itemize}[nosep]
+  \item Création, modification, suspension et suppression de comptes (via Carbonio Admin Console ou API SOAP)
+  \item Gestion des quotas, des classes de service (COS) et des droits de délégation
+  \item Application des correctifs et montées de version (suivi des cycles de release Carbonio)
+\end{itemize}
+Pour le détail opérationnel de ces tâches (procédures pas à pas, comptes à utiliser, fenêtres d'intervention), se référer au document d'exploitation dédié à cette plateforme.
+
+\section{Supervision}
+\begin{longtable}{|p{5cm}|p{4cm}|p{3.5cm}|}
+\hline
+\rowcolor{primary}\tblhead{Indicateur} & \tblhead{Seuil d'alerte} & \tblhead{Outil} \\
+\hline
+\endhead
+Disponibilité des services Carbonio (mailbox, MTA, proxy, LDAP) & \placeholder{à définir} & [Prometheus / Zabbix / autre] \\
+\hline
+File d'attente SMTP (mail queue) & [ex. > 500 messages en attente] & [outil] \\
+\hline
+Utilisation CPU / RAM / disque & [ex. > 80 \%] & [outil] \\
+\hline
+Volumétrie de stockage restante & [ex. < 15 \% libre] & [outil] \\
+\hline
+Échecs d'authentification DMARC/DKIM anormaux & [à définir] & [rapports DMARC agrégés] \\
+\hline
+\end{longtable}
+
+\section{Gestion des changements}
+\begin{itemize}[nosep]
+  \item Fenêtres de maintenance planifiées~: \placeholder{préciser jours/horaires}
+  \item Processus de qualification des montées de version en environnement de test avant mise en production
+  \item Suivi des tickets bloquants éditeur et de leur impact sur le planning MCO
+\end{itemize}
+
+\chapter{Contraintes et exigences non fonctionnelles}
+\begin{longtable}{|p{6cm}|p{6.5cm}|}
+\hline
+\rowcolor{primary}\tblhead{Exigence} & \tblhead{Cible} \\
+\hline
+\endhead
+Disponibilité & 99,95 \% hors fenêtres de maintenance planifiées \\
+\hline
+Performance (temps de réponse webmail) & [ex. < 2 s en conditions nominales] \\
+\hline
+Conformité réglementaire & [RGPD, localisation des données en France/UE] \\
+\hline
+Souveraineté / hébergement & [on-premise, cloud privé, ou SaaS souverain via partenaire certifié] \\
+\hline
+Réversibilité & [modalités d'export des données en cas de fin de contrat] \\
+\hline
+\end{longtable}
+
+\chapter{Monitoring}
+La supervision de la plateforme Carbonio permet de détecter proactivement les dysfonctionnements (services arrêtés, saturation de ressources, files d'attente anormales) avant qu'ils n'affectent les utilisateurs, et de fournir un historique de fonctionnement utile au diagnostic et au dimensionnement.
+
+\placeholder{Description générique à affiner ultérieurement pour ce client : outils de supervision effectivement utilisés (Prometheus/Grafana, Zabbix, Nagios...), liste des indicateurs suivis, seuils d'alerte retenus, canaux de notification (e-mail, SMS, ticketing) et destinataires des alertes.}
+
+\chapter{Support}
+
+\section{Contact}
+\begin{itemize}[nosep]
+  \item Portail de support (ouverture de ticket)~: \url{https://support.zextras-services.fr }
+  \item Téléphone~: +33 1 85 76 01 97
+\end{itemize}
+\textbf{Il est nécessaire d'ouvrir un ticket sur le portail de support avant d'appeler le support par téléphone.} L'appel permet de signaler l'urgence d'un ticket déjà créé, il ne remplace pas la création du ticket.
+
+\section{Niveaux de sévérité}
+Le choix de la sévérité au moment de la création du ticket conditionne le délai de prise en charge. Elle doit refléter l'impact réel constaté, pas uniquement le ressenti d'urgence.
+
+\begin{longtable}{|p{1.3cm}|p{11cm}|}
+\hline
+\rowcolor{primary}\tblhead{Sévérité} & \tblhead{Définition} \\
+\hline
+\endhead
+S1 & L'ensemble des services de la plateforme ne répond plus. \\
+\hline
+S2 & Un ou plusieurs services de la plateforme ne répondent plus. \\
+\hline
+S3 & Un dysfonctionnement est rencontré / une demande de gestion est nécessaire. \\
+\hline
+S4 & Une demande d'information. \\
+\hline
+S5 & Une demande d'évolution. \\
+\hline
+\end{longtable}
+
+\section{Que faire en cas d'urgence}
+\begin{enumerate}[nosep]
+  \item Créer un ticket avec la sévérité appropriée (\textbf{la sévérité n'est pas synonyme d'urgence} --- voir le tableau ci-dessus) sur \url{https://support.zextras-services.fr }.
+  \item Compléter ce ticket par un appel au support pour signaler l'urgence~: +33 1 85 76 01 97.
+  \item En cas de besoin d'escalade de l'incident, contacter le responsable de production~:
+  \begin{itemize}[nosep]
+    \item M.\allowbreak{} NICOLAS Julien
+    \item +33 6 69 40 25 96
+  \end{itemize}
+\end{enumerate}
+
+\chapter{Plan de Continuité et de Reprise d'Activité (PCA/PRA)}
+\label{sec:pca-pra}
+
+\section{Définitions}
+\begin{itemize}[nosep]
+  \item \textbf{PCA (Plan de Continuité d'Activité)} --- ensemble des dispositions permettant de maintenir un service minimal pendant un incident, sans interruption complète (ex. redondance active/active, bascule automatique).
+  \item \textbf{PRA (Plan de Reprise d'Activité)} --- ensemble des procédures permettant de restaurer le service après une interruption (ex. restauration depuis sauvegarde, bascule sur un site secondaire), avec un objectif de délai (RTO) et de perte de données maximale acceptable (RPO).
+\end{itemize}
+
+\section{Plan de Continuité d'Activité (PCA)}
+PCA spécifique mis en œuvre chez Université d'Amboise~: \textbf{Non}
+
+Pas de PCA spécifique.
+
+\placeholder{Décrire ici la procédure standard de continuité d'activité appliquée par défaut, en l'absence de PCA spécifique contractualisé avec le client (mécanismes de haute disponibilité standard : réplication LDAP, réplication PostgreSQL, redondance des rôles --- voir le chapitre Architecture technique détaillée).}
+
+
+\section{Plan de Reprise d'Activité (PRA)}
+PRA spécifique mis en œuvre chez Université d'Amboise~: \textbf{Oui}
+
+Un site secondaire héberge une réplique asynchrone de l'ensemble des mailstores et de l'annuaire LDAP.\allowbreak{} La bascule est manuelle, déclenchée par le responsable de production après confirmation de l'indisponibilité prolongée du site principal.\allowbreak{}
+
+\begin{longtable}{|p{5.5cm}|p{6.5cm}|}
+\hline
+\rowcolor{primary}\tblhead{Paramètre} & \tblhead{Valeur} \\
+\hline
+\endhead
+RTO (délai de reprise cible) & 2h \\
+\hline
+RPO (perte de données maximale acceptable) & 30 min \\
+\hline
+Site secondaire & Datacenter secondaire (région Sud) -\allowbreak{}-\allowbreak{}-\allowbreak{} réplication asynchrone \\
+\hline
+\end{longtable}
+\placeholder{Documenter la procédure de bascule pas à pas, les responsabilités (qui déclenche la bascule, qui valide le retour à la normale) et la fréquence des exercices de test.}
+
+
+\chapter{Matrice exhaustive des règles de flux réseau}
+Cette matrice liste, nœud à nœud, l'ensemble des règles d'ouverture de flux déduites des nœuds/composants déclarés dans la configuration de la plateforme (voir \S\ref{sec:archi-detaillee})~:
+
+\begin{longtable}{|p{5cm}|p{5cm}|p{5cm}|}
+\hline
+\rowcolor{primary}\tblhead{Source} & \tblhead{Destination} & \tblhead{Port(s)} \\
+\hline
+\endhead
+Pare-\allowbreak{}feu & proxy01.\allowbreak{}exemple.\allowbreak{}fr & TCP/443, TCP/993, TCP/995 \\
+\hline
+Pare-\allowbreak{}feu & proxy02.\allowbreak{}exemple.\allowbreak{}fr & TCP/443, TCP/993, TCP/995 \\
+\hline
+Pare-\allowbreak{}feu & mta-\allowbreak{}in01.\allowbreak{}exemple.\allowbreak{}fr & TCP/25 \\
+\hline
+Pare-\allowbreak{}feu & mta-\allowbreak{}in02.\allowbreak{}exemple.\allowbreak{}fr & TCP/25 \\
+\hline
+Pare-\allowbreak{}feu & mta-\allowbreak{}auth01.\allowbreak{}exemple.\allowbreak{}fr & TCP/587 \\
+\hline
+Pare-\allowbreak{}feu & video01.\allowbreak{}exemple.\allowbreak{}fr & UDP/20000-\allowbreak{}40000 \\
+\hline
+mta-\allowbreak{}out01.\allowbreak{}exemple.\allowbreak{}fr & Pare-\allowbreak{}feu & TCP/25 \\
+\hline
+mta-\allowbreak{}out02.\allowbreak{}exemple.\allowbreak{}fr & Pare-\allowbreak{}feu & TCP/25 \\
+\hline
+proxy01.\allowbreak{}exemple.\allowbreak{}fr & mailstore01.\allowbreak{}exemple.\allowbreak{}local & TCP/7071 \\
+\hline
+proxy01.\allowbreak{}exemple.\allowbreak{}fr & mailstore02.\allowbreak{}exemple.\allowbreak{}local & TCP/7071 \\
+\hline
+proxy01.\allowbreak{}exemple.\allowbreak{}fr & mailstore03.\allowbreak{}exemple.\allowbreak{}local & TCP/7071 \\
+\hline
+proxy02.\allowbreak{}exemple.\allowbreak{}fr & mailstore01.\allowbreak{}exemple.\allowbreak{}local & TCP/7071 \\
+\hline
+proxy02.\allowbreak{}exemple.\allowbreak{}fr & mailstore02.\allowbreak{}exemple.\allowbreak{}local & TCP/7071 \\
+\hline
+proxy02.\allowbreak{}exemple.\allowbreak{}fr & mailstore03.\allowbreak{}exemple.\allowbreak{}local & TCP/7071 \\
+\hline
+proxy01.\allowbreak{}exemple.\allowbreak{}fr & application01.\allowbreak{}exemple.\allowbreak{}local & TCP/443 \\
+\hline
+proxy02.\allowbreak{}exemple.\allowbreak{}fr & application01.\allowbreak{}exemple.\allowbreak{}local & TCP/443 \\
+\hline
+proxy01.\allowbreak{}exemple.\allowbreak{}fr & application02.\allowbreak{}exemple.\allowbreak{}local & TCP/443 \\
+\hline
+proxy02.\allowbreak{}exemple.\allowbreak{}fr & application02.\allowbreak{}exemple.\allowbreak{}local & TCP/443 \\
+\hline
+mta-\allowbreak{}in01.\allowbreak{}exemple.\allowbreak{}fr & mailstore01.\allowbreak{}exemple.\allowbreak{}local & TCP/7025 \\
+\hline
+mta-\allowbreak{}in01.\allowbreak{}exemple.\allowbreak{}fr & mailstore02.\allowbreak{}exemple.\allowbreak{}local & TCP/7025 \\
+\hline
+mta-\allowbreak{}in01.\allowbreak{}exemple.\allowbreak{}fr & mailstore03.\allowbreak{}exemple.\allowbreak{}local & TCP/7025 \\
+\hline
+mta-\allowbreak{}in02.\allowbreak{}exemple.\allowbreak{}fr & mailstore01.\allowbreak{}exemple.\allowbreak{}local & TCP/7025 \\
+\hline
+mta-\allowbreak{}in02.\allowbreak{}exemple.\allowbreak{}fr & mailstore02.\allowbreak{}exemple.\allowbreak{}local & TCP/7025 \\
+\hline
+mta-\allowbreak{}in02.\allowbreak{}exemple.\allowbreak{}fr & mailstore03.\allowbreak{}exemple.\allowbreak{}local & TCP/7025 \\
+\hline
+mailstore01.\allowbreak{}exemple.\allowbreak{}local & mta-\allowbreak{}out01.\allowbreak{}exemple.\allowbreak{}fr & TCP/25 \\
+\hline
+mailstore01.\allowbreak{}exemple.\allowbreak{}local & mta-\allowbreak{}out02.\allowbreak{}exemple.\allowbreak{}fr & TCP/25 \\
+\hline
+mailstore02.\allowbreak{}exemple.\allowbreak{}local & mta-\allowbreak{}out01.\allowbreak{}exemple.\allowbreak{}fr & TCP/25 \\
+\hline
+mailstore02.\allowbreak{}exemple.\allowbreak{}local & mta-\allowbreak{}out02.\allowbreak{}exemple.\allowbreak{}fr & TCP/25 \\
+\hline
+mailstore03.\allowbreak{}exemple.\allowbreak{}local & mta-\allowbreak{}out01.\allowbreak{}exemple.\allowbreak{}fr & TCP/25 \\
+\hline
+mailstore03.\allowbreak{}exemple.\allowbreak{}local & mta-\allowbreak{}out02.\allowbreak{}exemple.\allowbreak{}fr & TCP/25 \\
+\hline
+mailstore01.\allowbreak{}exemple.\allowbreak{}local & services01.\allowbreak{}exemple.\allowbreak{}local & TCP/389, TCP/636 \\
+\hline
+mailstore02.\allowbreak{}exemple.\allowbreak{}local & services01.\allowbreak{}exemple.\allowbreak{}local & TCP/389, TCP/636 \\
+\hline
+mailstore03.\allowbreak{}exemple.\allowbreak{}local & services01.\allowbreak{}exemple.\allowbreak{}local & TCP/389, TCP/636 \\
+\hline
+application01.\allowbreak{}exemple.\allowbreak{}local & services01.\allowbreak{}exemple.\allowbreak{}local & TCP/389, TCP/636 \\
+\hline
+application02.\allowbreak{}exemple.\allowbreak{}local & services01.\allowbreak{}exemple.\allowbreak{}local & TCP/389, TCP/636 \\
+\hline
+proxy01.\allowbreak{}exemple.\allowbreak{}fr & services01.\allowbreak{}exemple.\allowbreak{}local & TCP/389, TCP/636 \\
+\hline
+proxy02.\allowbreak{}exemple.\allowbreak{}fr & services01.\allowbreak{}exemple.\allowbreak{}local & TCP/389, TCP/636 \\
+\hline
+mta-\allowbreak{}auth01.\allowbreak{}exemple.\allowbreak{}fr & services01.\allowbreak{}exemple.\allowbreak{}local & TCP/389, TCP/636 \\
+\hline
+mta-\allowbreak{}auth02.\allowbreak{}exemple.\allowbreak{}fr & services01.\allowbreak{}exemple.\allowbreak{}local & TCP/389, TCP/636 \\
+\hline
+mailstore01.\allowbreak{}exemple.\allowbreak{}local & services03.\allowbreak{}exemple.\allowbreak{}local & TCP/5432 \\
+\hline
+mailstore02.\allowbreak{}exemple.\allowbreak{}local & services03.\allowbreak{}exemple.\allowbreak{}local & TCP/5432 \\
+\hline
+mailstore03.\allowbreak{}exemple.\allowbreak{}local & services03.\allowbreak{}exemple.\allowbreak{}local & TCP/5432 \\
+\hline
+application01.\allowbreak{}exemple.\allowbreak{}local & services03.\allowbreak{}exemple.\allowbreak{}local & TCP/5432 \\
+\hline
+application02.\allowbreak{}exemple.\allowbreak{}local & services03.\allowbreak{}exemple.\allowbreak{}local & TCP/5432 \\
+\hline
+mailstore01.\allowbreak{}exemple.\allowbreak{}local & mailstore02.\allowbreak{}exemple.\allowbreak{}local & Interne (service discovery) \\
+\hline
+mailstore01.\allowbreak{}exemple.\allowbreak{}local & mailstore03.\allowbreak{}exemple.\allowbreak{}local & Interne (service discovery) \\
+\hline
+mailstore01.\allowbreak{}exemple.\allowbreak{}local & application01.\allowbreak{}exemple.\allowbreak{}local & Interne (service discovery) \\
+\hline
+mailstore01.\allowbreak{}exemple.\allowbreak{}local & application02.\allowbreak{}exemple.\allowbreak{}local & Interne (service discovery) \\
+\hline
+mailstore01.\allowbreak{}exemple.\allowbreak{}local & services01.\allowbreak{}exemple.\allowbreak{}local & Interne (service discovery) \\
+\hline
+mailstore01.\allowbreak{}exemple.\allowbreak{}local & services02.\allowbreak{}exemple.\allowbreak{}local & Interne (service discovery) \\
+\hline
+mailstore01.\allowbreak{}exemple.\allowbreak{}local & services03.\allowbreak{}exemple.\allowbreak{}local & Interne (service discovery) \\
+\hline
+mailstore02.\allowbreak{}exemple.\allowbreak{}local & mailstore03.\allowbreak{}exemple.\allowbreak{}local & Interne (service discovery) \\
+\hline
+mailstore02.\allowbreak{}exemple.\allowbreak{}local & application01.\allowbreak{}exemple.\allowbreak{}local & Interne (service discovery) \\
+\hline
+mailstore02.\allowbreak{}exemple.\allowbreak{}local & application02.\allowbreak{}exemple.\allowbreak{}local & Interne (service discovery) \\
+\hline
+mailstore02.\allowbreak{}exemple.\allowbreak{}local & services01.\allowbreak{}exemple.\allowbreak{}local & Interne (service discovery) \\
+\hline
+mailstore02.\allowbreak{}exemple.\allowbreak{}local & services02.\allowbreak{}exemple.\allowbreak{}local & Interne (service discovery) \\
+\hline
+mailstore02.\allowbreak{}exemple.\allowbreak{}local & services03.\allowbreak{}exemple.\allowbreak{}local & Interne (service discovery) \\
+\hline
+mailstore03.\allowbreak{}exemple.\allowbreak{}local & application01.\allowbreak{}exemple.\allowbreak{}local & Interne (service discovery) \\
+\hline
+mailstore03.\allowbreak{}exemple.\allowbreak{}local & application02.\allowbreak{}exemple.\allowbreak{}local & Interne (service discovery) \\
+\hline
+mailstore03.\allowbreak{}exemple.\allowbreak{}local & services01.\allowbreak{}exemple.\allowbreak{}local & Interne (service discovery) \\
+\hline
+mailstore03.\allowbreak{}exemple.\allowbreak{}local & services02.\allowbreak{}exemple.\allowbreak{}local & Interne (service discovery) \\
+\hline
+mailstore03.\allowbreak{}exemple.\allowbreak{}local & services03.\allowbreak{}exemple.\allowbreak{}local & Interne (service discovery) \\
+\hline
+application01.\allowbreak{}exemple.\allowbreak{}local & application02.\allowbreak{}exemple.\allowbreak{}local & Interne (service discovery) \\
+\hline
+application01.\allowbreak{}exemple.\allowbreak{}local & services01.\allowbreak{}exemple.\allowbreak{}local & Interne (service discovery) \\
+\hline
+application01.\allowbreak{}exemple.\allowbreak{}local & services02.\allowbreak{}exemple.\allowbreak{}local & Interne (service discovery) \\
+\hline
+application01.\allowbreak{}exemple.\allowbreak{}local & services03.\allowbreak{}exemple.\allowbreak{}local & Interne (service discovery) \\
+\hline
+application02.\allowbreak{}exemple.\allowbreak{}local & services01.\allowbreak{}exemple.\allowbreak{}local & Interne (service discovery) \\
+\hline
+application02.\allowbreak{}exemple.\allowbreak{}local & services02.\allowbreak{}exemple.\allowbreak{}local & Interne (service discovery) \\
+\hline
+application02.\allowbreak{}exemple.\allowbreak{}local & services03.\allowbreak{}exemple.\allowbreak{}local & Interne (service discovery) \\
+\hline
+services01.\allowbreak{}exemple.\allowbreak{}local & services02.\allowbreak{}exemple.\allowbreak{}local & Interne (service discovery) \\
+\hline
+services01.\allowbreak{}exemple.\allowbreak{}local & services03.\allowbreak{}exemple.\allowbreak{}local & Interne (service discovery) \\
+\hline
+services02.\allowbreak{}exemple.\allowbreak{}local & services03.\allowbreak{}exemple.\allowbreak{}local & Interne (service discovery) \\
+\hline
+\end{longtable}
+Cette matrice doit être complétée et validée avec les règles de pare-feu réelles (zones, ACL, NAT) et intégrée à la documentation d'exploitation réseau.
+
+\chapter{Annexes}
+\begin{longtable}{|p{4cm}|p{4cm}|p{5.5cm}|}
+\hline
+\rowcolor{primary}\tblhead{Nom du document} & \tblhead{Nom du fichier} & \tblhead{Description} \\
+\hline
+\endhead
+Document d'exploitation & \texttt{EXPL\_Grande\_Infra.\allowbreak{}pdf} & Procédures pas à pas d'administration courante (comptes, quotas, montées de version).\allowbreak{} \\
+\hline
+Plan d'Assurance Sécurité & \texttt{PAS\_Grande\_Infra.\allowbreak{}pdf} & Politique de sécurité contractuelle applicable à la plateforme.\allowbreak{} \\
+\hline
+Schéma réseau détaillé (Visio) & \texttt{Schema\_Reseau\_Grande\_Infra.\allowbreak{}vsdx} & Source éditable du schéma d'architecture, plan d'adressage IP complet.\allowbreak{} \\
+\hline
+\end{longtable}
+
+\end{document}

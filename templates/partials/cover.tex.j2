@@ -1,0 +1,35 @@
+\begin{titlepage}
+\centering
+\vspace*{1.5cm}
+\BLOCK{ if stakeholder_client.logo_file }
+\includegraphics[height=3cm]{\VAR{ stakeholder_client.logo_file }}\par
+\vspace{1.2cm}
+\BLOCK{ endif }
+{\Huge\bfseries\color{primary} DOCUMENT D'ARCHITECTURE TECHNIQUE (DAT)\par}
+\vspace{0.8cm}
+{\LARGE\bfseries\color{accent} Infrastructure de messagerie Zextras Carbonio\par}
+\vspace{0.5cm}
+{\Large\itshape\color{graytxt} Maintien en Conditions Opérationnelles (MCO)\par}
+\vspace{3cm}
+
+\renewcommand{\arraystretch}{1.8}
+\begin{tabular}{|>{\columncolor{primary}\color{white}\bfseries}m{4.2cm}|m{9cm}|}
+\hline
+Client & \VAR{ stakeholder_client.long_name } \\
+\hline
+Périmètre & \VAR{ client.scope } \\
+\hline
+Prestataire & \VAR{ stakeholder_integrator.long_name } \\
+\hline
+Rédacteur & \VAR{ client.author } \\
+\hline
+Vérificateur & \VAR{ client.verificateur if client.verificateur else '[à préciser]' } \\
+\hline
+Version du document & \VAR{ client.version } \\
+\hline
+Date & \VAR{ client.date } \\
+\hline
+Classification & \VAR{ client.classification } \\
+\hline
+\end{tabular}
+\end{titlepage}

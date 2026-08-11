@@ -1,0 +1,16 @@
+\chapter{Architecture technique détaillée}
+\label{sec:archi-detaillee}
+
+\section{Vue d'ensemble de l'infrastructure}
+\begin{longtable}{|p{2.6cm}|p{5cm}|p{1.6cm}|p{1.6cm}|p{2.7cm}|}
+\hline
+\rowcolor{primary}\tblhead{Nœud} & \tblhead{Rôle(s)} & \tblhead{RAM} & \tblhead{CPU} & \tblhead{OS} \\
+\hline
+\endhead
+\BLOCK{ for n in nodes }
+\BLOCK{ if not n.external }
+\VAR{ n.id } & \VAR{ n.components_display } & \VAR{ n.sizing.ram_gb if n.sizing else '' } Go & \VAR{ n.sizing.vcpu if n.sizing else '' } vCPU & \VAR{ n.sizing.os if n.sizing and n.sizing.os else '[à préciser]' } \\
+\hline
+\BLOCK{ endif }
+\BLOCK{ endfor }
+\end{longtable}

@@ -1,0 +1,47 @@
+\chapter{Architecture fonctionnelle}
+
+\section{Services rendus aux utilisateurs}
+\BLOCK{ for item in user_service_items }
+\subsection{\VAR{ item.name }}
+\VAR{ item.text }
+
+\BLOCK{ endfor }
+
+\subsection{Authentification et protocoles d'accès}
+Méthode(s) d'authentification activée(s) sur cette plateforme (voir le détail complet au chapitre Authentification)~:
+\begin{itemize}[nosep]
+\BLOCK{ for m in authentication.methods_display }
+  \item \VAR{ m }
+\BLOCK{ endfor }
+\end{itemize}
+
+\BLOCK{ if allowed_protocols }
+Protocole(s) d'accès autorisés pour les utilisateurs~:
+\begin{itemize}[nosep]
+\BLOCK{ for p in allowed_protocols }
+  \item \VAR{ p }
+\BLOCK{ endfor }
+\end{itemize}
+\BLOCK{ else }
+\placeholder{Aucun protocole d'accès déduit automatiquement --- vérifier que \texttt{proxy} et/ou \texttt{mta\_auth} sont bien activés dans \texttt{services:}, ou documenter manuellement ici.}
+\BLOCK{ endif }
+
+\subsection{Protection anti-spam et anti-virus}
+Voir le détail complet au \S\ref{sec:reputation} (« Légitimité et réputation de la plateforme »). Paramètres retenus pour \VAR{ client.name }~:
+
+\begin{longtable}{|p{7cm}|p{6cm}|}
+\hline
+\rowcolor{primary}\tblhead{Paramètre} & \tblhead{Valeur} \\
+\hline
+\endhead
+Nom du système anti-spam / anti-virus & \VAR{ antispam_antivirus.name } \\
+\hline
+Filtrage sortant & \VAR{ antispam_antivirus.outbound_filtering } \\
+\hline
+Filtrage entrant & \VAR{ antispam_antivirus.inbound_filtering } \\
+\hline
+Quarantaine possible & \VAR{ antispam_antivirus.quarantine } \\
+\hline
+Domaines dont le DKIM est géré par l'AS/AV & \VAR{ antispam_antivirus.dkim_domains_display } \\
+\hline
+\end{longtable}

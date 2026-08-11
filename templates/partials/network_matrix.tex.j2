@@ -1,0 +1,14 @@
+\chapter{Matrice exhaustive des règles de flux réseau}
+Cette matrice liste, nœud à nœud, l'ensemble des règles d'ouverture de flux déduites des nœuds/composants déclarés dans la configuration de la plateforme (voir \S\ref{sec:archi-detaillee})~:
+
+\begin{longtable}{|p{5cm}|p{5cm}|p{5cm}|}
+\hline
+\rowcolor{primary}\tblhead{Source} & \tblhead{Destination} & \tblhead{Port(s)} \\
+\hline
+\endhead
+\BLOCK{ for flow in flows }
+\VAR{ flow.from_label } & \VAR{ flow.to_label } & \VAR{ flow.ports_display } \\
+\hline
+\BLOCK{ endfor }
+\end{longtable}
+Cette matrice doit être complétée et validée avec les règles de pare-feu réelles (zones, ACL, NAT) et intégrée à la documentation d'exploitation réseau.

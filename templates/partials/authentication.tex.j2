@@ -1,0 +1,82 @@
+\chapter{Authentification}
+L'annuaire LDAP de la plateforme (voir Directory Master/Replica, \S\ref{sec:archi-detaillee}) ne se limite pas à la gestion des identités et de l'authentification~: il sert également de base de données pour l'ensemble des attributs de compte (quotas, classes de service, préférences...). La méthode d'authentification retenue détermine uniquement \emph{comment} un utilisateur prouve son identité --- les données du compte restent toujours portées par LDAP.
+
+\section{Méthodes d'authentification disponibles sur Carbonio}
+Carbonio prend en charge plusieurs méthodes d'authentification, activables indépendamment ou en combinaison (par exemple LDAP externe avec repli sur l'authentification native)~:
+\begin{itemize}[nosep]
+  \item \textbf{Authentification native} --- login/mot de passe géré directement par Carbonio (hash stocké dans LDAP local).
+  \item \textbf{Authentification externe LDAP/AD} --- délégation de la vérification du mot de passe à un annuaire d'entreprise existant, avec repli (fallback) optionnel sur l'authentification native en cas d'indisponibilité de l'annuaire externe.
+  \item \textbf{Authentification SAML2} --- authentification unique (SSO) déléguée à un fournisseur d'identité (IdP) tiers.
+  \item \textbf{Authentification par preauth} --- mécanisme de confiance préétablie entre Carbonio et une application tierce, qui authentifie l'utilisateur en amont et transmet un jeton signé à Carbonio (utile pour les portails applicatifs internes).
+\end{itemize}
+
+\section{Configuration en production chez \VAR{ client.name }}
+
+\subsection{Nom d'hôte et URL de connexion}
+\begin{itemize}[nosep]
+  \item V-Host~: \texttt{\VAR{ authentication.connection.vhost } }
+\BLOCK{ if authentication.connection.url }
+  \item URL de connexion~: \url{\VAR{ authentication.connection.url } }
+\BLOCK{ endif }
+\end{itemize}
+
+Méthode(s) effectivement activée(s) sur cette plateforme~:
+\begin{itemize}[nosep]
+\BLOCK{ for m in authentication.methods_display }
+  \item \VAR{ m }
+\BLOCK{ endfor }
+\end{itemize}
+
+\BLOCK{ if 'native' in authentication.methods }
+\subsection{Authentification native}
+\begin{itemize}[nosep]
+  \item Politique de mots de passe~: \VAR{ authentication.native.password_policy }
+  \item Politique de verrouillage de compte~: \VAR{ authentication.native.lockout_policy }
+\end{itemize}
+\BLOCK{ endif }
+
+\BLOCK{ if 'external_ldap' in authentication.methods }
+\subsection{Authentification externe LDAP/AD}
+Repli sur l'authentification native en cas d'indisponibilité~: \VAR{ authentication.external_ldap.fallback_to_native }.
+
+\begin{longtable}{|p{5.5cm}|p{5.5cm}|}
+\hline
+\rowcolor{primary}\tblhead{Serveur} & \tblhead{IP} \\
+\hline
+\endhead
+\BLOCK{ for srv in authentication.external_ldap.servers }
+\VAR{ srv.hostname } & \VAR{ srv.ip } \\
+\hline
+\BLOCK{ endfor }
+\end{longtable}
+\placeholder{Compléter avec le DN de bind, la base de recherche (base DN) et le filtre LDAP utilisés.}
+\BLOCK{ endif }
+
+\BLOCK{ if 'saml2' in authentication.methods }
+\subsection{Authentification SAML2}
+Fournisseur d'identité (IdP)~: \VAR{ authentication.saml2.idp_metadata_url }.
+\placeholder{Compléter avec le nom de l'IdP, le mode de provisioning des attributs (JIT ou pré-provisionné), et le point de contact côté client pour la fédération d'identité.}
+\BLOCK{ endif }
+
+\BLOCK{ if 'preauth' in authentication.methods }
+\subsection{Authentification par preauth}
+\placeholder{Documenter ici l'application tierce de confiance, le mécanisme de signature du jeton et sa durée de validité.}
+\BLOCK{ endif }
+
+\section{Politiques de sécurité liées aux comptes}
+
+\subsection{Information importante}
+\textit{L'Agence nationale de la sécurité des systèmes d'information (ANSSI), dans son guide « Recommandations relatives à l'authentification multifacteur et aux mots de passe » (v2.0, 08/10/2021, coécrit avec la CNIL), a fait évoluer sa position~: imposer un renouvellement périodique du mot de passe pousse les utilisateurs à adopter des stratégies prévisibles (légère modification du mot de passe précédent), ce qui abaisse le niveau de sécurité effectif sans bénéfice réel. L'ANSSI recommande désormais un mot de passe robuste (ou une phrase de passe) changé rarement, plutôt qu'un renouvellement fréquent --- sauf en cas de suspicion de compromission. Source~: \url{https://messervices.cyber.gouv.fr/guides/recommandations-relatives-lauthentification-multifacteur-et-aux-mots-de-passe}.}
+
+\subsection{Paramètres retenus pour cette plateforme}
+\begin{itemize}[nosep]
+  \item Politique de mots de passe (comptes natifs)~: \VAR{ authentication.native.password_policy }
+  \item Politique de blocage de compte~: \VAR{ authentication.native.lockout_policy }
+  \item Protection contre les attaques par force brute (type fail2ban)~: \VAR{ authentication.brute_force_protection.enabled }
+\BLOCK{ if authentication.brute_force_protection.tool }
+  \item Outil~: \VAR{ authentication.brute_force_protection.tool }
+\BLOCK{ endif }
+\BLOCK{ if authentication.brute_force_protection.details }
+  \item Détail du paramétrage~: \VAR{ authentication.brute_force_protection.details }
+\BLOCK{ endif }
+\end{itemize}

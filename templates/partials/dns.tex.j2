@@ -1,0 +1,92 @@
+\chapter{DNS, légitimité et réputation de la plateforme}
+
+\section{Domaines et alias de domaine}
+
+\subsection{Qu'est-ce qu'un alias de domaine ?}
+Un \textbf{alias de domaine}, dans Carbonio, est un domaine secondaire qui ne permet pas de créer ses propres comptes~: il applique automatiquement, à l'ensemble des comptes déjà existants sur un domaine principal, une adresse supplémentaire portant le suffixe de l'alias.
+
+\textbf{Exemple~:} si \texttt{domaine-alias.fr} est déclaré comme alias du domaine principal \texttt{domaine-principal.fr}, alors un message envoyé à \texttt{moncompte@domaine-alias.fr} est automatiquement remis dans la boîte du compte \texttt{moncompte@domaine-principal.fr} --- sans qu'aucun compte distinct n'existe sur \texttt{domaine-alias.fr}. C'est un moyen simple de faire répondre une plateforme à plusieurs noms de domaine (fusion d'entités, changement de marque, fautes de frappe courantes...) sans dupliquer les comptes.
+
+\subsection{Domaines gérés par cette plateforme}
+Chaque alias de domaine est présenté ci-dessous comme une sous-section du domaine principal auquel il est attaché.
+
+\BLOCK{ for d in dns.domains }
+\subsubsection{Domaine principal --- \VAR{ d.domain }}
+\BLOCK{ if d.missing_display }
+\dnswarning{enregistrement(s) manquant(s) pour ce domaine~: \VAR{ d.missing_display }. Voir \S\ref{sec:dns-consequences} pour les conséquences.}
+\BLOCK{ endif }
+\begin{itemize}[nosep]
+  \item \textbf{MX~:} \BLOCK{ if d.has_mx }\BLOCK{ for mx in d.mx_records }\VAR{ mx.hostname } (priorité \VAR{ mx.priority })\BLOCK{ if not loop.last }, \BLOCK{ endif }\BLOCK{ endfor }\BLOCK{ else }\textcolor{placeholdercol}{absent}\BLOCK{ endif }
+  \item \textbf{SPF~:} \BLOCK{ if d.has_spf }\texttt{\VAR{ d.spf }}\BLOCK{ else }\textcolor{placeholdercol}{absent}\BLOCK{ endif }
+  \item \textbf{DKIM~:} \BLOCK{ if d.has_dkim }\texttt{\VAR{ d.dkim_selector }} (\VAR{ d.dkim_carrier })\BLOCK{ else }\textcolor{placeholdercol}{absent}\BLOCK{ endif }
+  \item \textbf{DMARC~:} \BLOCK{ if d.has_dmarc }\texttt{\VAR{ d.dmarc }}\BLOCK{ else }\textcolor{placeholdercol}{absent}\BLOCK{ endif }
+\end{itemize}
+
+\BLOCK{ for a in d.aliases }
+\paragraph{Alias de domaine --- \VAR{ a.domain }}
+Cet alias est attaché au domaine principal \VAR{ a.alias_of }~: tous les comptes de \VAR{ a.alias_of } reçoivent automatiquement les messages envoyés à leur adresse sur \VAR{ a.domain }. Aucun compte n'est créé directement sur ce domaine.
+\BLOCK{ if a.missing_display }
+\dnswarning{enregistrement(s) manquant(s) pour cet alias~: \VAR{ a.missing_display }. Voir \S\ref{sec:dns-consequences} pour les conséquences.}
+\BLOCK{ endif }
+\begin{itemize}[nosep]
+  \item \textbf{MX~:} \BLOCK{ if a.has_mx }\BLOCK{ for mx in a.mx_records }\VAR{ mx.hostname } (priorité \VAR{ mx.priority })\BLOCK{ if not loop.last }, \BLOCK{ endif }\BLOCK{ endfor }\BLOCK{ else }\textcolor{placeholdercol}{absent}\BLOCK{ endif }
+  \item \textbf{SPF~:} \BLOCK{ if a.has_spf }\texttt{\VAR{ a.spf }}\BLOCK{ else }\textcolor{placeholdercol}{absent}\BLOCK{ endif }
+  \item \textbf{DKIM~:} \BLOCK{ if a.has_dkim }\texttt{\VAR{ a.dkim_selector }} (\VAR{ a.dkim_carrier })\BLOCK{ else }\textcolor{placeholdercol}{absent}\BLOCK{ endif }
+  \item \textbf{DMARC~:} \BLOCK{ if a.has_dmarc }\texttt{\VAR{ a.dmarc }}\BLOCK{ else }\textcolor{placeholdercol}{absent}\BLOCK{ endif }
+\end{itemize}
+\BLOCK{ endfor }
+
+\BLOCK{ endfor }
+\placeholder{Vérifier la cohérence de cette liste avec la zone DNS réellement publiée pour chaque domaine géré par cette plateforme.}
+
+\section{Légitimité et réputation de la plateforme}
+\label{sec:reputation}
+La délivrabilité du courrier électronique --- c'est-à-dire la capacité des e-mails envoyés à atteindre la boîte de réception du destinataire plutôt que son dossier spam --- dépend directement de la réputation du domaine et des adresses IP d'envoi. Cette réputation se construit et se dégrade au fil du temps, en fonction du volume envoyé, des taux de plainte, et surtout de la rigueur des mécanismes d'authentification mis en place (SPF, DKIM, DMARC détaillés ci-après).
+
+\subsection{Nécessité d'un antispam et d'un antivirus}
+Un filtrage antispam et antivirus efficace en entrée protège les utilisateurs, mais joue aussi un rôle de \textbf{protection de la réputation sortante} : une boîte compromise qui relaie du spam sortant dégrade immédiatement la réputation de l'ensemble du domaine, avec un impact sur la délivrabilité de tous les utilisateurs, pas seulement du compte compromis.
+
+\textbf{Recommandation~:} pour les flux entrants comme pour les flux sortants, l'externalisation du filtrage antispam/antivirus auprès d'un service spécialisé tiers est recommandée. Un service externalisé dispose de bases de réputation mises à jour en continu à l'échelle de son ensemble de clients, ce qu'une solution auto-hébergée ne peut pas répliquer seule.
+
+Pour rappel (voir le détail complet au chapitre Architecture fonctionnelle), la configuration retenue pour \VAR{ client.name } est~:
+\begin{longtable}{|p{7cm}|p{6cm}|}
+\hline
+\rowcolor{primary}\tblhead{Paramètre} & \tblhead{Valeur} \\
+\hline
+\endhead
+Nom du système anti-spam / anti-virus & \VAR{ antispam_antivirus.name } \\
+\hline
+Filtrage sortant & \VAR{ antispam_antivirus.outbound_filtering } \\
+\hline
+Filtrage entrant & \VAR{ antispam_antivirus.inbound_filtering } \\
+\hline
+Quarantaine possible & \VAR{ antispam_antivirus.quarantine } \\
+\hline
+Domaines dont le DKIM est géré par l'AS/AV & \VAR{ antispam_antivirus.dkim_domains_display } \\
+\hline
+\end{longtable}
+
+\subsection{SPF, DKIM, DMARC --- fonctionnement et conséquences}
+\label{sec:dns-consequences}
+
+\subsubsection{MX (Mail Exchanger)}
+Un enregistrement \textbf{MX} indique, pour un nom de domaine donné, quel(s) serveur(s) sont autorisés à recevoir le courrier électronique destiné à ce domaine. Chaque enregistrement MX porte une \textbf{priorité} (plus la valeur est basse, plus le serveur est prioritaire) : un domaine peut ainsi déclarer plusieurs MX pour assurer une redondance.
+
+\textbf{Conséquence si absent~:} sans enregistrement MX, aucun serveur n'est déclaré comme autorisé à recevoir le courrier pour ce domaine --- les messages à destination de ce domaine sont rejetés immédiatement par les serveurs expéditeurs (l'envoi échoue, sans remise possible).
+
+\subsubsection{SPF (Sender Policy Framework)}
+Le SPF liste, dans un enregistrement DNS TXT, les serveurs autorisés à envoyer des e-mails pour le compte d'un domaine. Un serveur destinataire qui reçoit un message prétendant venir de ce domaine, mais depuis une IP absente de cette liste, peut le rejeter ou le marquer comme suspect.
+
+\textbf{Conséquence si absent~:} rien n'empêche alors un tiers d'usurper ce domaine à l'envoi ; de nombreux serveurs destinataires pénalisent (mise en spam, voire rejet) les messages provenant d'un domaine sans SPF publié, et DMARC (voir ci-dessous) ne peut s'appuyer sur cette vérification.
+
+\subsubsection{DKIM (DomainKeys Identified Mail)}
+Le DKIM signe cryptographiquement chaque message sortant avec une clé privée. Selon le domaine, cette signature peut être portée soit par le MTA OUT de Carbonio, soit par la solution anti-spam/anti-virus externalisée lorsque celle-ci prend en charge le relais SMTP sortant pour ce domaine. Le destinataire vérifie la signature à l'aide de la clé publique, publiée dans un enregistrement DNS TXT sous un sélecteur donné (enregistrement \texttt{<sélecteur>.\_domainkey.<domaine>}).
+
+\textbf{Conséquence si absent~:} l'authenticité des messages sortants ne peut plus être vérifiée par le destinataire ; le risque de classement en spam augmente, et DMARC (voir ci-dessous) ne peut pas non plus s'appuyer sur cette vérification.
+
+\subsubsection{DMARC (Domain-based Message Authentication, Reporting \& Conformance)}
+Le DMARC s'appuie sur SPF et DKIM pour définir la politique à appliquer par le destinataire lorsqu'un message échoue ces vérifications (accepter, mettre en quarantaine, rejeter), ainsi qu'une adresse de réception des rapports d'agrégation permettant de surveiller les tentatives d'usurpation du domaine.
+
+\textbf{Conséquence si absent~:} aucune politique n'indique aux serveurs destinataires quoi faire en cas d'échec SPF/DKIM (chacun applique alors sa propre politique par défaut, généralement peu protectrice), et aucun rapport de tentative d'usurpation du domaine n'est reçu --- une usurpation peut donc passer inaperçue.
+
+\textbf{Recommandation de paramétrage~:} déployer la politique progressivement --- \texttt{p=none} (observation) puis \texttt{p=quarantine} après analyse des rapports, puis \texttt{p=reject} une fois la confiance établie dans la liste des expéditeurs légitimes.

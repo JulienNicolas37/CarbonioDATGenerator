@@ -1,0 +1,29 @@
+brique: "Sauvegarde et restauration"
+# "components" : nœuds concernés listés en mode --client (meilleure
+# estimation --- à ajuster si besoin). Pas de "services" ici : brique
+# universelle, toujours incluse quelle que soit la config client.
+components: [mailbox]
+# "ce_feature" : cette brique n'a pas d'objet pour un client en Community
+# Edition (aucun système de sauvegarde natif --- voir
+# templates/carbonio_editions.yaml) --- retirée automatiquement du DEX
+# dans ce cas.
+ce_feature: "backup"
+
+intro: |
+  Carbonio dispose d'un module de sauvegarde natif, **Carbonio Backup**,
+  qui conserve un historique des boîtes de messagerie permettant de
+  restaurer un compte à un instant précis (par exemple avant une
+  suppression accidentelle ou une corruption de données), sans dépendre
+  d'un outil de sauvegarde tiers.
+
+operations:
+  - title: "Restauration d'un compte à une date précise"
+    description: "Cette procédure décrit comment restaurer un compte Carbonio à une date précise, en utilisant le module Carbonio Backup, vers un nouveau compte."
+    commands:
+      - 'carbonio backup doRestoreOnNewAccount john.doe@domaine.tld john.doe.restauration@domaine.tld "01/12/2024 13:00:00" notifications juste.leblanc@domaine.tld'
+    options_table:
+      - {option: "doRestoreOnNewAccount", description: "Lance la restauration d'un compte"}
+      - {option: "john.doe@domaine.tld", description: "Le nom du compte à restaurer"}
+      - {option: "john.doe.restauration@domaine.tld", description: "Le nom du compte de restauration"}
+      - {option: '"01/12/2024 13:00:00"', description: "Le compte sera restauré à son état du 1er décembre 2024 à 13h"}
+      - {option: "notifications juste.leblanc@domaine.tld", description: 'Une fois la restauration terminée, un mail sera envoyé à "juste.leblanc@domaine.tld"'}

@@ -1,0 +1,75 @@
+brique: "Les attributs Carbonio"
+# "components" : nœuds concernés listés en mode --client (meilleure
+# estimation --- à ajuster si besoin). Pas de "services" ici : brique
+# universelle, toujours incluse quelle que soit la config client.
+components: [directory_master]
+
+intro: |
+  Carbonio stocke ses configurations dans une arborescence LDAP, où chaque paramètre est
+  défini sous forme d'un attribut clé/valeur. Un attribut peut se positionner sur un
+  compte, une COS, un domaine, un serveur...
+
+operations:
+  - title: "Liste des attributs Carbonio"
+    description: "Pour lister les attributs Carbonio, il faut exécuter la commande suivante :"
+    commands:
+      - "zmprov desc"
+    explanation: |
+      Cette commande renvoyant plus de 1830 noms d'attributs, il est plus judicieux de
+      s'en servir avec un « grep », ou d'écrire la sortie de la commande dans un fichier.
+      Ainsi il est plus facile de chercher un attribut.
+
+  - title: "Obtenir des informations sur un attribut"
+    description: |
+      Un attribut se positionne sur certains types d'objets Carbonio (domaines, comptes,
+      serveurs, listes de distribution...). Son nom ne suffit pas toujours à comprendre
+      son utilité. De plus, la modification d'un attribut peut nécessiter un redémarrage
+      de services pour la prise en compte du nouveau paramétrage.
+
+      Pour répondre à ces questions, il est possible d'obtenir plus d'informations sur un
+      attribut avec la commande suivante :
+    commands:
+      - "zmprov desc -a <nom de l'attribut>"
+    explanation: "La commande retourne des informations sur l'attribut mentionné. Exemple :"
+    example_output: |
+      # zmprov desc -a zimbraMailSieveScript
+      zimbraMailSieveScript
+        sieve script generated from user filter rules
+                type :string
+               value :
+            callback :MailSieveScript
+           immutable :false
+         cardinality :single
+           requiredIn :
+           optionalIn :account
+               flags :
+            defaults :
+                 min :
+                 max :
+                  id :32
+      requiresRestart :
+               since :
+      deprecatedSince :
+
+  - title: "Modifier un attribut sur un objet Carbonio"
+    description: |
+      Un attribut Carbonio peut être affecté à son objet lors de la création de celui-ci.
+      Par exemple, le compte suivant sera créé avec un quota de 20 Gigaoctets.
+    commands:
+      - "zmprov ca john.doe@domaine.tld zimbraMailQuota 20000000000"
+    explanation: |
+      Si l'objet est déjà provisionné, l'application de l'attribut se fait via le module
+      de modification. Pour un compte, le module de modification est « ma » (pour Modify
+      Account) :
+    example_output: |
+      zmprov ma john.doe@domaine.tld zimbraMailQuota 20000000000
+
+  - title: "Modifier simultanément plusieurs attributs d'un objet Carbonio"
+    description: "L'outil zmprov permet la modification de plusieurs attributs sur un même objet, en suivant la syntaxe suivante :"
+    commands:
+      - "zmprov ma john.doe@domaine.tld attr1 valeur1 attr2 valeur2 attr3 valeur3"
+    explanation: |
+      Exemple d'utilisation : l'utilisateur john.doe@domaine.tld reçoit un quota de
+      20 Gigaoctets ET devra changer son mot de passe à la prochaine connexion.
+    example_output: |
+      zmprov ma john.doe@domaine.tld zimbraMailQuota 20000000000 zimbraPasswordMustChange TRUE

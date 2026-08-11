@@ -1,0 +1,10 @@
+\begin{longtable}{|\VAR{ col_spec }|}
+\hline
+\rowcolor{primary}\BLOCK{ for c in table.columns }\tblhead{\VAR{ c } }\BLOCK{ if not loop.last } & \BLOCK{ endif }\BLOCK{ endfor } \\
+\hline
+\endhead
+\BLOCK{ for row in table.rows }
+\BLOCK{ for cell in row }\VAR{ cell }\BLOCK{ if not loop.last } & \BLOCK{ endif }\BLOCK{ endfor } \\
+\hline
+\BLOCK{ endfor }
+\end{longtable}

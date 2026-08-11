@@ -1,0 +1,44 @@
+\chapter{Plan de Continuité et de Reprise d'Activité (PCA/PRA)}
+\label{sec:pca-pra}
+
+\section{Définitions}
+\begin{itemize}[nosep]
+  \item \textbf{PCA (Plan de Continuité d'Activité)} --- ensemble des dispositions permettant de maintenir un service minimal pendant un incident, sans interruption complète (ex. redondance active/active, bascule automatique).
+  \item \textbf{PRA (Plan de Reprise d'Activité)} --- ensemble des procédures permettant de restaurer le service après une interruption (ex. restauration depuis sauvegarde, bascule sur un site secondaire), avec un objectif de délai (RTO) et de perte de données maximale acceptable (RPO).
+\end{itemize}
+
+\section{Plan de Continuité d'Activité (PCA)}
+PCA spécifique mis en œuvre chez \VAR{ client.name }~: \textbf{\VAR{ pca.enabled_display }}
+
+\BLOCK{ if pca.enabled }
+\VAR{ pca.description }
+\BLOCK{ else }
+Pas de PCA spécifique.
+
+\VAR{ pca_pra_defaults.pca_default }
+\BLOCK{ endif }
+
+\section{Plan de Reprise d'Activité (PRA)}
+PRA spécifique mis en œuvre chez \VAR{ client.name }~: \textbf{\VAR{ pra.enabled_display }}
+
+\BLOCK{ if pra.enabled }
+\VAR{ pra.description }
+
+\begin{longtable}{|p{5.5cm}|p{6.5cm}|}
+\hline
+\rowcolor{primary}\tblhead{Paramètre} & \tblhead{Valeur} \\
+\hline
+\endhead
+RTO (délai de reprise cible) & \VAR{ pra.rto } \\
+\hline
+RPO (perte de données maximale acceptable) & \VAR{ pra.rpo } \\
+\hline
+Site secondaire & \VAR{ pra.secondary_site } \\
+\hline
+\end{longtable}
+\placeholder{Documenter la procédure de bascule pas à pas, les responsabilités (qui déclenche la bascule, qui valide le retour à la normale) et la fréquence des exercices de test.}
+\BLOCK{ else }
+Pas de PRA spécifique.
+
+\VAR{ pca_pra_defaults.pra_default }
+\BLOCK{ endif }

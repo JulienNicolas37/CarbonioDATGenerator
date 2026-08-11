@@ -1,0 +1,54 @@
+# Catalogue des catégories de flux réseau : chaque flux du fichier de
+# configuration client peut référencer une "category" ci-dessous pour
+# obtenir automatiquement une couleur cohérente sur le schéma + une entrée
+# de légende, sans avoir à définir une couleur à la main à chaque fois.
+#
+# "color" est un code hexadécimal (sans #), utilisé pour \definecolor.
+# Un client peut surcharger/étendre ce catalogue via la clé optionnelle
+# "flow_categories:" dans son propre fichier de config (fusionnée avec ce
+# catalogue par défaut ; les clés du client prennent le dessus).
+#
+# La catégorie "other" est le repli utilisé quand un flux ne précise pas de
+# "category" --- elle garantit qu'aucun flux ne se retrouve sans couleur.
+
+web:
+  order: 10
+  label: "Web (HTTPS / IMAPS / POP3S)"
+  color: "2E74B5"
+  typical_ports: "443, 993, 995"
+
+smtp:
+  order: 20
+  label: "SMTP"
+  color: "B08600"
+  typical_ports: "25, 587"
+
+ldap:
+  order: 30
+  label: "Service Discover / LDAP"
+  color: "6A3D9A"
+  typical_ports: "389, 636"
+
+udp_video:
+  order: 40
+  label: "UDP (visioconférence / RTP)"
+  color: "C0392B"
+  typical_ports: "20000-40000"
+
+interne:
+  order: 50
+  label: "Flux applicatif interne (SOAP / REST)"
+  color: "595959"
+  typical_ports: "variable selon le service"
+
+mesh:
+  order: 60
+  label: "Mesh (coordination inter-nœuds)"
+  color: "2E9E5B"
+  typical_ports: "interne uniquement"
+
+other:
+  order: 999
+  label: "Autre"
+  color: "2E74B5"
+  typical_ports: "---"

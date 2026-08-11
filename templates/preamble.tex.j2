@@ -1,0 +1,108 @@
+\documentclass[11pt,a4paper]{report}
+
+\usepackage{fontspec}
+\setmainfont{Open Sans}
+\usepackage[french]{babel}
+\usepackage[a4paper,top=3.1cm,bottom=2.7cm,left=2.3cm,right=2.3cm,headheight=1.6cm,headsep=0.5cm]{geometry}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{longtable}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{colortbl}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{tabularx}
+\usepackage{parskip}
+\usepackage{lastpage}
+\usepackage{tikz}
+\usepackage{adjustbox}
+\usepackage{pdflscape}
+\usepackage{listings}
+\usepackage{amssymb}
+\usetikzlibrary{arrows.meta, positioning, fit, backgrounds, shapes.geometric}
+
+% ---------- Couleurs ----------
+\definecolor{primary}{HTML}{1F3864}
+\definecolor{accent}{HTML}{2E74B5}
+\definecolor{lightbg}{HTML}{DDEBF7}
+\definecolor{graytxt}{HTML}{595959}
+\definecolor{placeholdercol}{HTML}{C00000}
+\definecolor{codebg}{HTML}{EDEDED}
+
+% ---------- Bloc de commande (utilisé par le DEX --- style "lstlisting",
+%            aucun échappement LaTeX nécessaire pour son contenu, sûr pour
+%            des commandes shell contenant _, %, $, {, }...) ----------
+\lstdefinestyle{commandblock}{
+  backgroundcolor=\color{codebg},
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  columns=fullflexible,
+  frame=none,
+  xleftmargin=0.3cm,
+  xrightmargin=0.3cm,
+  framexleftmargin=0.3cm,
+  framextopmargin=0.2cm,
+  framexbottommargin=0.2cm,
+}
+\lstset{style=commandblock}
+
+% ---------- Titres ----------
+\titleformat{\chapter}[hang]{\Large\bfseries\color{primary}}{\thechapter.}{0.6em}{}
+\titlespacing{\chapter}{0pt}{0pt}{1.2em}
+\titleformat{\section}{\large\bfseries\color{accent}}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\normalsize\bfseries\color{graytxt}}{\thesubsection}{0.6em}{}
+\titleformat{\subsubsection}{\normalsize\bfseries\color{graytxt}}{\thesubsubsection}{0.6em}{}
+\titleformat{\paragraph}{\normalsize\bfseries\itshape\color{graytxt}}{}{0em}{}
+\titlespacing{\paragraph}{0pt}{0.8em}{0.4em}
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+
+% ---------- En-tête / pied de page (logos client + intégrateur) ----------
+\pagestyle{fancy}
+\fancyhf{}
+% \chapter réinitialise normalement le style de page en "plain" sur sa
+% première page (comportement standard des classes report/book) : on force
+% ici la conservation du style "fancy" (logos) sur CETTE page également.
+\assignpagestyle{\chapter}{fancy}
+\renewcommand{\headrulewidth}{0.4pt}
+\BLOCK{ if stakeholder_client.logo_file }
+\fancyhead[L]{\includegraphics[height=1.1cm]{\VAR{ stakeholder_client.logo_file }}}
+\BLOCK{ else }
+\fancyhead[L]{\small\bfseries\color{graytxt}\VAR{ stakeholder_client.name }}
+\BLOCK{ endif }
+\BLOCK{ if stakeholder_integrator.logo_file }
+\fancyhead[R]{\includegraphics[height=1.1cm]{\VAR{ stakeholder_integrator.logo_file }}}
+\BLOCK{ else }
+\fancyhead[R]{\small\bfseries\color{graytxt}\VAR{ stakeholder_integrator.name }}
+\BLOCK{ endif }
+% Le pied de page (date de génération + pagination) n'est activé qu'à
+% partir de la première page du chapitre 1 (voir intro.tex.j2) : la page de
+% garde, l'historique des révisions et le sommaire n'en ont pas.
+
+% ---------- Commande pour placeholders ----------
+\newcommand{\placeholder}[1]{\textit{\textcolor{placeholdercol}{[#1]}}\par\vspace{4pt}}
+\newcommand{\dnswarning}[1]{\textbf{\textcolor{placeholdercol}{\textbullet\ Attention~: #1}}\par\vspace{4pt}}
+
+% ---------- Hyperliens ----------
+\hypersetup{
+  colorlinks=true,
+  linkcolor=accent,
+  citecolor=accent,
+  urlcolor=accent,
+  pdftitle={DAT - \VAR{ stakeholder_client.long_name }},
+  pdfauthor={\VAR{ client.author }}
+}
+
+% ---------- En-tête de tableau réutilisable ----------
+% \rowcolor doit être appelé UNE SEULE FOIS par ligne (avant la 1re cellule) :
+% utiliser \rowcolor{primary} au début de la ligne, puis \tblhead{...} par cellule.
+\newcommand{\tblhead}[1]{\textcolor{white}{\textbf{#1}}}
+
+% Le contenu de ce document est en partie généré dynamiquement (hostnames,
+% noms de paquets...) et peut donc contenir des chaînes longues et non
+% césurables par les règles d'hyphénation françaises. \sloppy assouplit les
+% contraintes de justification pour éviter les dépassements de marge.
+\sloppy

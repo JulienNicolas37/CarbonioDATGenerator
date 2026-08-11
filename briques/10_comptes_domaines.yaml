@@ -1,0 +1,96 @@
+brique: "Gestion des comptes et domaines (zmprov)"
+# "components" : nœuds concernés listés en mode --client (meilleure
+# estimation --- à ajuster si besoin). Pas de "services" ici : brique
+# universelle, toujours incluse quelle que soit la config client.
+components: [directory_master]
+
+intro: |
+  `zmprov` est l'outil CLI (Command Line Interface) principal utilisé pour administrer
+  Carbonio. Il permet d'effectuer diverses tâches d'administration sur le serveur, telles
+  que la gestion des comptes, des alias, des domaines, des classes de service (COS) et des
+  configurations globales.
+
+  Cet outil interagit à l'aide du protocole SOAP ou OpenLDAP.
+
+operations:
+  - title: "Ajout d'un domaine de messagerie"
+    commands:
+      - "zmprov cd mon_nouveau_domaine.tld"
+
+  - title: "Modification d'un domaine"
+    commands:
+      - "zmprov md mondomaine.tld attribut1 valeur1 attribut2 valeur2 ..."
+
+  - title: "Suppression d'un domaine de messagerie"
+    commands:
+      - "zmprov dd mon_ancien_domaine.tld"
+
+  - title: "Ajout d'un compte de messagerie"
+    commands:
+      - "zmprov ca nom@domaine.tld motdepasseducompte"
+
+  - title: "Modification d'un compte de messagerie"
+    commands:
+      - "zmprov ma nom@domaine.tld attribut1 valeur1 attribut2 valeur2"
+
+  - title: "Suppression d'un compte de messagerie"
+    commands:
+      - "zmprov da nom@domaine.tld"
+
+  - title: "Création d'une liste de distribution"
+    commands:
+      - "zmprov cdl nomdelaliste@domaine.tld nomdumembre1@domaine.tld nomdumembre2@domaine.tld nomdumembre3@domaine.tld"
+
+  - title: "Intégration d'un membre à une liste de distribution"
+    commands:
+      - "zmprov adlm nomdelaliste@domaine.tld nomdumembre@domaine.tld"
+
+  - title: "Retrait d'un membre d'une liste de distribution"
+    commands:
+      - "zmprov rdlm nomdelaliste@domaine.tld nomdumembre@domaine.tld"
+
+  - title: "Modification d'une liste de distribution"
+    commands:
+      - "zmprov mdl nomdelaliste@domaine.tld attribut1 valeur1 attribut2 valeur2"
+
+  - title: "Suppression d'une liste de distribution"
+    commands:
+      - "zmprov ddl nomdelaliste@domaine.tld"
+
+  - title: "Ajout d'un alias sur un compte"
+    commands:
+      - "zmprov aaa nomducompte@domaine.tld nomdelalias@domaine.tld"
+
+  - title: "Suppression d'un alias sur un compte"
+    commands:
+      - "zmprov raa nomducompte@domaine.tld nomdelalias@domaine.tld"
+
+  - title: "Ajout d'un droit d'envoi en tant que"
+    commands:
+      - "zmprov grr account toto@domaine.tld usr tata@domaine.tld sendAs"
+    explanation: "La commande permet à tata@domaine.tld d'envoyer en tant que toto@domaine.tld."
+
+  - title: "Ajout d'une clé DKIM sur un domaine"
+    description: |
+      Cette procédure décrit comment provisionner une clé DKIM sur un domaine Carbonio.
+      Ainsi les mails envoyés depuis Carbonio seront signés avec une clé DKIM.
+    prerequisites: "Il est nécessaire d'avoir accès à la zone DNS du domaine avant le début de la procédure."
+    commands:
+      - "libexec/zmdkimkeyutil -a -d testons.carbonio.fr"
+    explanation: |
+      Cette commande ajoute et active le DKIM sur le domaine "testons.carbonio.fr".
+      L'utilitaire "zmdkimkeyutil" est utilisable depuis n'importe quel nœud Carbonio
+      supportant le service MTA. La commande retourne la clé publique, formatée pour être
+      directement ajoutée sur la zone DNS :
+    example_output: |
+      DKIM Data added to LDAP for domain testons.carbonio.fr with selector DD4A0FA0-E493-11EF-9218-6D3156ED655B
+      Public signature to enter into DNS:
+      DD4A0FA0-E493-11EF-9218-6D3156ED655B._domainkey  IN  TXT  ( "v=DKIM1; k=rsa;"
+      "p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxvt8mdiit1FcCbgVBESm6WzqaXMBu0RaOJOEjkVWkqKlReGSOuaVtMtrM34aA5EhJyo7srZNHviH2tMNB
+      JP2UwEINhqNfrM8dQFOwMUYteN4dpfgrT+i9p/7pP/HmuiocE9at0MgGtPbxaq1p9AfuOUf/engkwsiYcyqRTA3aDLc9mHwZ+7jxF5uMhvzT667oT05RcqYZfg2gl"
+      "trHcwsd1pGEe3FAebdvc5gpW4bXgD6Yx1B+SOluuUruNDCFug5bw03jWIF6PtmQliu8e4nMrxg+AtYGCVc8+a8UvjzuL0CPiP6JQzFa2GPZdibpZnGhZxuNkQU51YJ6
+      cf13hBnVwIDAQAB" ) ; ----- DKIM key DD4A0FA0-E493-11EF-9218-6D3156ED655B for testons.carbonio.fr
+    warning: |
+      Après l'exécution de la commande précédente, les mails envoyés depuis le domaine
+      « testons.carbonio.fr » seront automatiquement signés avec la clé DKIM. Il est donc
+      nécessaire d'ajouter la clé publique sur la zone DNS juste après l'exécution de la commande.

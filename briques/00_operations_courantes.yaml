@@ -1,0 +1,17 @@
+brique: "Opérations courantes"
+intro: |
+  Cette brique regroupe les vérifications de base à effectuer sur
+  n'importe quel nœud Carbonio, quel que soit son rôle --- typiquement en
+  premier réflexe avant toute autre intervention, pour s'assurer que le
+  nœud est fonctionnel et à jour.
+
+operations:
+  - title: "Vérification de la version de Carbonio"
+    description: "La vérification de la version de Carbonio installée se fait via la commande suivante :"
+    commands:
+      - "zmcontrol -v"
+
+  - title: "Vérification du fonctionnement des services"
+    description: "La vérification du fonctionnement des services sur un nœud Carbonio se fait via la commande :"
+    commands:
+      - "zmcontrol status"
