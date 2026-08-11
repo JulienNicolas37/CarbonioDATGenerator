@@ -907,7 +907,7 @@ def compile_pdf(tex_path: Path, outdir: Path):
 def main():
     parser = argparse.ArgumentParser(description="Génère un DAT Carbonio à partir d'une config YAML.")
     parser.add_argument("config", help="Chemin vers le fichier de configuration client (YAML)")
-    parser.add_argument("--outdir", default="build/customers", help="Répertoire de sortie (défaut: build/customers)")
+    parser.add_argument("--outdir", default="build/customers", help="Répertoire racine de sortie (défaut: build/customers) --- le document est écrit dans <outdir>/<nom_court_client>/")
     parser.add_argument("--compile", action="store_true", help="Compiler le .tex en PDF via pdflatex")
     parser.add_argument("--name", default=None, help="Nom de base du fichier généré (défaut: dérivé du client)")
     parser.add_argument(
@@ -927,20 +927,30 @@ def main():
 
     config = load_yaml(config_path)
 
-    outdir = BASE_DIR / args.outdir
-    outdir.mkdir(parents=True, exist_ok=True)
+    # Un dossier par client (nom court, ex. "build/customers/Exemple_SA/"),
+    # avec un sous-dossier "generation" pour les fichiers intermédiaires
+    # LaTeX (.tex/.aux/.log/.out/.toc, logos copiés...) --- le PDF final
+    # est copié à la racine du dossier client, seul fichier qu'un
+    # opérateur a besoin de voir au premier coup d'œil.
+    outdir_base = BASE_DIR / args.outdir
+    client_folder = config["client"]["name"].replace(" ", "_")
+    client_dir = outdir_base / client_folder
+    generation_dir = client_dir / "generation"
+    generation_dir.mkdir(parents=True, exist_ok=True)
 
-    doc, env, ctx = assemble_document(config, config_path.name, outdir=outdir, config_dir=config_path.parent)
+    doc, env, ctx = assemble_document(config, config_path.name, outdir=generation_dir, config_dir=config_path.parent)
 
     base_name = args.name or ("DAT_" + config["client"]["name"].replace(" ", "_"))
-    tex_path = outdir / f"{base_name}.tex"
+    tex_path = generation_dir / f"{base_name}.tex"
     tex_path.write_text(doc, encoding="utf-8")
     print(f"[OK] Document LaTeX généré : {tex_path}")
 
     if args.compile:
-        ok, result = compile_pdf(tex_path, outdir)
+        ok, result = compile_pdf(tex_path, generation_dir)
         if ok:
-            print(f"[OK] PDF généré : {tex_path.with_suffix('.pdf')}")
+            final_pdf = client_dir / f"{base_name}.pdf"
+            shutil.copyfile(tex_path.with_suffix(".pdf"), final_pdf)
+            print(f"[OK] PDF généré : {final_pdf}")
         else:
             print("[ERREUR] Échec de la compilation LaTeX.", file=sys.stderr)
             sys.exit(1)

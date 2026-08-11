@@ -201,12 +201,44 @@ python3 generate_dat.py config/client_exemple.yaml
 # Génère le .tex ET compile le PDF
 python3 generate_dat.py config/client_exemple.yaml --compile
 
-# Choisir le dossier de sortie et le nom du fichier
-python3 generate_dat.py config/mont_de_marsan.yaml --outdir build --name DAT_MontDeMarsan --compile
+# Choisir le dossier racine de sortie et le nom du fichier
+python3 generate_dat.py config/univ_amboise.yaml --outdir build --name DAT_UnivAmboise --compile
 ```
 
-Le fichier `.tex` (et le `.pdf` si `--compile`) sont écrits dans le dossier
-indiqué par `--outdir` (par défaut `build/`).
+### Structure des dossiers de sortie
+
+Chaque client a son propre dossier, nommé sur son nom court
+(`client.name`, espaces remplacés par des underscores) :
+
+```
+<outdir>/<Nom_Court_Client>/
+├── DAT_<...>.pdf              # PDF final --- seul fichier suivi par git
+├── DEX_<...>.pdf              # idem pour le DEX de ce même client (--client)
+└── generation/                # fichiers intermédiaires --- jamais suivis par git
+    ├── DAT_<...>.tex
+    ├── DAT_<...>.aux/.log/.out/.toc
+    ├── client_logo.png / integrator_logo.png
+    └── ...
+```
+
+Le DAT et le DEX d'un même client (`generate_dex.py --client
+config/univ_amboise.yaml`) partagent le **même** dossier client et le
+même sous-dossier `generation/` --- les deux documents d'un client sont
+ainsi toujours au même endroit.
+
+**Par défaut** (`--outdir` non précisé), les documents client vont dans
+`build/customers/` (`.gitignore` --- jamais suivi par git, y compris le
+sous-dossier `generation/` et les résidus LaTeX `.aux`/`.log`/`.out`/`.toc`
+où qu'ils se trouvent). Pour les **deux exemples fournis**
+(`config/client_exemple*.yaml`), utiliser explicitement `--outdir build`
+--- ce dossier reste suivi par git (seuls les PDF finaux, pas les fichiers
+de `generation/`), pour que les exemples de sortie restent toujours
+visibles dans le dépôt.
+
+Le mode générique du DEX (`generate_dex.py --compile`, sans `--client`)
+n'est pas concerné par cette structure par dossier client --- il reste
+plat dans `build/dex/` (visible et suivi par git), puisqu'il ne documente
+aucun client en particulier.
 
 ### Deux fichiers d'exemple fournis
 

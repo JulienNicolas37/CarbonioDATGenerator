@@ -1,3 +1,13 @@
 /config/customers/
 /build/customers/
 /__pycache__/
+
+# Fichiers intermédiaires de génération --- quel que soit l'emplacement
+# (dossier "generation/" par client, ou fichiers .tex/.aux/.log/.out/.toc
+# directement dans build/dex/ en mode générique). Seuls les PDF finaux à
+# la racine de chaque dossier client restent suivis par git.
+generation/
+*.aux
+*.log
+*.out
+*.toc

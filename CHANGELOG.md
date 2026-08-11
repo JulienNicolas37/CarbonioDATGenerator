@@ -5,6 +5,24 @@ Les versions antérieures à 1.0.0 n'ont pas été formellement numérotées
 un numéro de version répercuté dans le nom de l'archive
 (`dat-generator-vX.Y.Z.zip`), pour permettre un suivi simple dans le temps.
 
+## 1.10.0 --- 2026-08-12
+
+- **Nouvelle structure de dossiers de sortie** : chaque client a
+  désormais son propre dossier (nom court), avec le PDF final à sa
+  racine et tous les fichiers intermédiaires (`.tex`, `.aux`, `.log`,
+  `.out`, `.toc`, logos copiés) dans un sous-dossier `generation/` ---
+  jamais suivi par git. Le DAT et le DEX d'un même client
+  (`generate_dex.py --client ...`) partagent ce même dossier.
+- Par défaut (`--outdir` non précisé), les documents client vont dans
+  `build/customers/` (non suivi par git, comportement inchangé) ; les
+  deux exemples fournis restent visibles dans le dépôt via `--outdir
+  build` explicite (PDF uniquement --- le `.tex` des exemples n'est plus
+  suivi, voir `CLAUDE.md` pour le détail de ce compromis).
+- Le mode générique du DEX (sans `--client`) est inchangé : toujours
+  plat dans `build/dex/`, PDF et `.tex` suivis par git.
+- `.gitignore` renforcé : `generation/` ignoré à tout niveau, plus
+  `*.aux`/`*.log`/`*.out`/`*.toc` ignorés globalement par sécurité.
+
 ## 1.9.0 --- 2026-08-12
 
 - **Correction Name/Long Name** : la couverture du DAT affichait

@@ -335,6 +335,28 @@ client : préférer systématiquement `stakeholder_client.long_name` à
 `client.name`, sauf contrainte d'espace explicite (ex. en-tête compact
 sur chaque page, qui reste sur le nom court délibérément).
 
+## Structure de dossiers : final vs intermédiaire, séparés délibérément
+
+Un dossier par client (nom court), PDF à sa racine, tout le reste
+(`.tex`, `.aux`, `.log`, `.out`, `.toc`, logos copiés) dans un
+sous-dossier `generation/` --- **jamais suivi par git** (`.gitignore`
+ignore `generation/` à tout niveau, plus `*.aux`/`*.log`/`*.out`/`*.toc`
+partout par sécurité). Le DAT et le DEX d'un même client partagent ce même
+dossier et ce même sous-dossier `generation/` --- pas de duplication de
+logos ni de dossiers séparés pour deux documents qui parlent de la même
+infrastructure. Le mode générique du DEX (sans `--client`) reste à part,
+plat dans `build/dex/`, puisqu'il ne documente aucun client précis : il
+n'a pas besoin de cette séparation racine/intermédiaire.
+
+Effet de bord assumé : les deux exemples fournis (`build/`, suivi par
+git) ne montrent plus leur `.tex` source dans le dépôt (il vit maintenant
+dans `generation/`, ignoré) --- seul le PDF final reste visible. C'est
+cohérent avec l'objectif (séparer clairement ce qui est "livrable" de ce
+qui est "reconstructible à la demande"), mais c'est un changement de
+comportement par rapport à avant, où le `.tex` des exemples était suivi.
+Le mode générique du DEX, lui, continue de suivre son `.tex` (pas concerné
+par ce changement).
+
 ## Où regarder pour le reste
 
 - `README.md` — structure complète du fichier de configuration, toutes

@@ -84,7 +84,7 @@
   linkcolor=accent,
   citecolor=accent,
   urlcolor=accent,
-  pdftitle={DAT - Exploitation quotidienne d'une infrastructure Carbonio},
+  pdftitle={DAT - },
   pdfauthor={Ryan Georges Khouri}
 }
 
@@ -131,19 +131,32 @@ Classification & Public \\
 \end{tabular}
 \end{titlepage}
 
-\chapter{Informations sur le document}
-
-\section*{Approbations}
-\begin{longtable}{|p{6.5cm}|p{6.5cm}|}
+\chapter*{Historique des révisions}
+\addcontentsline{toc}{chapter}{Historique des révisions}
+\renewcommand{\arraystretch}{1.3}
+\begin{longtable}{|p{1.8cm}|p{2.5cm}|p{3.5cm}|p{6.5cm}|}
 \hline
-\rowcolor{primary}\tblhead{Rédaction} & \tblhead{Vérification} \\
+\rowcolor{primary}\tblhead{Version} & \tblhead{Date} & \tblhead{Auteur} & \tblhead{Nature de la modification} \\
 \hline
 \endhead
-Ryan Georges Khouri & Julien NICOLAS \\
+V1 & 19/12/2024 &  & Création du plan \\
+\hline
+V2 & 20/03/2025 &  & Corrections diverses \\
+\hline
+V3 & 10/08/2026 &  & Génération automatisée -\allowbreak{}-\allowbreak{}-\allowbreak{} ajout du moteur à briques auto-\allowbreak{}découvertes \\
 \hline
 \end{longtable}
 
-\section*{Confidentialité}
+\renewcommand{\footrulewidth}{0.4pt}
+\fancyfoot[L]{\small\color{graytxt}Document du 11/08/2026}
+\fancyfoot[R]{\small\color{graytxt}Page \thepage\ / \pageref{LastPage}}
+
+\chapter{Introduction et cadrage}
+
+\section{Objet du document}
+Ce Document d'Exploitation (DEX) décrit, à titre de référence générale, les procédures d'administration courante d'une infrastructure Carbonio. Il ne se substitue pas à un DEX personnalisé pour une infrastructure donnée, qui précise notamment les nœuds concernés par chaque procédure.
+
+\section{Confidentialité}
 \begin{longtable}{|p{1cm}|p{2.5cm}|p{9.5cm}|}
 \hline
 \endhead
@@ -156,18 +169,13 @@ $\square$ & Restreint & Le contenu de ce document et de ses annexes est strictem
 $\square$ & Confidentiel & Le contenu de ce document et de ses annexes est strictement confidentiel et est réservé uniquement aux collaborateurs de ZEXTRAS SERVICES identifiés ci-dessous. \\
 \hline
 \end{longtable}
-
-\section*{Révisions}
-\begin{longtable}{|p{2cm}|p{2.5cm}|p{9.5cm}|}
+\section{Approbations}
+\begin{longtable}{|p{6.5cm}|p{6.5cm}|}
 \hline
-\rowcolor{primary}\tblhead{Version} & \tblhead{Date} & \tblhead{Motifs d'évolution} \\
+\rowcolor{primary}\tblhead{Rédaction} & \tblhead{Vérification} \\
 \hline
 \endhead
-V1 & 19/12/2024 & Création du plan \\
-\hline
-V2 & 20/03/2025 & Corrections diverses \\
-\hline
-V3 & 10/08/2026 & Génération automatisée -\allowbreak{}-\allowbreak{}-\allowbreak{} ajout du moteur à briques auto-\allowbreak{}découvertes \\
+Ryan Georges Khouri & Julien NICOLAS \\
 \hline
 \end{longtable}
 
@@ -175,11 +183,13 @@ V3 & 10/08/2026 & Génération automatisée -\allowbreak{}-\allowbreak{}-\allowb
 \tableofcontents
 \clearpage
 
-\renewcommand{\footrulewidth}{0.4pt}
-\fancyfoot[L]{\small\color{graytxt}Document du 11/08/2026}
-\fancyfoot[R]{\small\color{graytxt}Page \thepage\ / \pageref{LastPage}}
-
 \chapter{Opérations courantes}
+
+Cette brique regroupe les vérifications de base à effectuer sur
+n'importe quel nœud Carbonio, quel que soit son rôle -\allowbreak{}-\allowbreak{}-\allowbreak{} typiquement en
+premier réflexe avant toute autre intervention, pour s'assurer que le
+nœud est fonctionnel et à jour.\allowbreak{}
+
 
 \section{Vérification de la version de Carbonio}
 La vérification de la version de Carbonio installée se fait via la commande suivante :
@@ -419,6 +429,14 @@ zmprov ma john.doe@domaine.tld zimbraMailQuota 20000000000 zimbraPasswordMustCha
 
 \chapter{Remplacement d'un certificat SSL commercial}
 
+Le certificat SSL/TLS commercial garantit la confiance du navigateur ou
+du client de messagerie lors de la connexion à la plateforme (webmail,
+IMAPS, SMTP soumission).\allowbreak{} Il doit être renouvelé avant son expiration
+-\allowbreak{}-\allowbreak{}-\allowbreak{} généralement fourni par une autorité de certification tierce
+(Let's Encrypt ou un fournisseur commercial), à la différence du
+certificat auto-\allowbreak{}signé utilisé par défaut à l'installation.\allowbreak{}
+
+
 \section{Sauvegarde de l'ancien certificat}
 Avant de remplacer le certificat, il est recommandé de sauvegarder les fichiers actuels en cas de besoin de restauration.\allowbreak{}
 
@@ -481,6 +499,13 @@ zmcontrol restart
 
 \chapter{Sauvegarde et restauration}
 
+Carbonio dispose d'un module de sauvegarde natif, **Carbonio Backup**,
+qui conserve un historique des boîtes de messagerie permettant de
+restaurer un compte à un instant précis (par exemple avant une
+suppression accidentelle ou une corruption de données), sans dépendre
+d'un outil de sauvegarde tiers.\allowbreak{}
+
+
 \section{Restauration d'un compte à une date précise}
 Cette procédure décrit comment restaurer un compte Carbonio à une date précise, en utilisant le module Carbonio Backup, vers un nouveau compte.\allowbreak{}
 
@@ -508,6 +533,13 @@ notifications juste.\allowbreak{}leblanc@domaine.\allowbreak{}tld & Une fois la 
 
 \chapter{Partages}
 
+Carbonio permet de partager tout ou partie de son espace personnel
+(dossiers de messagerie, agenda, contacts) avec d'autres comptes de la
+plateforme, avec un niveau de droit précis (lecture, écriture,
+administration.\allowbreak{}.\allowbreak{}.\allowbreak{}).\allowbreak{} Le "partage racine" décrit ici est le cas le plus
+large : il porte sur l'intégralité de l'arborescence d'un compte.\allowbreak{}
+
+
 \section{Ajout d'un partage racine}
 Cette procédure indique comment créer un partage racine entre deux comptes de
 messagerie.\allowbreak{} Le partage inclut toute l'arborescence :
@@ -531,6 +563,12 @@ le compte receveur.\allowbreak{}
 
 
 \chapter{Fichiers de logs}
+
+Chaque service Carbonio écrit ses propres journaux, dans des fichiers
+distincts selon le composant concerné.\allowbreak{} Cette table sert de point
+d'entrée pour savoir où chercher en cas de diagnostic (erreur
+d'authentification, message non délivré, service qui ne démarre pas.\allowbreak{}.\allowbreak{}.\allowbreak{}).\allowbreak{}
+
 
 \begin{longtable}{|p{5.3cm}|p{5.3cm}|p{5.3cm}|}
 \hline

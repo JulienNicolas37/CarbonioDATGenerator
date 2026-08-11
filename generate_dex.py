@@ -267,27 +267,51 @@ def main():
     parser = argparse.ArgumentParser(description="Génère un Document d'Exploitation (DEX) Carbonio.")
     parser.add_argument("--meta", default=str(BASE_DIR / "config" / "dex_meta.yaml"), help="Fichier de métadonnées du document")
     parser.add_argument("--client", default=None, help="Fichier de config client (YAML, format DAT) pour un DEX personnalisé")
-    parser.add_argument("--outdir", default="build/dex", help="Répertoire de sortie (défaut: build/dex)")
+    parser.add_argument(
+        "--outdir", default=None,
+        help="Répertoire de sortie. Mode générique : défaut build/dex (visible, suivi par git). "
+             "Mode --client : défaut build/customers/<nom_court_client>/ (même dossier que le DAT de ce client, non suivi par git)."
+    )
     parser.add_argument("--compile", action="store_true", help="Compiler le .tex en PDF via xelatex")
     parser.add_argument("--name", default=None, help="Nom de base du fichier généré")
     args = parser.parse_args()
 
     meta_config = load_yaml(Path(args.meta))
-    outdir = BASE_DIR / args.outdir
     client_path = Path(args.client) if args.client else None
-
-    doc = assemble_document(meta_config, outdir, client_path)
-
     default_name = "DEX_Carbonio" if not client_path else f"DEX_{client_path.stem}"
-    tex_path = outdir / f"{args.name or default_name}.tex"
-    outdir.mkdir(parents=True, exist_ok=True)
+
+    if client_path:
+        # Même dossier client que le DAT (build/customers/<nom_court>/),
+        # avec le même sous-dossier "generation" pour les fichiers
+        # intermédiaires --- le PDF final est copié à la racine du dossier
+        # client, aux côtés du DAT s'il a déjà été généré.
+        client_config = load_yaml(client_path)
+        outdir_base = BASE_DIR / (args.outdir or "build/customers")
+        client_dir = outdir_base / client_config["client"]["name"].replace(" ", "_")
+        generation_dir = client_dir / "generation"
+    else:
+        # Mode générique : dossier plat, visible et suivi par git (c'est
+        # l'exemple de référence, pas un document client).
+        generation_dir = BASE_DIR / (args.outdir or "build/dex")
+        client_dir = generation_dir
+
+    generation_dir.mkdir(parents=True, exist_ok=True)
+
+    doc = assemble_document(meta_config, generation_dir, client_path)
+
+    base_name = args.name or default_name
+    tex_path = generation_dir / f"{base_name}.tex"
     tex_path.write_text(doc, encoding="utf-8")
     print(f"[OK] Document LaTeX généré : {tex_path}")
 
     if args.compile:
-        ok, result = generate_dat.compile_pdf(tex_path, outdir)
+        ok, result = generate_dat.compile_pdf(tex_path, generation_dir)
         if ok:
-            print(f"[OK] PDF généré : {tex_path.with_suffix('.pdf')}")
+            final_pdf = client_dir / f"{base_name}.pdf"
+            if final_pdf != tex_path.with_suffix(".pdf"):
+                import shutil
+                shutil.copyfile(tex_path.with_suffix(".pdf"), final_pdf)
+            print(f"[OK] PDF généré : {final_pdf}")
         else:
             print("[ERREUR] Échec de la compilation LaTeX.", file=sys.stderr)
             sys.exit(1)
