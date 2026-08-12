@@ -373,6 +373,15 @@ dns:
       spf: "v=spf1 mx ip4:192.0.2.10 -all"
       dkim_selector: "carbonio"
       dmarc: "v=DMARC1; p=quarantine; rua=mailto:dmarc@client.fr"
+      # Méthode(s) d'authentification pour CE domaine --- voir le détail
+      # complet des champs disponibles dans la section "authentication:"
+      # plus bas. Jamais sur un alias de domaine (pas de comptes propres).
+      authentication:
+        methods: [native, external_ldap]
+        external_ldap:
+          fallback_to_native: true
+          servers:
+            - {hostname: "ad01.client.local", ip: "10.0.5.10"}
     - domain: "filiale-client.fr"    # autant de domaines que nécessaire
       mx_records:
         - {priority: 10, hostname: "mx1.client.fr"}
@@ -397,24 +406,44 @@ autoprovisioning:
 
 # Chapitre "Authentification" --- méthodes combinables librement.
 authentication:
-  methods: [native, external_ldap]   # sous-ensemble de [native, external_ldap, saml2, preauth]
   connection:
     vhost: "webmail.client.fr"        # nom du V-Host
     url: "https://webmail.client.fr"  # URL de connexion affichée dans le DAT
-  native:
-    password_policy: "12 caractères minimum, renouvellement tous les 180 jours"
-    lockout_policy: "5 tentatives échouées --- verrouillage 15 minutes"
-  external_ldap:
-    fallback_to_native: true         # repli sur l'authentification native si LDAP externe indisponible
-    servers:
-      - {hostname: "ad01.client.local", ip: "10.0.5.10"}
-      - {hostname: "ad02.client.local", ip: "10.0.5.11"}
-  saml2:                             # affiché seulement si "saml2" est dans methods
-    idp_metadata_url: "https://sso.client.fr/metadata"
+    default_domain: "client.fr"       # domaine assumé si l'utilisateur se connecte sans le préciser
+  # Une ou plusieurs politiques de mots de passe/verrouillage --- chacune
+  # avec sa portée explicite (Plateforme, une COS précise, ou un domaine
+  # précis). Une seule entrée avec scope "Plateforme" reproduit le
+  # comportement d'une politique unique et globale.
+  password_policies:
+    - scope: "Plateforme (COS par défaut)"
+      password_policy: "12 caractères minimum, renouvellement tous les 180 jours"
+      lockout_policy: "5 tentatives échouées --- verrouillage 15 minutes"
   brute_force_protection:            # protection anti brute-force (fail2ban ou équivalent)
     enabled: true
     tool: "fail2ban"
     details: "Bannissement 15 min après 5 échecs en 10 min, sur proxy et mta_auth"
+
+# La MÉTHODE d'authentification (native/LDAP externe/SAML2/preauth) est un
+# attribut de CHAQUE DOMAINE sur Carbonio, pas un réglage global --- elle
+# se déclare donc dans dns.domains[].authentication, pas dans la section
+# "authentication:" ci-dessus. Jamais configurable sur un alias de
+# domaine (pas de comptes propres). Voir la section "Structure DNS" pour
+# le reste des champs de dns.domains[].
+#
+# dns:
+#   domains:
+#     - domain: "client.fr"
+#       ...
+#       authentication:
+#         methods: [native, external_ldap]  # sous-ensemble de [native, external_ldap, saml2, preauth]
+#                                            # absent = ["native"] par défaut
+#         external_ldap:
+#           fallback_to_native: true   # repli sur l'authentification native si LDAP externe indisponible
+#           servers:                  # plusieurs serveurs possibles (répartition de charge / HA)
+#             - {hostname: "ad01.client.local", ip: "10.0.5.10"}
+#             - {hostname: "ad02.client.local", ip: "10.0.5.11"}
+#         saml2:                      # affiché seulement si "saml2" est dans methods
+#           idp_metadata_url: "https://sso.client.fr/metadata"
 
 # Anti-spam / anti-virus --- section TOUJOURS affichée dans le chapitre
 # "Architecture fonctionnelle" (avec des placeholders si non renseignée).

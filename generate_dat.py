@@ -614,6 +614,30 @@ def build_context(config, config_filename, outdir=None, config_dir=None):
     dns_raw = config.get("dns", {})
     domains_raw_list = [d for d in dns_raw.get("domains", []) if isinstance(d, dict)]
 
+    def build_domain_auth(d):
+        """Authentification pour un domaine principal --- jamais calculée
+        pour un alias de domaine (pas de comptes propres, donc pas
+        d'authentification propre à ce niveau)."""
+        auth_raw = d.get("authentication", {}) or {}
+        methods = auth_raw.get("methods") or ["native"]
+        ext_ldap_raw = auth_raw.get("external_ldap", {}) or {}
+        saml2_raw = auth_raw.get("saml2", {}) or {}
+        return {
+            "methods": methods,
+            "methods_display": [esc(AUTH_METHOD_LABELS.get(m, m)) for m in methods],
+            "has_external_ldap": "external_ldap" in methods,
+            "external_ldap": {
+                "fallback_to_native": _oui_non(ext_ldap_raw.get("fallback_to_native"), default="Non"),
+                # Plusieurs serveurs possibles pour un même domaine (répartition
+                # de charge / haute disponibilité de l'annuaire externe).
+                "servers": esc_list_of_dicts(ext_ldap_raw.get("servers", []), "hostname"),
+            },
+            "has_saml2": "saml2" in methods,
+            "saml2": {
+                "idp_metadata_url": esc(saml2_raw.get("idp_metadata_url", "[à préciser]")),
+            },
+        }
+
     def build_domain_entry(d):
         domain_raw = d.get("domain", "")
         mx_records_raw = d.get("mx_records") or []
@@ -637,10 +661,11 @@ def build_context(config, config_filename, outdir=None, config_dir=None):
         else:
             dkim_carrier = "Carbonio (MTA OUT)"
 
+        is_alias = bool(d.get("alias_of"))
         return {
             "domain": esc(domain_raw),
             "alias_of": esc(d.get("alias_of", "")),
-            "is_alias": bool(d.get("alias_of")),
+            "is_alias": is_alias,
             "mx_records": esc_list_of_dicts(mx_records_raw, "hostname"),
             "has_mx": has_mx,
             "spf": esc(d.get("spf", "")),
@@ -651,6 +676,9 @@ def build_context(config, config_filename, outdir=None, config_dir=None):
             "dmarc": esc(d.get("dmarc", "")),
             "has_dmarc": has_dmarc,
             "missing_display": esc(", ".join(missing)) if missing else "",
+            # Jamais configurable sur un alias (pas de comptes propres) ---
+            # voir build_domain_auth().
+            "authentication": None if is_alias else build_domain_auth(d),
             "aliases": [],
         }
 
@@ -699,32 +727,32 @@ def build_context(config, config_filename, outdir=None, config_dir=None):
         "sync_signatures": _oui_non(autoprov_raw.get("sync_signatures"), default="Non"),
     }
 
-    # --- Authentification (méthodes multiples possibles) ---
+    # --- Authentification : connexion (vhost/domaine par défaut),
+    #     politiques de mots de passe/verrouillage (plusieurs possibles,
+    #     chacune avec sa portée --- Plateforme, COS, ou Domaine ---
+    #     puisqu'une politique unique et globale n'est qu'un cas
+    #     particulier), et protection anti brute-force. La méthode
+    #     d'authentification (native/LDAP externe/SAML2) est un attribut
+    #     de CHAQUE DOMAINE, pas de cette section globale --- voir
+    #     build_domain_auth() et dns_ctx. ---
     auth_raw = config.get("authentication", {}) or {}
-    auth_methods = auth_raw.get("methods") or ["native"]
-    native_raw = auth_raw.get("native", {}) or {}
-    ext_ldap_raw = auth_raw.get("external_ldap", {}) or {}
-    saml2_raw = auth_raw.get("saml2", {}) or {}
-    brute_force_raw = auth_raw.get("brute_force_protection", {}) or {}
     connection_raw = auth_raw.get("connection", {}) or {}
+    brute_force_raw = auth_raw.get("brute_force_protection", {}) or {}
+    password_policies_raw = auth_raw.get("password_policies", []) or []
     authentication_ctx = {
-        "methods": auth_methods,
-        "methods_display": [esc(AUTH_METHOD_LABELS.get(m, m)) for m in auth_methods],
         "connection": {
             "vhost": esc(connection_raw.get("vhost", "[à préciser]")),
             "url": connection_raw.get("url", ""),
+            "default_domain": esc(connection_raw.get("default_domain", "[à préciser]")),
         },
-        "native": {
-            "password_policy": esc(native_raw.get("password_policy", "[à préciser]")),
-            "lockout_policy": esc(native_raw.get("lockout_policy", "[à préciser]")),
-        },
-        "external_ldap": {
-            "fallback_to_native": _oui_non(ext_ldap_raw.get("fallback_to_native"), default="Non"),
-            "servers": esc_list_of_dicts(ext_ldap_raw.get("servers", []), "hostname"),
-        },
-        "saml2": {
-            "idp_metadata_url": esc(saml2_raw.get("idp_metadata_url", "[à préciser]")),
-        },
+        "password_policies": [
+            {
+                "scope": esc(p.get("scope", "[à préciser]")),
+                "password_policy": esc(p.get("password_policy", "[à préciser]")),
+                "lockout_policy": esc(p.get("lockout_policy", "[à préciser]")),
+            }
+            for p in password_policies_raw if isinstance(p, dict)
+        ],
         "brute_force_protection": {
             "enabled": _oui_non(brute_force_raw.get("enabled"), default="Non"),
             "tool": esc(brute_force_raw.get("tool", "")),

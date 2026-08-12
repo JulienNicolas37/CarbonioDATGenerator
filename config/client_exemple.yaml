@@ -93,6 +93,18 @@ dns:
       spf: "v=spf1 mx ip4:192.0.2.10 -all"
       dkim_selector: "carbonio"
       dmarc: "v=DMARC1; p=quarantine; rua=mailto:dmarc-reports@exemple.fr; pct=100"
+      # Méthode(s) d'authentification pour CE domaine --- combinables.
+      # Absent = ["native"] par défaut. Jamais configurable sur un alias
+      # de domaine (pas de comptes propres).
+      authentication:
+        methods: [native, external_ldap]
+        external_ldap:
+          fallback_to_native: true
+          # Plusieurs serveurs pour la répartition de charge / HA de
+          # l'annuaire externe.
+          servers:
+            - {hostname: "ad01.exemple.local", ip: "10.0.5.10"}
+            - {hostname: "ad02.exemple.local", ip: "10.0.5.11"}
     - domain: "exemple-filiale.fr"
       alias_of: "exemple.fr"   # alias de domaine --- pas de comptes propres
       mx_records:
@@ -103,18 +115,16 @@ dns:
 
 # Méthode(s) d'authentification effectivement activée(s) --- combinables.
 authentication:
-  methods: [native, external_ldap]
   connection:
     vhost: "webmail.exemple.fr"
     url: "https://webmail.exemple.fr"
-  native:
-    password_policy: "12 caractères minimum, renouvellement tous les 180 jours"
-    lockout_policy: "5 tentatives échouées --- verrouillage 15 minutes"
-  external_ldap:
-    fallback_to_native: true
-    servers:
-      - {hostname: "ad01.exemple.local", ip: "10.0.5.10"}
-      - {hostname: "ad02.exemple.local", ip: "10.0.5.11"}
+    default_domain: "exemple.fr"
+  # Une ou plusieurs politiques de mots de passe/verrouillage, chacune
+  # avec sa portée (Plateforme, une COS précise, ou un domaine précis).
+  password_policies:
+    - scope: "Plateforme (COS par défaut)"
+      password_policy: "12 caractères minimum, renouvellement tous les 180 jours"
+      lockout_policy: "5 tentatives échouées --- verrouillage 15 minutes"
   brute_force_protection:
     enabled: true
     tool: "fail2ban"

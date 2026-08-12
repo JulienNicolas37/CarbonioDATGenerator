@@ -95,6 +95,16 @@ dns:
       spf: "v=spf1 mx ip4:192.0.2.11 ip4:192.0.2.12 -all"
       dkim_selector: "carbonio"
       dmarc: "v=DMARC1; p=reject; rua=mailto:dmarc-reports@univ-amboise.fr; pct=100"
+      # Domaine personnel --- SSO institutionnel (SAML2) avec repli LDAP.
+      authentication:
+        methods: [native, external_ldap, saml2]
+        external_ldap:
+          fallback_to_native: true
+          servers:
+            - {hostname: "ad01.univ-amboise.local", ip: "10.0.5.10"}
+            - {hostname: "ad02.univ-amboise.local", ip: "10.0.5.11"}
+        saml2:
+          idp_metadata_url: "https://sso.univ-amboise.fr/metadata"
     - domain: "etu.univ-amboise.fr"
       mx_records:
         - {priority: 10, hostname: "mx1.univ-amboise.fr"}
@@ -102,6 +112,13 @@ dns:
       spf: "v=spf1 mx ip4:192.0.2.11 ip4:192.0.2.12 -all"
       dkim_selector: "carbonio"
       dmarc: "v=DMARC1; p=reject; rua=mailto:dmarc-reports@univ-amboise.fr; pct=100"
+      # Domaine étudiant --- annuaire dédié séparé, pas de SSO institutionnel.
+      authentication:
+        methods: [native, external_ldap]
+        external_ldap:
+          fallback_to_native: true
+          servers:
+            - {hostname: "ldap-etu01.univ-amboise.local", ip: "10.0.5.20"}
 
 # Autoprovisioning activé pour ce client --- synchronisation depuis un AD.
 autoprovisioning:
@@ -117,20 +134,17 @@ autoprovisioning:
   sync_signatures: true
 
 authentication:
-  methods: [native, external_ldap, saml2]
   connection:
     vhost: "webmail.univ-amboise.fr"
     url: "https://webmail.univ-amboise.fr"
-  native:
-    password_policy: "14 caractères minimum, renouvellement tous les 90 jours"
-    lockout_policy: "5 tentatives échouées --- verrouillage 30 minutes"
-  external_ldap:
-    fallback_to_native: true
-    servers:
-      - {hostname: "ad01.univ-amboise.local", ip: "10.0.5.10"}
-      - {hostname: "ad02.univ-amboise.local", ip: "10.0.5.11"}
-  saml2:
-    idp_metadata_url: "https://sso.univ-amboise.fr/metadata"
+    default_domain: "univ-amboise.fr"
+  password_policies:
+    - scope: "Plateforme (COS par défaut --- personnel)"
+      password_policy: "14 caractères minimum, renouvellement tous les 90 jours"
+      lockout_policy: "5 tentatives échouées --- verrouillage 30 minutes"
+    - scope: "COS Étudiants"
+      password_policy: "10 caractères minimum, pas de renouvellement forcé"
+      lockout_policy: "10 tentatives échouées --- verrouillage 10 minutes"
   brute_force_protection:
     enabled: true
     tool: "fail2ban"

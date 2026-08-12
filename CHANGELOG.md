@@ -5,6 +5,32 @@ Les versions antérieures à 1.0.0 n'ont pas été formellement numérotées
 un numéro de version répercuté dans le nom de l'archive
 (`dat-generator-vX.Y.Z.zip`), pour permettre un suivi simple dans le temps.
 
+## 1.12.0 --- 2026-08-12
+
+- **⚠️ Changement de rupture** : l'authentification (méthode,
+  configuration LDAP externe, SAML2) est désormais un attribut de
+  **chaque domaine** (`dns.domains[].authentication`), pas un réglage
+  global de la plateforme --- conforme au fonctionnement réel de
+  Carbonio. Les champs `authentication.methods`, `authentication.
+  external_ldap` et `authentication.saml2` (niveau racine) ne sont plus
+  lus. Jamais configurable sur un alias de domaine.
+- **`authentication.native` remplacé par `authentication.
+  password_policies`** (liste) : plusieurs politiques de mots de passe
+  et de verrouillage peuvent désormais coexister, chacune avec une portée
+  explicite (Plateforme, une COS précise, ou un domaine précis). Une
+  seule entrée avec une portée "Plateforme" reproduit le comportement
+  précédent (politique unique).
+- **`authentication.connection.default_domain`** (nouveau) : domaine
+  assumé lorsqu'un utilisateur se connecte sans préciser de domaine.
+- Plusieurs serveurs LDAP externes par domaine, pour la répartition de
+  charge et la haute disponibilité de l'annuaire (déjà supporté par la
+  structure existante, confirmé explicitement pertinent dans ce nouveau
+  contexte par domaine).
+- Chapitre "Authentification" du DAT restructuré en conséquence :
+  Connexion, Politiques de mots de passe (table avec portée), Protection
+  anti brute-force, puis une sous-section par domaine (méthodes, LDAP
+  externe, SAML2).
+
 ## 1.11.1 --- 2026-08-12
 
 - **`client.carbonio_ce_version` supprimé** --- le tableau "Version

@@ -366,6 +366,36 @@ comportement par rapport à avant, où le `.tex` des exemples était suivi.
 Le mode générique du DEX, lui, continue de suivre son `.tex` (pas concerné
 par ce changement).
 
+## Authentification : un attribut du domaine, pas de la plateforme
+
+Julien a corrigé une erreur de conception initiale : `methods`,
+`external_ldap` et `saml2` vivaient dans la section globale
+`authentication:`, alors que sur Carbonio, la méthode d'authentification
+(et sa configuration --- annuaire externe, IdP SAML2) est un attribut de
+**chaque domaine**, pas un réglage de plateforme. Deux domaines de la même
+infrastructure peuvent donc avoir des méthodes différentes (ex. SSO
+institutionnel pour le personnel, LDAP simple pour les étudiants ---
+voir `config/client_exemple_grande_infra.yaml`). Ces trois champs vivent
+désormais dans `dns.domains[].authentication`, jamais sur un alias de
+domaine (pas de comptes propres, donc pas d'authentification propre).
+
+Restent dans la section globale `authentication:` (par nature globaux,
+même s'ils PEUVENT varier par COS) : le V-Host/URL de connexion, le
+nouveau `default_domain`, et les politiques de mots de passe/verrouillage
+--- devenues une **liste** (`password_policies`) plutôt qu'un champ
+unique, chaque entrée portant sa propre portée explicite ("Plateforme",
+"COS Étudiants", ou un domaine précis). Une seule entrée avec scope
+"Plateforme" reproduit l'ancien comportement d'une politique unique.
+
+**Piège rencontré** : `functional_arch.tex.j2` (§ "Services rendus aux
+utilisateurs") référençait aussi l'ancien `authentication.methods_display`
+global pour un résumé destiné à l'utilisateur final --- oublié lors du
+déplacement initial, a fait planter la compilation. Remplacé par une
+simple phrase de renvoi vers le chapitre Authentification plutôt que
+d'agréger artificiellement les méthodes de tous les domaines (qui
+recréerait l'illusion d'une méthode unique pour toute la plateforme,
+contraire à l'esprit même de cette correction).
+
 ## Où regarder pour le reste
 
 - `README.md` — structure complète du fichier de configuration, toutes
