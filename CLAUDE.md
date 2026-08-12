@@ -396,6 +396,39 @@ d'agréger artificiellement les méthodes de tous les domaines (qui
 recréerait l'illusion d'une méthode unique pour toute la plateforme,
 contraire à l'esprit même de cette correction).
 
+## Attributs de planification + LaTeX brut (`_raw`) : deux besoins distincts, pas liés
+
+Julien a posé deux questions dans la même conversation qui semblaient
+liées mais qui sont en réalité indépendantes : (1) pouvoir attribuer des
+métadonnées de pilotage (type, fréquence, criticité...) à une opération,
+et (2) pouvoir écrire du LaTeX enrichi dans les champs de texte. La
+confusion initiale venait de ma réponse au tour précédent, qui parlait
+de "deux fichiers séparés" à propos d'un risque de désynchronisation
+attributs/contenu --- rien à voir avec la question du LaTeX brut. Les
+deux fonctionnalités ont été implémentées **indépendamment**, dans le
+même fichier de brique :
+- `attributes:` (bloc optionnel par opération) --- alimente à la fois un
+  rappel compact sous le titre de l'opération et le nouveau chapitre de
+  synthèse "Plan de maintenance" (généré automatiquement en scannant
+  toutes les briques, aucune configuration supplémentaire nécessaire).
+- `<champ>_raw:` (variante non échappée d'un champ texte existant) ---
+  convention de suffixe explicite plutôt qu'un flag séparé, pour que la
+  présence de LaTeX brut soit visible directement dans le fichier YAML
+  sans avoir à consulter une documentation à côté.
+
+**Piège de mise en page rencontré** : une table à 10 colonnes en page
+paysage (`pdflscape`) déborde si la somme des largeurs de colonnes
+dépasse le `\textwidth` **portrait** --- `pdflscape` ne fait que *faire
+pivoter* le contenu déjà typographié à la largeur portrait normale, il ne
+donne pas automatiquement une largeur de composition plus large comme le
+suggérerait intuitivement une page "paysage". Les largeurs de colonnes du
+tableau de synthèse doivent donc rester sous ~16cm (pas ~24cm), avec
+`\footnotesize` pour rester lisible malgré le nombre de colonnes. Le
+tableau n'utilise donc pas toute la largeur physique de la page paysage
+--- amélioration possible plus tard (`\newgeometry`/`\restoregeometry`
+pour élargir réellement la zone de composition), non traitée ici par souci
+de simplicité.
+
 ## Où regarder pour le reste
 
 - `README.md` — structure complète du fichier de configuration, toutes

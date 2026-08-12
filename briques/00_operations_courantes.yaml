@@ -12,6 +12,15 @@ operations:
       - "zmcontrol -v"
 
   - title: "Vérification du fonctionnement des services"
+    attributes:
+      type: "Préventif"
+      frequency: "Quotidien"
+      criticality: "Haute"
+      automatable: "Oui"
+      interruption: "Non"
+      expected_control: "Tous les services actifs"
+      estimated_duration: "1 min"
+      recommended_window: "N'importe quand"
     description: "La vérification du fonctionnement des services sur un nœud Carbonio se fait via la commande :"
     commands:
       - "zmcontrol status"

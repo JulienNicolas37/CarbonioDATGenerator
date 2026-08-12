@@ -14,7 +14,20 @@ intro: |
 
 operations:
   - title: "Sauvegarde de l'ancien certificat"
-    description: "Avant de remplacer le certificat, il est recommandé de sauvegarder les fichiers actuels en cas de besoin de restauration."
+    attributes:
+      type: "Planifié"
+      frequency: "Annuel"
+      criticality: "Critique"
+      automatable: "Partiel"
+      interruption: "Non"
+      expected_control: "Certificat TLS valide"
+      estimated_duration: "15 min"
+      recommended_window: "Hors heures ouvrées"
+    # Test du champ "_raw" (LaTeX brut, non échappé) --- à la place de
+    # "description" ci-dessus si présent.
+    description_raw: |
+      Avant de remplacer le certificat, il est \textbf{recommandé} de
+      sauvegarder les fichiers actuels en cas de besoin de restauration.
     commands:
       - 'cp -a /opt/zextras/ssl/carbonio /opt/zextras/ssl/carbonio.$(date "+%Y%m%d")'
 

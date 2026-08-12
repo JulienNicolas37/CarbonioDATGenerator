@@ -1,4 +1,13 @@
 \section{\VAR{ op.title }}
+\BLOCK{ if op.attributes }
+{\small\color{graytxt}%
+\BLOCK{ if op.attributes.type }Type~: \VAR{ op.attributes.type }\BLOCK{ endif }
+\BLOCK{ if op.attributes.frequency } \textbullet\ Fréquence~: \VAR{ op.attributes.frequency }\BLOCK{ endif }
+\BLOCK{ if op.attributes.criticality } \textbullet\ Criticité~: \VAR{ op.attributes.criticality }\BLOCK{ endif }
+\BLOCK{ if op.attributes.automatable } \textbullet\ Automatisable~: \VAR{ op.attributes.automatable }\BLOCK{ endif }
+\BLOCK{ if op.attributes.interruption } \textbullet\ Interruption~: \VAR{ op.attributes.interruption }\BLOCK{ endif }
+\par\vspace{4pt}}
+\BLOCK{ endif }
 \BLOCK{ if op.description }
 \VAR{ op.description }
 

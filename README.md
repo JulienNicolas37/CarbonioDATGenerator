@@ -133,6 +133,19 @@ ce_feature: "backup"                # optionnel --- clé de
                                      # masquée en mode --client.
 operations:
   - title: "Titre de l'opération"
+    # Bloc optionnel --- si présent, l'opération apparaît automatiquement
+    # dans le chapitre de synthèse "Plan de maintenance" (généré en début
+    # de document) ET affiche un rappel compact sous son titre. Tous les
+    # champs sont optionnels et affichés uniquement s'ils sont renseignés.
+    attributes:
+      type: "Préventif"                 # Préventif / Correctif / Planifié / Évolutif...
+      frequency: "Quotidien"
+      criticality: "Critique"
+      automatable: "Oui"                # Oui / Non / Partiel
+      interruption: "Non"                # Non / Dégradé / Possible
+      expected_control: "Tous replicas synchronisés"
+      estimated_duration: "15 min"
+      recommended_window: "Hors heures ouvrées"
     description: "..."               # optionnel
     prerequisites: "..."              # optionnel --- encadré avant les commandes
     items: ["...", "..."]             # optionnel --- liste à puces
@@ -152,7 +165,37 @@ reference_table:
 Les champs `commands`/`example_output` sont insérés tels quels (style
 `lstlisting`) --- aucun échappement LaTeX nécessaire, sûr pour des
 commandes shell contenant `_`, `%`, `$`, `{`, `}`... Tous les autres champs
-texte sont échappés automatiquement.
+texte sont échappés automatiquement (sûr par défaut, mais impossible d'y
+écrire du LaTeX qui serait interprété --- un `\textbf{...}` s'afficherait
+tel quel, littéralement).
+
+### Écrire du LaTeX enrichi dans un champ texte (`_raw`)
+
+`description`, `prerequisites`, `explanation` et `warning` acceptent
+chacun une variante `<champ>_raw` --- si présente, elle est insérée
+**telle quelle**, sans aucun échappement (gras, italique, listes,
+macros... possibles), à la place du champ normal :
+
+```yaml
+description_raw: |
+  Attention, ceci est \textbf{important} : voir \emph{aussi} la procédure
+  de secours en cas d'échec.
+```
+
+La syntaxe LaTeX devient alors la responsabilité de l'auteur --- un
+garde-fou léger (comptage des accolades ouvrantes/fermantes) émet un
+avertissement dans la console à la génération si un déséquilibre est
+détecté, **sans jamais bloquer** la compilation (l'opérateur garde la
+main, comme partout ailleurs dans ce générateur).
+
+### Plan de maintenance --- synthèse automatique
+
+Toute opération (de n'importe quelle brique) portant un bloc `attributes`
+apparaît automatiquement dans un chapitre "Plan de maintenance ---
+synthèse" généré en tête de document (juste après "Introduction et
+cadrage"), sous forme de tableau récapitulatif en page paysage. Aucune
+opération sans `attributes` n'y figure --- rien à faire pour les briques
+qui n'ont pas ce cas d'usage.
 
 ### Métadonnées du document : communes avec le DAT, aucun fichier propre au DEX
 

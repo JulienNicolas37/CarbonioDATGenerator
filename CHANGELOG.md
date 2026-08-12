@@ -5,6 +5,25 @@ Les versions antérieures à 1.0.0 n'ont pas été formellement numérotées
 un numéro de version répercuté dans le nom de l'archive
 (`dat-generator-vX.Y.Z.zip`), pour permettre un suivi simple dans le temps.
 
+## 1.13.0 --- 2026-08-12
+
+- **Champs `_raw` pour le DEX** (`description_raw`, `prerequisites_raw`,
+  `explanation_raw`, `warning_raw`) --- variante non échappée d'un champ
+  texte existant, pour écrire du LaTeX enrichi (gras, listes, macros...)
+  directement dans une brique. Garde-fou léger (accolades non balancées)
+  --- avertissement en console à la génération, jamais de blocage.
+- **Bloc `attributes:` par opération** (type, fréquence, criticité,
+  automatisable, interruption, contrôle attendu, durée estimée, fenêtre
+  recommandée) --- optionnel, tous les champs sont eux-mêmes optionnels.
+- **Rappel compact** des attributs sous le titre de chaque opération qui
+  en porte.
+- **Nouveau chapitre "Plan de maintenance --- synthèse"**, généré
+  automatiquement en tête de document (juste après "Introduction et
+  cadrage") : tableau récapitulatif de toutes les opérations portant un
+  bloc `attributes`, toutes briques confondues, en page paysage. Aucune
+  configuration supplémentaire nécessaire au-delà du bloc `attributes`
+  lui-même.
+
 ## 1.12.0 --- 2026-08-12
 
 - **⚠️ Changement de rupture** : l'authentification (méthode,

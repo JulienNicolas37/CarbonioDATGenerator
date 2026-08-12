@@ -1,0 +1,17 @@
+\begin{landscape}
+\chapter{Plan de maintenance --- synthèse}
+Ce tableau récapitule, pour référence rapide, l'ensemble des opérations décrites dans ce document qui portent des attributs de planification (type, fréquence, criticité...). Le détail complet de chaque opération --- prérequis, commande(s), avertissements --- reste dans son chapitre dédié ; ce tableau n'en est qu'une vue de synthèse.
+
+\footnotesize
+\begin{longtable}{|p{1.8cm}|p{2.6cm}|p{1.3cm}|p{1.3cm}|p{1.2cm}|p{1.3cm}|p{1.3cm}|p{1.1cm}|p{1.6cm}|p{2.5cm}|}
+\hline
+\rowcolor{primary}\tblhead{Brique} & \tblhead{Opération} & \tblhead{Type} & \tblhead{Fréquence} & \tblhead{Criticité} & \tblhead{Automatis.} & \tblhead{Interrupt.} & \tblhead{Durée est.} & \tblhead{Fenêtre reco.} & \tblhead{Contrôle attendu} \\
+\hline
+\endhead
+\BLOCK{ for e in entries }
+\VAR{ e.brique } & \VAR{ e.operation } & \VAR{ e.type } & \VAR{ e.frequency } & \VAR{ e.criticality } & \VAR{ e.automatable } & \VAR{ e.interruption } & \VAR{ e.estimated_duration } & \VAR{ e.recommended_window } & \VAR{ e.expected_control } \\
+\hline
+\BLOCK{ endfor }
+\end{longtable}
+\normalsize
+\end{landscape}

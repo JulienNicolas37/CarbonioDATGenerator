@@ -75,16 +75,39 @@ def make_env():
     )
 
 
-def _escape_operation(op):
+RAW_CAPABLE_FIELDS = ["description", "prerequisites", "explanation", "warning"]
+
+
+def _field_with_raw_option(op, field, op_title, warnings):
+    """Un champ texte peut être fourni en version échappée (`champ:`,
+    sûre par défaut) ou en version LaTeX brute (`champ_raw:`, insérée
+    telle quelle --- gras, listes, macros... possibles, mais la syntaxe
+    LaTeX devient la responsabilité de l'auteur). Un garde-fou léger
+    (accolades non balancées) émet un avertissement --- jamais un blocage
+    --- pour repérer une faute de frappe évidente avant compilation."""
+    raw_val = op.get(field + "_raw")
+    if raw_val is not None:
+        raw_val = str(raw_val)
+        opens, closes = raw_val.count("{"), raw_val.count("}")
+        if opens != closes:
+            warnings.append(
+                f"[ATTENTION] Opération « {op_title} » --- champ '{field}_raw' : "
+                f"accolades non balancées ({opens} '{{' / {closes} '}}'). Vérifier la syntaxe LaTeX."
+            )
+        return raw_val
+    return esc(op.get(field, ""))
+
+
+def _escape_operation(op, warnings):
     """Échappe les champs texte normaux d'une opération --- PAS les champs
     verbatim (commands/example_output), qui passent par `lstlisting` et
-    n'ont donc besoin d'aucun échappement LaTeX."""
+    n'ont donc besoin d'aucun échappement LaTeX. Chaque champ texte
+    accepte une variante `_raw` (voir _field_with_raw_option)."""
     out = dict(op)
     out["title"] = esc(op.get("title", ""))
-    out["description"] = esc(op.get("description", ""))
-    out["prerequisites"] = esc(op.get("prerequisites", ""))
-    out["explanation"] = esc(op.get("explanation", ""))
-    out["warning"] = esc(op.get("warning", ""))
+    op_title_for_warnings = out["title"] or "(sans titre)"
+    for field in RAW_CAPABLE_FIELDS:
+        out[field] = _field_with_raw_option(op, field, op_title_for_warnings, warnings)
     out["bullet_items"] = [esc(it) for it in op.get("items", []) or []]
     out["options_table"] = [
         {"option": esc(row.get("option", "")), "description": esc(row.get("description", ""))}
@@ -95,10 +118,24 @@ def _escape_operation(op):
     out["commands"] = commands
     out["commands_joined"] = "\n".join(commands)
     out["example_output"] = op.get("example_output", "") or ""
+
+    attrs_raw = op.get("attributes")
+    out["attributes"] = None
+    if isinstance(attrs_raw, dict):
+        out["attributes"] = {
+            "type": esc(attrs_raw.get("type", "")),
+            "frequency": esc(attrs_raw.get("frequency", "")),
+            "criticality": esc(attrs_raw.get("criticality", "")),
+            "automatable": esc(attrs_raw.get("automatable", "")),
+            "interruption": esc(attrs_raw.get("interruption", "")),
+            "expected_control": esc(attrs_raw.get("expected_control", "")),
+            "estimated_duration": esc(attrs_raw.get("estimated_duration", "")),
+            "recommended_window": esc(attrs_raw.get("recommended_window", "")),
+        }
     return out
 
 
-def build_briques_context(services_enabled, nodes_by_component, client_mode, carbonio_edition, ce_restrictions):
+def build_briques_context(services_enabled, nodes_by_component, client_mode, carbonio_edition, ce_restrictions, warnings):
     """Charge et échappe toutes les briques auto-découvertes, triées par
     nom de fichier. En mode client, filtre sur `services:` (brique
     universelle si le champ est absent), retire les briques dont la
@@ -143,9 +180,21 @@ def build_briques_context(services_enabled, nodes_by_component, client_mode, car
             brique["col_spec"] = "|".join(["p{%.1fcm}" % (16.0 / max(len(columns), 1))] * len(columns))
         else:
             brique["kind"] = "operations"
-            brique["operations"] = [_escape_operation(op) for op in raw.get("operations", []) or []]
+            brique["operations"] = [_escape_operation(op, warnings) for op in raw.get("operations", []) or []]
         briques.append(brique)
-    return briques
+
+    # --- Plan de maintenance : synthèse de toutes les opérations qui
+    #     portent un bloc "attributes" (peu importe la brique) --- une
+    #     opération sans "attributes" n'y figure simplement pas. ---
+    maintenance_entries = []
+    for brique in briques:
+        if brique["kind"] != "operations":
+            continue
+        for op in brique["operations"]:
+            if op["attributes"]:
+                maintenance_entries.append({"brique": brique["name"], "operation": op["title"], **op["attributes"]})
+
+    return briques, maintenance_entries
 
 
 def build_nodes_by_component(client_config):
@@ -203,7 +252,8 @@ def assemble_document(outdir: Path, client_path: Path = None):
         confidentiality = "public"
         carbonio_edition = "advanced"
 
-    briques = build_briques_context(services_enabled, nodes_by_component, client_mode, carbonio_edition, ce_restrictions)
+    warnings = []
+    briques, maintenance_entries = build_briques_context(services_enabled, nodes_by_component, client_mode, carbonio_edition, ce_restrictions, warnings)
 
     latest = revisions[-1] if revisions else {"version": "", "date": ""}
     meta = {
@@ -247,6 +297,10 @@ def assemble_document(outdir: Path, client_path: Path = None):
 
     body_parts = [cover, revisions_chapter, footer_activation + "\n\n" + info_document]
 
+    if maintenance_entries:
+        maintenance_summary = env.get_template("maintenance_summary.tex.j2").render(entries=maintenance_entries, **ctx)
+        body_parts.append(maintenance_summary)
+
     if client_mode:
         stakeholders = env.get_template("stakeholders.tex.j2").render(**ctx)
         body_parts.append(stakeholders)
@@ -266,6 +320,10 @@ def assemble_document(outdir: Path, client_path: Path = None):
 
     body = "\n\n".join(body_parts)
     doc = preamble + "\n\n\\begin{document}\n\n" + body + "\n\n\\end{document}\n"
+
+    for w in warnings:
+        print(w, file=sys.stderr)
+
     return doc
 
 
