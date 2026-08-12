@@ -288,15 +288,24 @@ validé cette distinction explicitement) :
   de la config client), sans jamais masquer la brique elle-même. Aucun
   effet en mode générique (pas de config client à interroger).
 
-**Classification par défaut dépendante du mode, pas figée dans le YAML** :
-`config/dex_meta.yaml` ne fixe plus `confidentiality:` en dur --- si le
-champ est absent, le code choisit "public" en mode générique et "client"
-en mode `--client`. Rationale : un DEX personnalisé contient de vraies
-informations d'infrastructure (topologie, hostnames, domaines) qui n'ont
-pas leur place dans un document coché "diffusable librement". Le
-paragraphe "Propriété intellectuelle et usage autorisé" (mode client
-uniquement) découle du même raisonnement --- **volontairement absent du
-DAT**, qui n'en a pas besoin (Julien l'a confirmé explicitement).
+**Aucun fichier de configuration propre au DEX.** Rédacteur, vérificateur,
+révisions et confidentialité viennent exclusivement du fichier de config
+client (`client.author`, `client.verificateur`, `revisions:`,
+`client.classification`) --- Julien a été explicite sur ce point : "je ne
+souhaite pas avoir une section DAT et une section DEX [...] pour
+configurer la même chose." Un fichier `config/dex_meta.yaml` a existé
+brièvement pour porter ces informations séparément côté DEX, avant d'être
+supprimé pour cette raison précise --- ne pas le réintroduire. En mode
+générique (sans `--client`), ces informations retombent sur des
+placeholders explicites (`"[à préciser]"`) plutôt que sur un fichier de
+config annexe.
+
+**La confidentialité et la propriété intellectuelle sont communes aux
+deux documents**, pas propres au DEX. Julien a d'abord dit "pas besoin
+pour le DAT", puis est revenu sur cet avis une fois le mécanisme vu en
+pratique sur le DEX --- les deux partials (`confidentiality.tex.j2`,
+`ip_notice.tex.j2`) sont donc dans `templates/partials/` (pas
+`templates_dex/`) et utilisés par les deux documents.
 
 **Le préambule LaTeX est désormais partagé à 100 % entre DAT et DEX**
 (`templates/preamble.tex.j2`) --- le DEX n'a plus son propre préambule.

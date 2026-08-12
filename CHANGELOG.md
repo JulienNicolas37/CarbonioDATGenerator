@@ -5,6 +5,18 @@ Les versions antérieures à 1.0.0 n'ont pas été formellement numérotées
 un numéro de version répercuté dans le nom de l'archive
 (`dat-generator-vX.Y.Z.zip`), pour permettre un suivi simple dans le temps.
 
+## 1.11.0 --- 2026-08-12
+
+- **`config/dex_meta.yaml` supprimé** --- rédacteur, vérificateur,
+  révisions et confidentialité du DEX viennent désormais exclusivement du
+  fichier de config client (`client.author`, `client.verificateur`,
+  `revisions:`, `client.classification`), exactement comme pour le DAT.
+  Aucun fichier de configuration séparé à maintenir pour le DEX.
+- Flag `--meta` retiré de `generate_dex.py` (devenu sans objet).
+- En mode générique (sans `--client`), ces informations retombent sur des
+  placeholders explicites (`"[à préciser]"`) plutôt que sur un fichier de
+  config annexe.
+
 ## 1.10.0 --- 2026-08-12
 
 - **Nouvelle structure de dossiers de sortie** : chaque client a

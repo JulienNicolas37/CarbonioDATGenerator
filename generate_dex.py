@@ -158,7 +158,10 @@ def build_nodes_by_component(client_config):
     return nodes_by_component
 
 
-def assemble_document(meta_config, outdir: Path, client_path: Path = None):
+DEFAULT_DEX_TITLE = "Exploitation quotidienne d'une infrastructure Carbonio"
+
+
+def assemble_document(outdir: Path, client_path: Path = None):
     env = make_env()
     client_mode = client_path is not None
     ce_restrictions = load_yaml(CARBONIO_EDITIONS_PATH).get("restrictions", {})
@@ -166,20 +169,26 @@ def assemble_document(meta_config, outdir: Path, client_path: Path = None):
     if client_mode:
         client_config = load_yaml(client_path)
         # Réutilise directement le contexte du DAT (logos, contacts,
-        # adresses déjà échappées, révisions, rédacteur/vérificateur...)
-        # plutôt que de dupliquer cette logique --- une seule source de
-        # vérité dans le fichier de config client.
+        # adresses déjà échappées, révisions, rédacteur/vérificateur,
+        # confidentialité...) --- rédacteur, vérificateur, révisions et
+        # confidentialité sont communs aux deux documents et vivent
+        # UNIQUEMENT dans le fichier de config client, jamais dans un
+        # second fichier propre au DEX (qui n'existe plus).
         dat_ctx = generate_dat.build_context(client_config, client_path.name, outdir=outdir, config_dir=client_path.parent)
         stakeholder_client = dat_ctx["stakeholder_client"]
         stakeholder_integrator = dat_ctx["stakeholder_integrator"]
         services_enabled = client_config.get("services", {}) or {}
         nodes_by_component = build_nodes_by_component(client_config)
         revisions = dat_ctx["revisions"]
-        redaction = dat_ctx["client"].get("author") or meta_config.get("redaction", "")
-        verification = dat_ctx["client"].get("verificateur") or meta_config.get("verification", "")
-        confidentiality = meta_config.get("confidentiality") or dat_ctx.get("confidentiality") or "client"
+        redaction = dat_ctx["client"].get("author", "")
+        verification = dat_ctx["client"].get("verificateur", "")
+        confidentiality = dat_ctx.get("confidentiality") or "client"
         carbonio_edition = (client_config.get("client", {}) or {}).get("carbonio_edition", "advanced")
     else:
+        # Mode générique (pas de client) : aucun fichier de config à
+        # interroger --- valeurs de repli explicites, dans le même esprit
+        # que les placeholders "[à préciser]" déjà utilisés côté DAT
+        # lorsqu'une information n'est pas fournie.
         outdir.mkdir(parents=True, exist_ok=True)
         logo_file = generate_dat._prepare_logo(generate_dat.DEFAULT_INTEGRATOR_LOGO, outdir, "integrator_logo")
         stakeholder_client = {"name": "", "long_name": "", "logo_file": None}
@@ -187,34 +196,31 @@ def assemble_document(meta_config, outdir: Path, client_path: Path = None):
         services_enabled = {}
         nodes_by_component = {}
         revisions = [
-            {"version": esc(r.get("version", "")), "date": esc(r.get("date", "")),
-             "author": esc(r.get("author", "")), "note": esc(r.get("note", ""))}
-            for r in meta_config.get("revisions", []) or []
-            if isinstance(r, dict)
+            {"version": "0.1", "date": "[date]", "author": "[auteur]", "note": "Création initiale"},
         ]
-        redaction = meta_config.get("redaction", "")
-        verification = meta_config.get("verification", "")
-        confidentiality = meta_config.get("confidentiality") or "public"
+        redaction = "[à préciser]"
+        verification = "[à préciser]"
+        confidentiality = "public"
         carbonio_edition = "advanced"
 
     briques = build_briques_context(services_enabled, nodes_by_component, client_mode, carbonio_edition, ce_restrictions)
 
     latest = revisions[-1] if revisions else {"version": "", "date": ""}
     meta = {
-        "title": esc(meta_config.get("title", "Document d'Exploitation")),
+        "title": esc(DEFAULT_DEX_TITLE),
         "redaction": esc(redaction) if not client_mode else redaction,  # déjà échappé côté DAT en mode client
         "verification": esc(verification) if not client_mode else verification,
         "confidentiality": confidentiality,
         "confidentiality_label": CONFIDENTIALITY_LABELS.get(confidentiality, "Public"),
-        "current_version": latest["version"],
-        "current_date": latest["date"],
+        "current_version": latest.get("version", ""),
+        "current_date": latest.get("date", ""),
     }
 
     ctx = {
         "meta": meta,
         "client_mode": client_mode,
         "confidentiality": confidentiality,
-        "client": {"name": esc(meta_config.get("title", "Document d'Exploitation")), "author": meta["redaction"]},
+        "client": {"name": esc(DEFAULT_DEX_TITLE), "author": meta["redaction"]},
         "stakeholder_client": stakeholder_client,
         "stakeholder_integrator": stakeholder_integrator,
         "revisions": revisions,
@@ -265,7 +271,6 @@ def assemble_document(meta_config, outdir: Path, client_path: Path = None):
 
 def main():
     parser = argparse.ArgumentParser(description="Génère un Document d'Exploitation (DEX) Carbonio.")
-    parser.add_argument("--meta", default=str(BASE_DIR / "config" / "dex_meta.yaml"), help="Fichier de métadonnées du document")
     parser.add_argument("--client", default=None, help="Fichier de config client (YAML, format DAT) pour un DEX personnalisé")
     parser.add_argument(
         "--outdir", default=None,
@@ -276,7 +281,6 @@ def main():
     parser.add_argument("--name", default=None, help="Nom de base du fichier généré")
     args = parser.parse_args()
 
-    meta_config = load_yaml(Path(args.meta))
     client_path = Path(args.client) if args.client else None
     default_name = "DEX_Carbonio" if not client_path else f"DEX_{client_path.stem}"
 
@@ -297,7 +301,7 @@ def main():
 
     generation_dir.mkdir(parents=True, exist_ok=True)
 
-    doc = assemble_document(meta_config, generation_dir, client_path)
+    doc = assemble_document(generation_dir, client_path)
 
     base_name = args.name or default_name
     tex_path = generation_dir / f"{base_name}.tex"

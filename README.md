@@ -154,11 +154,18 @@ Les champs `commands`/`example_output` sont insérés tels quels (style
 commandes shell contenant `_`, `%`, `$`, `{`, `}`... Tous les autres champs
 texte sont échappés automatiquement.
 
-### Métadonnées du document (`config/dex_meta.yaml`)
+### Métadonnées du document : communes avec le DAT, aucun fichier propre au DEX
 
-Rédacteur, vérificateur, historique des révisions, et classification
-(`public`/`client`/`restreint`/`confidentiel`, optionnel --- si absent, le
-défaut dépend du mode de génération, voir plus haut).
+Rédacteur (`client.author`), vérificateur (`client.verificateur`),
+historique des révisions (`revisions:`) et classification
+(`client.classification`) sont **exclusivement** lus depuis le fichier de
+config client --- exactement les mêmes champs que ceux utilisés par le
+DAT (voir plus haut). Il n'existe **aucun fichier de configuration propre
+au DEX** : rien à maintenir en double entre les deux documents.
+
+En mode générique (sans `--client`, aucun fichier à interroger), ces
+informations retombent sur des valeurs de repli explicites
+(`[à préciser]`, dans le même esprit que les autres placeholders du DAT).
 
 ### Ce qui manque volontairement pour l'instant
 
