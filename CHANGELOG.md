@@ -5,6 +5,16 @@ Les versions antérieures à 1.0.0 n'ont pas été formellement numérotées
 un numéro de version répercuté dans le nom de l'archive
 (`dat-generator-vX.Y.Z.zip`), pour permettre un suivi simple dans le temps.
 
+## 1.11.1 --- 2026-08-12
+
+- **`client.carbonio_ce_version` supprimé** --- le tableau "Version
+  déployée et documentation" affichait deux numéros de version distincts
+  (un pour `product.version`, un second embarqué dans la ligne
+  "Édition" pour la CE). La ligne "Édition" n'affiche plus désormais que
+  le type d'édition ("Community Edition (CE)" / "Carbonio (Advanced)")
+  --- `product.version` reste l'unique source du numéro de version,
+  quelle que soit l'édition.
+
 ## 1.11.0 --- 2026-08-12
 
 - **`config/dex_meta.yaml` supprimé** --- rédacteur, vérificateur,

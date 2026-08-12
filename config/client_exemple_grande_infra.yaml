@@ -20,7 +20,6 @@ client:
   classification: "Confidentiel"
   verificateur: "Laurent FRANÇOISE"
   carbonio_edition: "ce"
-  carbonio_ce_version: "24.11.0"
   logo: "logo_universite_amboise.png"   # chemin relatif à CE fichier de config
   description: "Université d'Amboise (fictive) --- établissement d'enseignement supérieur utilisé comme cas d'exemple d'infrastructure haute disponibilité pour ce générateur de DAT, avec une population mixte personnel/étudiants (deux domaines de messagerie distincts)."
   website: "https://www.univ-amboise.fr"

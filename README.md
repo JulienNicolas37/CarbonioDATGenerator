@@ -183,7 +183,8 @@ des terminaux mobiles (MDM), personnalisation de marque (white-labeling).
 si une couverture plus large est nécessaire.
 
 Deux champs sur `client:` pilotent ce mécanisme (voir plus haut) :
-`carbonio_edition` et `carbonio_ce_version`. Effets concrets :
+`carbonio_edition` (voir plus haut) --- le numéro de version affiché
+reste `product.version`, quelle que soit l'édition. Effets concrets :
 - **DAT** : affichage de l'édition dans "Solution Zextras Carbonio" ;
   alerte si une fonctionnalité incompatible est configurée malgré tout
   (ex. HSM activé sur un mailstore alors que le client est en CE).
@@ -308,8 +309,9 @@ client:
                                    # les fonctionnalités absentes de la Community Edition
                                    # (voir templates/carbonio_editions.yaml) déclenchent des
                                    # alertes de cohérence (ex. HSM) et masquent certaines
-                                   # briques du DEX (ex. sauvegarde native)
-  carbonio_ce_version: "24.11.0"  # affiché uniquement si carbonio_edition == "ce"
+                                   # briques du DEX (ex. sauvegarde native). Le numéro de
+                                   # version reste porté par product.version (plus bas) ---
+                                   # pas de second champ de version dédié à la CE.
   long_name: "..."                       # nouveau : chapitre "Parties prenantes"
   logo: "logo_client.png"                # nouveau : chemin relatif à CE fichier de config
   description: "..."                     # nouveau
