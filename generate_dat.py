@@ -285,11 +285,11 @@ def build_context(config, config_filename, outdir=None, config_dir=None):
     _classification_norm = str(config["client"].get("classification", "")).strip().lower()
     client["confidentiality"] = _classification_norm if _classification_norm in _CONF_KEYS else "confidentiel"
 
-    # --- Édition Carbonio (Community Edition vs Advanced) --- le numéro
-    #     de version reste porté par le seul champ product.version (voir
-    #     "Version déployée et documentation"), pas de second champ de
-    #     version dédié à la CE.
-    carbonio_edition = str(config["client"].get("carbonio_edition", "advanced")).strip().lower()
+    # --- Édition Carbonio (Community Edition vs Advanced) --- vit dans
+    #     product: (pas client:), au même endroit que product.version, qui
+    #     reste l'unique source du numéro de version (pas de second champ
+    #     de version dédié à la CE).
+    carbonio_edition = str(config.get("product", {}).get("edition", "advanced")).strip().lower()
     if carbonio_edition == "ce":
         carbonio_edition_label = "Community Edition (CE)"
     else:

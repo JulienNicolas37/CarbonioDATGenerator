@@ -225,9 +225,9 @@ des terminaux mobiles (MDM), personnalisation de marque (white-labeling).
 **À étendre par Julien** avec le tableau de comparaison officiel Zextras
 si une couverture plus large est nécessaire.
 
-Deux champs sur `client:` pilotent ce mécanisme (voir plus haut) :
-`carbonio_edition` (voir plus haut) --- le numéro de version affiché
-reste `product.version`, quelle que soit l'édition. Effets concrets :
+Le champ `product.edition` pilote ce mécanisme (voir plus haut) --- le
+numéro de version affiché reste `product.version`, quelle que soit
+l'édition. Effets concrets :
 - **DAT** : affichage de l'édition dans "Solution Zextras Carbonio" ;
   alerte si une fonctionnalité incompatible est configurée malgré tout
   (ex. HSM activé sur un mailstore alors que le client est en CE).
@@ -348,13 +348,6 @@ client:
                                    # pour la table de confidentialité du chapitre 1 ---
                                    # "Confidentiel" par défaut si la valeur ne correspond
                                    # à aucune des 4 options
-  carbonio_edition: "advanced"    # "ce" | "advanced" --- "advanced" si absent. Si "ce",
-                                   # les fonctionnalités absentes de la Community Edition
-                                   # (voir templates/carbonio_editions.yaml) déclenchent des
-                                   # alertes de cohérence (ex. HSM) et masquent certaines
-                                   # briques du DEX (ex. sauvegarde native). Le numéro de
-                                   # version reste porté par product.version (plus bas) ---
-                                   # pas de second champ de version dédié à la CE.
   long_name: "..."                       # nouveau : chapitre "Parties prenantes"
   logo: "logo_client.png"                # nouveau : chemin relatif à CE fichier de config
   description: "..."                     # nouveau
@@ -382,6 +375,11 @@ integrator:
 # Chapitre "Solution Zextras Carbonio" --- optionnel (valeurs par défaut sinon).
 product:
   version: "25.9.0"
+  edition: "advanced"    # "ce" | "advanced" --- "advanced" si absent. Si "ce",
+                         # les fonctionnalités absentes de la Community Edition
+                         # (voir templates/carbonio_editions.yaml) déclenchent des
+                         # alertes de cohérence (ex. HSM) et masquent certaines
+                         # briques du DEX (ex. sauvegarde native).
   release_date: "30/09/2025"
   version_check_url: "https://docs.zextras.com/en/carbonio-release-notes/latest"
   user_doc_url: "https://docs.zextras.com/en/user-guide"

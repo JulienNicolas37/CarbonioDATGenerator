@@ -429,6 +429,23 @@ tableau n'utilise donc pas toute la largeur physique de la page paysage
 pour élargir réellement la zone de composition), non traitée ici par souci
 de simplicité.
 
+## Rattrapage : `carbonio_edition` vivait au mauvais endroit
+
+Julien avait demandé "ajouter cette notion de type d'édition dans la
+section product" --- seul l'**affichage** (la ligne "Édition" du tableau
+"Version déployée") a été déplacé dans le chapitre product au moment de
+l'implémentation initiale ; le **champ de configuration source**
+(`carbonio_edition`) est resté sous `client:` par oubli. Repéré par
+Julien en relisant sa propre config, pas par un test de compilation
+(logique : les deux emplacements fonctionnent very bien tant que le code
+et le YAML sont cohérents entre eux --- rien ne "casse" visuellement).
+Déplacé vers `product.edition` (`generate_dat.py` ET `generate_dex.py`,
+qui lisait aussi l'ancien emplacement pour le filtrage CE des briques).
+Leçon : quand une consigne dit "déplacer X dans Y", vérifier que **le
+champ de config lui-même**, pas seulement son affichage, a bien changé
+d'emplacement --- les deux peuvent diverger silencieusement sans qu'un
+test de compilation ne le révèle.
+
 ## Où regarder pour le reste
 
 - `README.md` — structure complète du fichier de configuration, toutes

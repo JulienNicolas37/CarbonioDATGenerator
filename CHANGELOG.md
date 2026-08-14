@@ -5,6 +5,15 @@ Les versions antérieures à 1.0.0 n'ont pas été formellement numérotées
 un numéro de version répercuté dans le nom de l'archive
 (`dat-generator-vX.Y.Z.zip`), pour permettre un suivi simple dans le temps.
 
+## 1.13.1 --- 2026-08-13
+
+- **Rattrapage** : `carbonio_edition` vivait encore sous `client:` alors
+  qu'il devait migrer sous `product:` (`product.edition`) --- seul son
+  affichage avait été déplacé précédemment, pas le champ de config
+  source. Corrigé dans `generate_dat.py` et `generate_dex.py` (filtrage
+  CE des briques du DEX), ainsi que dans les deux configs d'exemple et le
+  README.
+
 ## 1.13.0 --- 2026-08-12
 
 - **Champs `_raw` pour le DEX** (`description_raw`, `prerequisites_raw`,

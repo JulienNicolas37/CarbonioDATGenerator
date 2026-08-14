@@ -17,7 +17,6 @@ client:
   date: "04/08/2026"
   classification: "Confidentiel"
   verificateur: "Laurent FRANÇOISE"
-  carbonio_edition: "advanced"
   logo: "logo_client_placeholder.png"   # chemin relatif à CE fichier de config
   description: "Exemple SA est une entreprise fictive utilisée comme cas d'exemple pour ce générateur de DAT."
   website: "https://www.exemple.fr"
@@ -62,6 +61,7 @@ integrator:
 # Informations produit affichées dans le chapitre "Solution Zextras Carbonio".
 product:
   version: "25.9.0"
+  edition: "advanced"    # "ce" | "advanced" --- "advanced" si absent
   release_date: "30/09/2025"
   version_check_url: "https://docs.zextras.com/en/carbonio-release-notes/latest"
   user_doc_url: "https://docs.zextras.com/en/user-guide"

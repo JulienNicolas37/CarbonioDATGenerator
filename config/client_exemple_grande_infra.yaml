@@ -19,7 +19,6 @@ client:
   date: "04/08/2026"
   classification: "Confidentiel"
   verificateur: "Laurent FRANÇOISE"
-  carbonio_edition: "ce"
   logo: "logo_universite_amboise.png"   # chemin relatif à CE fichier de config
   description: "Université d'Amboise (fictive) --- établissement d'enseignement supérieur utilisé comme cas d'exemple d'infrastructure haute disponibilité pour ce générateur de DAT, avec une population mixte personnel/étudiants (deux domaines de messagerie distincts)."
   website: "https://www.univ-amboise.fr"
@@ -66,6 +65,7 @@ integrator:
 
 product:
   version: "25.9.0"
+  edition: "ce"    # "ce" | "advanced" --- "advanced" si absent
   release_date: "30/09/2025"
   version_check_url: "https://docs.zextras.com/en/carbonio-release-notes/latest"
   user_doc_url: "https://docs.zextras.com/en/user-guide"

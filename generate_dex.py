@@ -232,7 +232,7 @@ def assemble_document(outdir: Path, client_path: Path = None):
         redaction = dat_ctx["client"].get("author", "")
         verification = dat_ctx["client"].get("verificateur", "")
         confidentiality = dat_ctx.get("confidentiality") or "client"
-        carbonio_edition = (client_config.get("client", {}) or {}).get("carbonio_edition", "advanced")
+        carbonio_edition = (client_config.get("product", {}) or {}).get("edition", "advanced")
     else:
         # Mode générique (pas de client) : aucun fichier de config à
         # interroger --- valeurs de repli explicites, dans le même esprit
