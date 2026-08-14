@@ -297,13 +297,13 @@ def assemble_document(outdir: Path, client_path: Path = None):
 
     body_parts = [cover, revisions_chapter, footer_activation + "\n\n" + info_document]
 
-    if maintenance_entries:
-        maintenance_summary = env.get_template("maintenance_summary.tex.j2").render(entries=maintenance_entries, **ctx)
-        body_parts.append(maintenance_summary)
-
     if client_mode:
         stakeholders = env.get_template("stakeholders.tex.j2").render(**ctx)
         body_parts.append(stakeholders)
+
+    if maintenance_entries:
+        maintenance_summary = env.get_template("maintenance_summary.tex.j2").render(entries=maintenance_entries, **ctx)
+        body_parts.append(maintenance_summary)
 
     for brique in briques:
         chapter = [f"\\chapter{{{brique['name']}}}"]

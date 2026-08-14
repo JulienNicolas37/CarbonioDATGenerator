@@ -291,6 +291,42 @@ n'est pas concerné par cette structure par dossier client --- il reste
 plat dans `build/dex/` (visible et suivi par git), puisqu'il ne documente
 aucun client en particulier.
 
+### Modifier le `.tex` généré et le recompiler soi-même
+
+Le fichier `.tex` produit dans `generation/` est un fichier LaTeX
+standard --- rien de spécifique à ce générateur. Pour l'éditer
+directement (petit ajustement ponctuel sur un livrable, sans repasser par
+la config YAML) et voir le résultat dans le PDF, aucun outil à développer
+: `latexmk` (fourni par toute distribution TeX Live standard, déjà
+présent partout où `xelatex` est installé) fait exactement ça.
+
+```bash
+cd <outdir>/<Nom_Court_Client>/generation
+latexmk -xelatex -interaction=nonstopmode NomDuFichier.tex
+```
+
+`latexmk` détecte seul le nombre de passes de compilation nécessaires
+(sommaire, renvois croisés du type `§6.2.2`) --- pas besoin de relancer
+`xelatex` manuellement deux fois.
+
+Pour un cycle édition/relecture en boucle, le mode "preview continu"
+recompile automatiquement à chaque sauvegarde du `.tex` :
+```bash
+latexmk -xelatex -pvc NomDuFichier.tex
+```
+
+**Deux points d'attention** :
+- Toujours lancer la commande **depuis le dossier `generation/`**
+  concerné, pas depuis la racine du projet --- c'est là que vivent aussi
+  `client_logo.png`/`integrator_logo.png`, référencés en chemin relatif
+  depuis le `.tex`. Compiler depuis un autre dossier fait disparaître les
+  logos.
+- Une régénération ultérieure via `generate_dat.py`/`generate_dex.py`
+  (après un changement dans le YAML source) **écrase** toute modification
+  manuelle faite directement dans le `.tex` --- ce flux convient pour un
+  ajustement final sur un livrable, pas pour un usage répété en parallèle
+  de la config source.
+
 ### Deux fichiers d'exemple fournis
 
 - `config/client_exemple.yaml` --- petite infrastructure (1 nœud par rôle,

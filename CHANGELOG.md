@@ -5,6 +5,18 @@ Les versions antérieures à 1.0.0 n'ont pas été formellement numérotées
 un numéro de version répercuté dans le nom de l'archive
 (`dat-generator-vX.Y.Z.zip`), pour permettre un suivi simple dans le temps.
 
+## 1.13.2 --- 2026-08-13
+
+- **DEX** : le chapitre "Plan de maintenance --- synthèse" est désormais
+  placé après "Parties prenantes" (juste avant la première brique, ex.
+  "Opérations courantes") plutôt qu'avant --- en mode générique (pas de
+  chapitre "Parties prenantes"), l'ordre était déjà correct.
+- **Documentation uniquement** : ajout au README de la procédure pour
+  éditer directement un `.tex` généré et le recompiler sans repasser par
+  le générateur (`latexmk -xelatex`, y compris le mode "preview continu"
+  `-pvc`) --- aucun outil à développer, `latexmk` fait déjà exactement
+  ça et est fourni par toute distribution TeX Live standard.
+
 ## 1.13.1 --- 2026-08-13
 
 - **Rattrapage** : `carbonio_edition` vivait encore sous `client:` alors
