@@ -12,7 +12,7 @@ mail:
   order: 10
   trigger: mailbox
   name: "Messagerie électronique"
-  text: "Chaque utilisateur dispose d'une boîte aux lettres complète accessible depuis un navigateur, un client de messagerie (Outlook, Thunderbird...) ou un smartphone. Recherche, dossiers, règles de filtrage et signatures sont disponibles nativement."
+  text: "Chaque utilisateur dispose d'une boîte aux lettres complète accessible depuis un navigateur, un client de messagerie (Thunderbird...) ou un smartphone (Carbonio Mail). Recherche, dossiers, règles de filtrage et signatures sont disponibles nativement."
 
 calendar:
   order: 20

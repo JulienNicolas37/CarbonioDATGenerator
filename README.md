@@ -714,7 +714,7 @@ plus haut). La liste ci-dessous correspond au catalogue actuel
 | `mta_out` | MTA OUT | Émission du courrier sortant, signature DKIM |
 | `mta_auth` | MTA AUTH | Soumission authentifiée (port 587) |
 | `files` | Files | Stockage de fichiers et partage documentaire |
-| `docs` | Docs (édition collaborative) | Édition bureautique en ligne via Collabora Online (WOPI) |
+| `docs` | Docs (édition collaborative) | Édition bureautique en ligne via Collabora Online |
 | `chat` | Chat (Workstream Collaboration) | Messagerie instantanée temps réel, notifications |
 | `videoconf` | Visioconférence (Video Server) | Agrégation des flux WebRTC des réunions vidéo --- **zone DMZ** (NAT 1:1 direct) |
 | `tasks` | Tasks | Gestion de tâches / listes de choses à faire |
@@ -729,7 +729,7 @@ réellement en jeu, plutôt que de le masquer dans un composant générique.
 
 **Toutes les informations d'un rôle vivent dans un seul fichier** :
 `templates/partials/components/<id>.tex.j2` (ou `_generic.tex.j2` en
-repli) contient la description commerciale, le rôle technique, les
+repli) contient la description, le rôle technique, les
 paquets, les ports et le tableau des nœuds pour CE rôle --- rien n'est
 dispersé ailleurs. Le "MTA (Mail Transfer Agent)" chapitre ci-dessous en
 est l'exception volontaire de présentation, pas de contenu : il ajoute un
@@ -747,17 +747,17 @@ Pour créer un nouveau regroupement, ajouter une entrée dans
 `templates/component_groups.yaml` et référencer son id via `group:` dans
 les entrées concernées de `components_catalog.yaml`.
 
-### Description technico-commerciale (`components_catalog.yaml[id].commercial`)
+### Description générale (`components_catalog.yaml[id].commercial`)
 
 Chaque composant du catalogue porte un champ `commercial` (description
-technico-commerciale, orientée décideur) affiché en **introduction de son
+générale, orientée décideur) affiché en **introduction de son
 propre `\subsection`/`\subsubsection`** dans "Composants Carbonio et
 rôles" --- pas dans un chapitre séparé qui les listerait toutes à la suite.
 
 ### Services rendus aux utilisateurs (`templates/user_services_catalog.yaml`)
 
 Distinct du catalogue technique : ce catalogue fournit une description
-orientée usage final (pas technique, pas commerciale) pour les briques que
+orientée usage final pour les briques que
 l'utilisateur perçoit réellement (Mail, Agenda, Contacts, Fichiers, Édition
 collaborative, Chat, Visioconférence, Tâches). Chaque entrée porte un
 `trigger` (l'id de `services:` qui la déclenche) --- LDAP/Mesh/Database
@@ -938,7 +938,7 @@ dat-generator/
 ├── templates/
 │   ├── assets/
 │   │   └── logo_zextras_services.png   # logo intégrateur par défaut
-│   ├── components_catalog.yaml         # catalogue technique des composants (+ description commerciale)
+│   ├── components_catalog.yaml         # catalogue technique des composants (+ description générale)
 │   ├── component_groups.yaml           # regroupements de composants (ex. MTA IN/OUT/AUTH)
 │   ├── scope_catalog.yaml              # descriptions fonctionnelles (périmètre, §1.3)
 │   ├── user_services_catalog.yaml      # descriptions "service rendu" orientées utilisateur final (§3.1)
