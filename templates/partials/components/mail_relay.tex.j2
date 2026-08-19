@@ -1,0 +1,23 @@
+\VAR{ comp.role }
+
+\BLOCK{ if comp.nodes }
+\textbf{Nœud(s) hébergeant ce composant chez \VAR{ client.name }~:}
+\begin{longtable}{|p{3.2cm}|p{4.5cm}|p{3.2cm}|p{2.3cm}|}
+\hline
+\rowcolor{primary}\tblhead{Nœud} & \tblhead{Hostname} & \tblhead{IP} & \tblhead{Zone} \\
+\hline
+\endhead
+\BLOCK{ for n in comp.nodes }
+\VAR{ n.id } & \VAR{ n.hostname } & \VAR{ n.ip } & \VAR{ n.zone_label } \\
+\hline
+\BLOCK{ endfor }
+\end{longtable}
+\BLOCK{ endif }
+
+\BLOCK{ for n in comp.nodes }
+\BLOCK{ if n.dkim_carrier_domains }
+\textbf{\VAR{ n.id }} porte la signature DKIM pour les domaines suivants~: \VAR{ n.dkim_carrier_domains }.
+\BLOCK{ endif }
+\BLOCK{ endfor }
+
+\placeholder{Documenter ici les fonctions exactes assurées par cette appliance chez ce client (signature DKIM, filtrage additionnel, conformité réglementaire...) --- variable selon le fournisseur, à préciser au cas par cas.}

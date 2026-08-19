@@ -314,6 +314,170 @@ def build_context(config, config_filename, outdir=None, config_dir=None):
 
     zones_by_id = {z["id"]: z for z in zones}
 
+    # --- Pools de répartition de charge --- un identifiant qui désigne
+    #     plusieurs nœuds à la fois (ex. plusieurs MTA OUT en HA), pour
+    #     éviter d'avoir à les lister un par un dans email_flow_paths,
+    #     antispam_antivirus.deployment ou dns.domains[].dkim_carrier.
+    #     Volontairement permissif (pas de blocage si un id est erroné) ---
+    #     voir _resolve_node_or_pool() ci-dessous et les avertissements
+    #     affichés en rouge dans les sections concernées.
+    load_balancer_pools_raw = config.get("load_balancer_pools", {}) or {}
+    node_ids_set = {n["id"] for n in raw_nodes if isinstance(n, dict) and n.get("id")}
+
+    def _resolve_node_or_pool(token):
+        """Résout un token vers la liste des ids de nœuds réels qu'il
+        désigne. Retourne (liste_ids, existe) --- existe=False si le
+        token ne correspond à aucun nœud ni pool déclaré (faute de
+        frappe probable) : rien n'est bloqué, mais l'appelant doit
+        afficher un avertissement."""
+        if not token:
+            return [], False
+        if token in load_balancer_pools_raw:
+            pool_members = load_balancer_pools_raw.get(token) or []
+            return [m for m in pool_members if m in node_ids_set], True
+        if token in node_ids_set:
+            return [token], True
+        return [], False
+
+    # --- Anti-spam / anti-virus : résolu ICI (avant les schémas) car son
+    #     déploiement peut nécessiter l'ajout d'une boîte symbolique dans
+    #     les nœuds avant que les diagrammes ne soient construits plus bas. ---
+    asav_raw = config.get("antispam_antivirus", {}) or {}
+    asav_outbound_filtering_bool = bool(asav_raw.get("outbound_filtering"))
+    asav_deployment_token = str(asav_raw.get("deployment", "external")).strip()
+    asav_deployment_nodes, asav_deployment_exists = (
+        ([], True) if asav_deployment_token in ("", "external")
+        else _resolve_node_or_pool(asav_deployment_token)
+    )
+    asav_deployment_warning = None
+    if asav_deployment_token not in ("", "external") and not asav_deployment_exists:
+        asav_deployment_warning = (
+            f"le déploiement déclaré pour l'AS/AV (« {esc(asav_deployment_token)} ») ne correspond "
+            f"à aucun nœud ni pool déclaré --- vérifier load_balancer_pools et les identifiants de nœuds."
+        )
+    antispam_antivirus_ctx = {
+        "name": esc(asav_raw.get("name", "[à préciser]")),
+        "outbound_filtering": _oui_non(asav_raw.get("outbound_filtering")),
+        "inbound_filtering": _oui_non(asav_raw.get("inbound_filtering")),
+        "quarantine": _oui_non(asav_raw.get("quarantine")),
+        # Rempli plus bas, une fois les domaines DNS traités --- un domaine
+        # désigne lui-même son porteur DKIM (dns.domains[].dkim_carrier),
+        # il n'y a plus de liste séparée à maintenir ici.
+        "dkim_domains_display": "Aucun --- Carbonio gère le DKIM pour tous les domaines",
+        "deployment_token": esc(asav_deployment_token) if asav_deployment_token not in ("", "external") else "",
+        "deployment_warning": asav_deployment_warning,
+    }
+
+    # --- Chemins de flux e-mail personnalisés (relais tiers, AS/AV
+    #     intercalé...) --- notation "protocole:sens:maillon1:maillon2:...".
+    #     Seul le SMTP est pris en charge pour l'instant (les autres
+    #     protocoles restent sur le chemin standard direct). Remplace le
+    #     lien standard direct MTA<->pare-feu pour les nœuds concernés,
+    #     ne s'ajoute pas à côté. Rien n'est bloqué en cas d'erreur : un
+    #     avertissement est simplement affiché dans le chapitre des flux.
+    ASAV_EXTERNAL_ID = "__antispam_antivirus_external__"
+    email_flow_paths_raw = config.get("email_flow_paths", []) or []
+    email_flow_path_warnings = []
+    email_flow_removals = set()  # {("from", node_id)} sortant | {("to", node_id)} entrant
+    email_flow_extra_flows = []
+    needs_asav_external_box = False
+
+    def _resolve_flow_hop(token):
+        if token == "antispam_antivirus":
+            if asav_deployment_token in ("", "external"):
+                return [ASAV_EXTERNAL_ID], None
+            if not asav_deployment_exists:
+                return [], (
+                    f"« antispam_antivirus » référencé dans email_flow_paths, mais son déploiement "
+                    f"(« {esc(asav_deployment_token)} ») ne correspond à aucun nœud ni pool déclaré."
+                )
+            return list(asav_deployment_nodes), None
+        members, exists = _resolve_node_or_pool(token)
+        if not exists:
+            return [], f"« {esc(token)} » référencé dans email_flow_paths ne correspond à aucun nœud ni pool déclaré."
+        return members, None
+
+    for _path_str in email_flow_paths_raw:
+        if not isinstance(_path_str, str):
+            continue
+        _tokens = [t.strip() for t in _path_str.split(":")]
+        if len(_tokens) < 3:
+            email_flow_path_warnings.append(
+                f"chemin de flux e-mail mal formé (« {esc(_path_str)} ») --- format attendu : "
+                f"protocole:sens:maillon1:maillon2:..."
+            )
+            continue
+        _protocol, _direction, _chain_tokens = _tokens[0], _tokens[1], _tokens[2:]
+        if _protocol != "smtp":
+            email_flow_path_warnings.append(
+                f"le chemin de flux e-mail « {esc(_path_str)} » utilise un protocole non pris en charge "
+                f"(« {esc(_protocol)} ») --- seul « smtp » est actuellement supporté."
+            )
+            continue
+        if _direction not in ("outbound", "inbound"):
+            email_flow_path_warnings.append(
+                f"le chemin de flux e-mail « {esc(_path_str)} » a un sens inconnu (« {esc(_direction)} ») "
+                f"--- attendu « outbound » ou « inbound »."
+            )
+            continue
+
+        _resolved_chain = []
+        _path_ok = True
+        for _tok in _chain_tokens:
+            _ids, _warn = _resolve_flow_hop(_tok)
+            if _warn:
+                email_flow_path_warnings.append(_warn)
+                _path_ok = False
+            if ASAV_EXTERNAL_ID in _ids:
+                needs_asav_external_box = True
+            _resolved_chain.append(_ids)
+        if not _path_ok or not _resolved_chain:
+            continue
+
+        _first_group, _last_group = _resolved_chain[0], _resolved_chain[-1]
+        if _direction == "outbound":
+            for _nid in _first_group:
+                email_flow_removals.add(("from", _nid))
+        else:
+            for _nid in _last_group:
+                email_flow_removals.add(("to", _nid))
+
+        _last_equipment_id = raw_network_equipment[-1]["id"] if raw_network_equipment else None
+        if _last_equipment_id:
+            if _direction == "outbound":
+                _resolved_chain = _resolved_chain + [[_last_equipment_id]]
+            else:
+                _resolved_chain = [[_last_equipment_id]] + _resolved_chain
+
+        for _i in range(len(_resolved_chain) - 1):
+            for _a in _resolved_chain[_i]:
+                for _b in _resolved_chain[_i + 1]:
+                    if _a == _b:
+                        continue
+                    email_flow_extra_flows.append({
+                        "from": _a, "to": _b, "category": "smtp",
+                        "label": "SMTP", "protocol": "SMTP (chemin personnalisé)",
+                        "ports": [{"proto": "TCP", "port": 25}],
+                    })
+
+    if needs_asav_external_box:
+        _asav_zone_id = next((z["id"] for z in zones if z.get("external")), None)
+        if _asav_zone_id is None:
+            _asav_zone_id = "__ext_services__"
+            zones = zones + [{"id": _asav_zone_id, "label": "Services externes", "external": True}]
+            zones_by_id[_asav_zone_id] = {"id": _asav_zone_id, "label": "Services externes", "external": True}
+        _asav_name_for_label = asav_raw.get("name", "").strip()
+        _asav_label = r"\textbf{AS/AV externe}" + (r"\\{\scriptsize " + escape_latex(_asav_name_for_label) + "}" if _asav_name_for_label else "")
+        raw_nodes = raw_nodes + [{
+            "id": ASAV_EXTERNAL_ID,
+            "zone": _asav_zone_id,
+            "label": _asav_label,
+            "hostname": _asav_name_for_label,
+            "ip": "",
+            "components": [],
+        }]
+        node_ids_set.add(ASAV_EXTERNAL_ID)
+
     # --- Enrichissement des nœuds (copie de travail pour le schéma TikZ,
     #     qui a besoin des données BRUTES car il fait sa propre gestion de
     #     l'échappement LaTeX en interne) ---
@@ -342,7 +506,11 @@ def build_context(config, config_filename, outdir=None, config_dir=None):
         n = nodes_by_id.get(node_id)
         if n:
             if n.get("label"):
-                return escape_latex(n["label"].split(r"\\")[0])
+                # Le label est du LaTeX brut fourni tel quel (voir
+                # _node_content dans tikz_builder.py) --- ne jamais le
+                # rééchapper, sous peine d'afficher "\textbf{...}" en
+                # texte littéral dans la matrice de flux.
+                return n["label"].split(r"\\")[0]
             return escape_latex(n.get("hostname") or n["id"])
         eq = equipment_by_id.get(node_id)
         if eq:
@@ -362,6 +530,22 @@ def build_context(config, config_filename, outdir=None, config_dir=None):
     #     le flux correspondant PARTOUT (schémas ET matrice), puisqu'il ne
     #     se produit pas réellement. ---
     raw_flows = derive_flows(nodes_raw, network_equipment_raw, flow_relations_catalog)
+
+    # --- Applique les chemins de flux e-mail personnalisés (voir plus
+    #     haut) : retire la relation standard directe MTA<->pare-feu pour
+    #     les nœuds explicitement rerouté, ajoute les maillons déclarés à
+    #     la place. ---
+    if email_flow_removals or email_flow_extra_flows:
+        _last_equipment_id_flt = network_equipment_raw[-1]["id"] if network_equipment_raw else None
+        _filtered_flows = []
+        for f in raw_flows:
+            if f["category"] == "smtp":
+                if ("from", f["from"]) in email_flow_removals and f["to"] == _last_equipment_id_flt:
+                    continue
+                if ("to", f["to"]) in email_flow_removals and f["from"] == _last_equipment_id_flt:
+                    continue
+            _filtered_flows.append(f)
+        raw_flows = _filtered_flows + email_flow_extra_flows
 
     # --- Exclusions PUREMENT VISUELLES sur les schémas (le flux existe
     #     réellement et reste dans la matrice exhaustive de fin de document
@@ -466,8 +650,10 @@ def build_context(config, config_filename, outdir=None, config_dir=None):
     # --- À partir d'ici, on échappe les champs texte pour un usage en
     #     prose / tableaux LaTeX classiques (le schéma est déjà généré) ---
     nodes = []
+    nodes_by_raw_id = {}
     for n in nodes_raw:
         n = dict(n)
+        _raw_id = n["id"]
         zone = zones_by_id.get(n["zone"], {})
         n["zone_label"] = esc(zone.get("label", n["zone"]))
         n["components_display"] = esc(n.get("components_display", ""))
@@ -475,6 +661,7 @@ def build_context(config, config_filename, outdir=None, config_dir=None):
         n["hostname"] = esc(n.get("hostname", ""))
         n["ip"] = esc(n.get("ip", ""))
         n["public_ip"] = esc(n.get("public_ip", ""))
+        n["dkim_carrier_domains"] = ""  # rempli plus bas si ce nœud porte le DKIM d'un ou plusieurs domaines
         ms = n.get("mailstore") or {}
         n["mailstore_backup_retention"] = esc(f"{ms['backup_retention_days']} jours") if ms.get("backup_retention_days") is not None else ""
         n["mailstore_hsm_enabled"] = bool(ms.get("hsm_enabled"))
@@ -490,6 +677,7 @@ def build_context(config, config_filename, outdir=None, config_dir=None):
             schedule_lines.append(f"{days} : {times}")
         n["backup_schedule_display"] = esc("; ".join(schedule_lines)) if schedule_lines else ""
         nodes.append(n)
+        nodes_by_raw_id[_raw_id] = n
 
     for f in flows:
         f["label"] = esc(f.get("label", ""))
@@ -546,26 +734,22 @@ def build_context(config, config_filename, outdir=None, config_dir=None):
         allowed_protocols.append("SMTP submission authentifié (587)")
     allowed_protocols = [esc(p) for p in allowed_protocols]
 
-    # --- Anti-spam / anti-virus : section technique, toujours affichée
-    #     (avec des valeurs de repli explicites si non configurée). ---
-    asav_raw = config.get("antispam_antivirus", {}) or {}
-    dkim_domains_raw = set(asav_raw.get("dkim_domains", []) or [])
-    antispam_antivirus_ctx = {
-        "name": esc(asav_raw.get("name", "[à préciser]")),
-        "outbound_filtering": _oui_non(asav_raw.get("outbound_filtering")),
-        "inbound_filtering": _oui_non(asav_raw.get("inbound_filtering")),
-        "quarantine": _oui_non(asav_raw.get("quarantine")),
-        "dkim_domains_display": esc(", ".join(sorted(dkim_domains_raw))) if dkim_domains_raw else "Aucun --- Carbonio gère le DKIM pour tous les domaines",
-    }
-
     # --- Historique des révisions (par défaut si non fourni) ---
     client_raw = config["client"]
     revisions = config.get("revisions") or [
         {"version": "0.1", "date": "[date]", "author": client_raw.get("author", "[auteur]"), "note": "Création initiale"},
-        {"version": client_raw.get("version", "1.0"), "date": client_raw.get("date", "[date]"),
-         "author": client_raw.get("author", "[auteur]"), "note": "Version générée automatiquement"},
+        {"version": "1.0", "date": "[date]", "author": client_raw.get("author", "[auteur]"), "note": "Version générée automatiquement"},
     ]
     revisions = esc_list_of_dicts(revisions, "note")
+
+    # "Version du document"/"Date" sur la couverture ne sont plus des
+    # champs saisis séparément dans client: --- ils reprennent la
+    # dernière entrée de l'historique des révisions ci-dessus, pour
+    # n'avoir qu'un seul endroit à mettre à jour à chaque nouvelle version
+    # du document.
+    _latest_revision = revisions[-1] if revisions else {"version": "1.0", "date": "[à préciser]"}
+    client["version"] = _latest_revision["version"]
+    client["date"] = _latest_revision["date"]
 
     # --- Annexes : simple table de documents associés ---
     annexes_ctx = esc_list_of_dicts(config.get("annexes", []), "name")
@@ -655,11 +839,44 @@ def build_context(config, config_filename, outdir=None, config_dir=None):
         if not has_dmarc:
             missing.append("DMARC")
 
-        if domain_raw in dkim_domains_raw:
+        # --- Porteur de la signature DKIM pour ce domaine --- absent =
+        #     Carbonio (MTA OUT, comportement historique) ; "antispam_antivirus"
+        #     = l'AS/AV configuré ; ou un id de nœud/pool précis (ex. un
+        #     relais tiers). Une seule déclaration, ici, alimente à la fois
+        #     ce tableau, le récapitulatif AS/AV et la section du nœud
+        #     porteur lui-même --- voir dkim_carrier_domains_by_raw_id plus
+        #     bas.
+        dkim_carrier_token = d.get("dkim_carrier")
+        dkim_carrier_warning = None
+        dkim_carrier_member_ids = []
+        if not dkim_carrier_token:
+            dkim_carrier = "Carbonio (MTA OUT)"
+        elif dkim_carrier_token == "antispam_antivirus":
             asav_name_raw = asav_raw.get("name", "").strip()
             dkim_carrier = f"AS/AV ({asav_name_raw})" if asav_name_raw else "AS/AV"
         else:
-            dkim_carrier = "Carbonio (MTA OUT)"
+            _members, _exists = _resolve_node_or_pool(dkim_carrier_token)
+            if not _exists:
+                dkim_carrier = f"« {dkim_carrier_token} » (INCONNU)"
+                dkim_carrier_warning = (
+                    f"le porteur DKIM déclaré pour ce domaine (« {esc(dkim_carrier_token)} ») ne correspond "
+                    f"à aucun nœud ni pool déclaré --- vérifier load_balancer_pools et les identifiants de nœuds."
+                )
+            else:
+                dkim_carrier_member_ids = _members
+                dkim_carrier = dkim_carrier_token if dkim_carrier_token not in load_balancer_pools_raw \
+                    else f"{dkim_carrier_token} ({', '.join(_members)})"
+
+        # Bonne pratique : si l'AS/AV filtre le sortant mais ne porte pas
+        # lui-même le DKIM de ce domaine, la signature n'est pas apposée
+        # au bon endroit de la chaîne d'émission --- à signaler.
+        dkim_best_practice_warning = None
+        if asav_outbound_filtering_bool and dkim_carrier_token != "antispam_antivirus":
+            dkim_best_practice_warning = (
+                "l'AS/AV filtre les e-mails sortants pour cette plateforme, mais ne porte pas la "
+                "signature DKIM de ce domaine --- la signature devrait normalement être apposée "
+                "avant tout traitement/relais sortant supplémentaire (bonne pratique)."
+            )
 
         is_alias = bool(d.get("alias_of"))
         return {
@@ -673,6 +890,10 @@ def build_context(config, config_filename, outdir=None, config_dir=None):
             "dkim_selector": esc(d.get("dkim_selector", "")),
             "has_dkim": has_dkim,
             "dkim_carrier": esc(dkim_carrier),
+            "dkim_carrier_token": dkim_carrier_token,
+            "dkim_carrier_member_ids": dkim_carrier_member_ids,
+            "dkim_carrier_warning": dkim_carrier_warning,
+            "dkim_best_practice_warning": dkim_best_practice_warning,
             "dmarc": esc(d.get("dmarc", "")),
             "has_dmarc": has_dmarc,
             "missing_display": esc(", ".join(missing)) if missing else "",
@@ -709,6 +930,27 @@ def build_context(config, config_filename, outdir=None, config_dir=None):
         dns_domains.append(entry)
 
     dns_ctx = {"domains": dns_domains}
+
+    # --- Une fois tous les domaines connus (y compris les alias, qui ont
+    #     leur propre porteur DKIM potentiel) : calcule le récapitulatif
+    #     AS/AV, et injecte sur chaque nœud/pool porteur la liste des
+    #     domaines dont il porte la signature DKIM (affiché dans sa propre
+    #     section de composant, ex. mail_relay.tex.j2). ---
+    _all_domain_entries = list(entries_by_domain.values())
+    _asav_dkim_domains = sorted({e["domain"] for e in _all_domain_entries if e["dkim_carrier_token"] == "antispam_antivirus"})
+    antispam_antivirus_ctx["dkim_domains_display"] = (
+        ", ".join(_asav_dkim_domains) if _asav_dkim_domains
+        else "Aucun --- Carbonio gère le DKIM pour tous les domaines"
+    )
+
+    dkim_carrier_domains_by_raw_id = {}
+    for e in _all_domain_entries:
+        for _node_id in e.get("dkim_carrier_member_ids") or []:
+            dkim_carrier_domains_by_raw_id.setdefault(_node_id, []).append(e["domain"])
+    for _node_id, _domains in dkim_carrier_domains_by_raw_id.items():
+        _node_obj = nodes_by_raw_id.get(_node_id)
+        if _node_obj is not None:
+            _node_obj["dkim_carrier_domains"] = ", ".join(_domains)
 
     # --- Auto-provisionnement (section entièrement conditionnelle) ---
     autoprov_raw = config.get("autoprovisioning", {}) or {}

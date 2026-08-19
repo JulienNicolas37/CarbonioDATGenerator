@@ -136,3 +136,8 @@ monitoring:
   commercial: "Supervision technique de la plateforme (indicateurs de santé, alerting). Composant d'exploitation, sans exposition ni valeur pour l'utilisateur final."
   packages: "carbonio-prometheus et exporters associés"
   default_ports: "9100+ (exporters Prometheus)"
+
+mail_relay:
+  order: 45
+  name: "Relais de messagerie tiers (non-Carbonio)"
+  role: "Appliance ou service tiers intercalé dans le chemin du courrier électronique entrant et/ou sortant --- hors périmètre Carbonio. Fonctions typiques : signature DKIM centralisée, filtrage additionnel, conformité réglementaire. Le détail exact de ses fonctions dépend de l'appliance et doit être documenté au cas par cas (voir la configuration retenue chez ce client, plus bas)."

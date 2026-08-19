@@ -39,4 +39,9 @@ Quarantaine possible & \VAR{ antispam_antivirus.quarantine } \\
 \hline
 Domaines dont le DKIM est géré par l'AS/AV & \VAR{ antispam_antivirus.dkim_domains_display } \\
 \hline
+Déploiement & \VAR{ antispam_antivirus.deployment_token if antispam_antivirus.deployment_token else 'Externe (hors périmètre nœuds)' } \\
+\hline
 \end{longtable}
+\BLOCK{ if antispam_antivirus.deployment_warning }
+\dnswarning{\VAR{ antispam_antivirus.deployment_warning }}
+\BLOCK{ endif }

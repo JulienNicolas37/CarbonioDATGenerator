@@ -215,6 +215,55 @@ informations retombent sur des valeurs de repli explicites
 Réindexation des comptes et génération de la GAL --- à ajouter dans une
 prochaine version (voir `CHANGELOG.md`).
 
+## Relais de messagerie tiers, pools et chemins de flux e-mail personnalisés
+
+Pour un environnement de messagerie hétérogène (appliance non-Carbonio
+intercalée dans le chemin du courrier --- signature DKIM centralisée,
+filtrage additionnel...), trois mécanismes se combinent :
+
+**Le relais lui-même est un nœud normal**, avec le composant
+`mail_relay` (catalogue minimal, sans "paquets Carbonio" qui n'auraient
+pas de sens pour une appliance tierce) :
+```yaml
+nodes:
+  - id: relay01
+    zone: DMZ
+    hostname: "relay.tiers.fr"
+    components: [mail_relay]
+```
+
+**Un pool désigne plusieurs nœuds à la fois** (répartition de charge /
+haute disponibilité) --- réutilisable comme porteur DKIM
+(`dns.domains[].dkim_carrier`), comme déploiement de l'AS/AV
+(`antispam_antivirus.deployment`), ou comme maillon dans un chemin de
+flux e-mail (`email_flow_paths`, voir plus bas) :
+```yaml
+load_balancer_pools:
+  pool_relay: [relay01, relay02]
+```
+
+**Le chemin réel du courrier peut être explicité**, quand un ou
+plusieurs relais/appliances s'intercalent entre les MTA Carbonio et la
+frontière réseau (pare-feu) --- notation
+`protocole:sens:maillon1:maillon2:...` (seul `smtp` est pris en charge
+pour l'instant) :
+```yaml
+email_flow_paths:
+  - "smtp:outbound:mta_out01:relay01:antispam_antivirus"
+  - "smtp:inbound:antispam_antivirus:mta_in01"
+```
+Le maillon spécial `antispam_antivirus` se résout vers le déploiement
+réel de l'AS/AV (nœud, pool, ou une boîte symbolique "AS/AV externe" si
+`deployment: external`). Le chemin déclaré **remplace** le lien standard
+direct MTA↔pare-feu pour les nœuds concernés (pas de doublon) --- les
+autres nœuds du même rôle, non couverts par un chemin explicite, gardent
+leur relation standard directe inchangée.
+
+**Rien n'est jamais bloqué** en cas d'id inconnu (faute de frappe sur un
+nœud/pool) --- un avertissement rouge s'affiche dans le chapitre concerné
+(Authentification, DNS, ou Architecture fonctionnelle selon le cas),
+l'opérateur garde la responsabilité de corriger.
+
 ## Community Edition vs Advanced (`templates/carbonio_editions.yaml`)
 
 Catalogue **volontairement conservateur** des fonctionnalités confirmées
@@ -378,8 +427,6 @@ client:
   scope: "..."           # page de garde
   author: "..."           # Rédacteur (couverture, repris par le DEX en mode --client)
   verificateur: "..."     # Vérificateur (couverture, repris par le DEX en mode --client)
-  version: "1.0"
-  date: "JJ/MM/AAAA"
   classification: "Confidentiel"  # normalisé en Public/Client/Restreint/Confidentiel
                                    # pour la table de confidentialité du chapitre 1 ---
                                    # "Confidentiel" par défaut si la valeur ne correspond
@@ -393,6 +440,18 @@ client:
   contacts:                              # nouveau --- rôle libre
     - {name: "Jean Dupont", role: "Responsable de projet", email: "...", phone: "..."}
     - {name: "Marie Martin", role: "Responsable technique", email: "...", phone: "..."}
+
+# Historique des révisions --- alimente le chapitre "Historique des
+# révisions" ET la case "Version du document"/"Date" de la couverture
+# (toujours la DERNIÈRE entrée de cette liste) --- plus de champ
+# "version"/"date" séparé dans "client:", un seul endroit à mettre à jour
+# à chaque nouvelle version du document. Absent = repli automatique sur
+# un historique à 2 lignes générique ("0.1 Création initiale" / "1.0
+# Version générée automatiquement").
+revisions:
+  - {version: "0.1", date: "15/01/2026", author: "...", note: "Création initiale du document"}
+  - {version: "1.0", date: "04/08/2026", author: "...", note: "Version générée automatiquement"}
+  - {version: "1.1", date: "20/08/2026", author: "...", note: "Motif de cette révision"}
 
 # Intégrateur (Zextras Services par défaut) --- même structure que "client",
 # sans "scope"/"version"/"date"/"classification". Le logo par défaut
@@ -450,6 +509,14 @@ dns:
       spf: "v=spf1 mx ip4:192.0.2.10 -all"
       dkim_selector: "carbonio"
       dmarc: "v=DMARC1; p=quarantine; rua=mailto:dmarc@client.fr"
+      # Porteur de la signature DKIM sortante pour CE domaine --- absent =
+      # Carbonio/MTA OUT (défaut historique) ; "antispam_antivirus" =
+      # l'AS/AV configuré (voir sa propre section, plus bas) ; ou un id de
+      # nœud/pool précis (ex. un relais tiers). Avertissement rouge si
+      # l'id ne correspond à rien de déclaré, ou si l'AS/AV filtre le
+      # sortant sans être lui-même le porteur (bonne pratique). Jamais sur
+      # un alias de domaine.
+      dkim_carrier: "antispam_antivirus"
       # Méthode(s) d'authentification pour CE domaine --- voir le détail
       # complet des champs disponibles dans la section "authentication:"
       # plus bas. Jamais sur un alias de domaine (pas de comptes propres).
@@ -529,6 +596,13 @@ antispam_antivirus:
   outbound_filtering: true   # filtrage sortant (Oui/Non)
   inbound_filtering: true    # filtrage entrant (Oui/Non)
   quarantine: true           # quarantaine possible (Oui/Non)
+  deployment: "external"     # "external" (par défaut, boîte symbolique dans les
+                              # schémas) | id de nœud | id de pool (voir
+                              # load_balancer_pools plus bas) --- avertissement
+                              # rouge si l'id ne correspond à rien de déclaré.
+                              # Le porteur DKIM de chaque domaine est déclaré
+                              # séparément (dns.domains[].dkim_carrier, voir plus
+                              # bas) --- plus de liste dkim_domains ici.
 
 # Chapitre "Support" --- optionnel (valeurs par défaut Zextras Services sinon).
 support:
