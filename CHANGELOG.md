@@ -5,6 +5,54 @@ Les versions antérieures à 1.0.0 n'ont pas été formellement numérotées
 un numéro de version répercuté dans le nom de l'archive
 (`dat-generator-vX.Y.Z.zip`), pour permettre un suivi simple dans le temps.
 
+## 1.15.0 --- 2026-08-19
+
+- **Relais de messagerie tiers (non-Carbonio)** : nouveau composant
+  `mail_relay` (catalogue + template dédié minimal), à déclarer comme un
+  nœud normal.
+- **`load_balancer_pools`** (nouveau) : un identifiant qui désigne
+  plusieurs nœuds à la fois (répartition de charge / haute
+  disponibilité), réutilisable comme porteur DKIM, comme déploiement de
+  l'AS/AV, ou comme maillon dans un chemin de flux e-mail.
+- **`antispam_antivirus.deployment`** (nouveau) : "external" (défaut,
+  boîte symbolique dans les schémas) | id de nœud | id de pool.
+  Avertissement rouge si l'id ne correspond à rien de déclaré.
+- **⚠️ Changement de rupture** : `antispam_antivirus.dkim_domains`
+  supprimé, remplacé par `dns.domains[].dkim_carrier` (absent = Carbonio ;
+  `"antispam_antivirus"` ; ou un id de nœud/pool précis). Une seule
+  déclaration par domaine alimente automatiquement le récapitulatif
+  AS/AV, le détail DNS du domaine, et la section du nœud/relais porteur.
+  Avertissement rouge si l'id ne correspond à rien de déclaré, et
+  **avertissement de bonne pratique** si l'AS/AV filtre le courrier
+  sortant sans être lui-même le porteur DKIM du domaine.
+- **`email_flow_paths`** (nouveau) : chemin de flux e-mail personnalisé
+  (notation `protocole:sens:maillon1:maillon2:...`, seul `smtp` pris en
+  charge pour l'instant) --- remplace le lien standard direct
+  MTA↔pare-feu pour les nœuds concernés, ajoute les maillons déclarés
+  (relais, AS/AV...) à la place. Le maillon spécial `antispam_antivirus`
+  se résout vers son déploiement réel, y compris une boîte symbolique
+  "AS/AV externe" dans les schémas si `deployment: external`.
+- Les deux fichiers d'exemple ont été mis à jour avec une démonstration
+  réaliste (relais en haute disponibilité, AS/AV déployé sur un pool de
+  MTA OUT, porteurs DKIM différenciés par domaine).
+- Correction d'un bug latent dans `label_for()` (générateur de la matrice
+  exhaustive de flux) : un `label` de nœud contenant du LaTeX brut était
+  rééchappé, produisant du code LaTeX littéral affiché dans le PDF.
+
+## 1.14.0 --- 2026-08-13
+
+- **⚠️ Changement de rupture** : `client.version` et `client.date` sont
+  supprimés. La case "Version du document"/"Date" de la couverture (DAT
+  et DEX) reprend désormais systématiquement la **dernière entrée** de
+  `revisions:` --- une seule source à maintenir pour la version du
+  document, au lieu de deux potentiellement incohérentes. Le repli par
+  défaut (si `revisions:` est absent) ne dépend plus de `client.version`/
+  `client.date` non plus.
+- Les deux fichiers d'exemple (`config/client_exemple*.yaml`) ont reçu un
+  historique de révisions réaliste à 3 entrées, pour qu'un nouveau client
+  réel parti de l'un de ces fichiers dispose d'un exemple concret plutôt
+  que d'une section absente.
+
 ## 1.13.2 --- 2026-08-13
 
 - **DEX** : le chapitre "Plan de maintenance --- synthèse" est désormais

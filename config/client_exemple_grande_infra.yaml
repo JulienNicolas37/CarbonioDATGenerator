@@ -15,8 +15,6 @@ client:
   long_name: "Université d'Amboise"
   scope: "Messagerie, agenda, contacts, mobilité, chat, tâches, fichiers, visioconférence --- infrastructure haute disponibilité"
   author: "Julien Nicolas"
-  version: "1.0"
-  date: "04/08/2026"
   classification: "Confidentiel"
   verificateur: "Laurent FRANÇOISE"
   logo: "logo_universite_amboise.png"   # chemin relatif à CE fichier de config
@@ -95,6 +93,9 @@ dns:
       spf: "v=spf1 mx ip4:192.0.2.11 ip4:192.0.2.12 -all"
       dkim_selector: "carbonio"
       dmarc: "v=DMARC1; p=reject; rua=mailto:dmarc-reports@univ-amboise.fr; pct=100"
+      # Signature DKIM sortante gérée par le pool de relais tiers (voir
+      # load_balancer_pools et email_flow_paths) --- pas par Carbonio.
+      dkim_carrier: "pool_relay"
       # Domaine personnel --- SSO institutionnel (SAML2) avec repli LDAP.
       authentication:
         methods: [native, external_ldap, saml2]
@@ -112,6 +113,9 @@ dns:
       spf: "v=spf1 mx ip4:192.0.2.11 ip4:192.0.2.12 -all"
       dkim_selector: "carbonio"
       dmarc: "v=DMARC1; p=reject; rua=mailto:dmarc-reports@univ-amboise.fr; pct=100"
+      # Domaine étudiant, plus volumineux : signature DKIM sortante gérée
+      # par l'AS/AV externalisé plutôt que par Carbonio directement.
+      dkim_carrier: "antispam_antivirus"
       # Domaine étudiant --- annuaire dédié séparé, pas de SSO institutionnel.
       authentication:
         methods: [native, external_ldap]
@@ -155,10 +159,12 @@ antispam_antivirus:
   outbound_filtering: true
   inbound_filtering: true
   quarantine: true
-  # Le domaine étudiant, plus volumineux, est relayé via l'AS/AV externalisé
-  # pour la signature DKIM sortante ; le domaine personnel reste porté par
-  # Carbonio (MTA OUT).
-  dkim_domains: ["etu.univ-amboise.fr"]
+  # Déployé directement sur le pool des MTA OUT (pas une appliance
+  # externe séparée) --- voir load_balancer_pools plus bas.
+  deployment: "pool_mta_out"
+  # Le porteur DKIM est désormais désigné par chaque domaine lui-même
+  # (dns.domains[].dkim_carrier), voir plus bas --- plus de liste séparée
+  # ici.
 
 support:
   url: "https://support.zextras-services.fr"
@@ -211,6 +217,24 @@ services:
   videoconf: true
   tasks: true
   monitoring: true
+  mail_relay: true
+
+# Pool de répartition de charge --- les deux relais font exactement la
+# même chose (ils sont interchangeables du point de vue du flux), inutile
+# de les répéter individuellement dans email_flow_paths ci-dessous.
+load_balancer_pools:
+  pool_relay: [relay01, relay02]
+  pool_mta_out: [mta_out01, mta_out02]
+
+# Chemin de flux e-mail personnalisé : le relais tiers s'intercale entre
+# les MTA OUT Carbonio et la sortie vers Internet (sortant), et entre
+# l'entrée Internet et les MTA IN/AUTH Carbonio (entrant) --- remplace le
+# lien standard direct MTA<->pare-feu pour les nœuds concernés.
+email_flow_paths:
+  - "smtp:outbound:mta_out01:pool_relay"
+  - "smtp:outbound:mta_out02:pool_relay"
+  - "smtp:inbound:pool_relay:mta_in01"
+  - "smtp:inbound:pool_relay:mta_in02"
 
 network_equipment:
   - id: internet
@@ -282,6 +306,24 @@ nodes:
     public_ip: "203.0.113.24"   # IP fixe publique (NAT/pare-feu)
     components: [mta_out]
     sizing: {vcpu: 2, ram_gb: 4, storage_gb: 50, os: "Rocky Linux 9"}
+
+  # Relais de messagerie tiers (non-Carbonio), en haute disponibilité ---
+  # gère la signature DKIM pour l'ensemble des domaines de cette
+  # infrastructure. Voir load_balancer_pools plus bas (pool_relay) pour
+  # les référencer ensemble dans email_flow_paths sans les lister un par un.
+  - id: relay01
+    zone: DMZ
+    hostname: "relay01.tiers-messagerie.fr"
+    ip: "192.0.2.40"
+    components: [mail_relay]
+    sizing: {vcpu: 2, ram_gb: 4, storage_gb: 30, os: "Ubuntu 22.04 LTS"}
+
+  - id: relay02
+    zone: DMZ
+    hostname: "relay02.tiers-messagerie.fr"
+    ip: "192.0.2.41"
+    components: [mail_relay]
+    sizing: {vcpu: 2, ram_gb: 4, storage_gb: 30, os: "Ubuntu 22.04 LTS"}
 
   - id: mta_auth01
     zone: DMZ
@@ -441,6 +483,24 @@ scheduled_operations:
     operation: "Vérification intégrité réplication LDAP"
     schedule:
       - {days: "Tous les jours", times: ["04:00"]}
+
+# Historique des révisions --- alimente à la fois le chapitre "Historique
+# des révisions" et la case "Version du document"/"Date" de la couverture
+# (dernière entrée de cette liste). Aucun champ de version/date séparé
+# dans la section "client:" --- un seul endroit à mettre à jour.
+revisions:
+  - version: "0.1"
+    date: "10/06/2026"
+    author: "Julien Nicolas"
+    note: "Création initiale du document"
+  - version: "1.0"
+    date: "04/08/2026"
+    author: "Julien Nicolas"
+    note: "Version générée automatiquement"
+  - version: "1.1"
+    date: "12/08/2026"
+    author: "Laurent FRANÇOISE"
+    note: "Bascule en Carbonio Community Edition et différenciation de l'authentification personnel/étudiants"
 
 # Documents complémentaires associés à ce DAT.
 annexes:

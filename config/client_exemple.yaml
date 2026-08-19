@@ -13,8 +13,6 @@ client:
   long_name: "Exemple Société Anonyme"
   scope: "Messagerie, agenda, contacts, mobilité, chat, visioconférence"
   author: "Julien Nicolas"
-  version: "1.0"
-  date: "04/08/2026"
   classification: "Confidentiel"
   verificateur: "Laurent FRANÇOISE"
   logo: "logo_client_placeholder.png"   # chemin relatif à CE fichier de config
@@ -292,6 +290,24 @@ scheduled_operations:
     operation: "Purge des logs applicatifs (logrotate)"
     schedule:
       - {days: "Tous les jours", times: ["03:30"]}
+
+# Historique des révisions --- alimente à la fois le chapitre "Historique
+# des révisions" et la case "Version du document"/"Date" de la couverture
+# (dernière entrée de cette liste). Aucun champ de version/date séparé
+# dans la section "client:" --- un seul endroit à mettre à jour.
+revisions:
+  - version: "0.1"
+    date: "15/01/2026"
+    author: "Julien Nicolas"
+    note: "Création initiale du document"
+  - version: "1.0"
+    date: "04/08/2026"
+    author: "Julien Nicolas"
+    note: "Version générée automatiquement"
+  - version: "1.1"
+    date: "20/08/2026"
+    author: "Julien Nicolas"
+    note: "Mise à jour des enregistrements DKIM et ajout de l'alias de domaine"
 
 # Documents complémentaires associés à ce DAT.
 annexes:

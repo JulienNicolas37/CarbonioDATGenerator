@@ -446,6 +446,74 @@ champ de config lui-même**, pas seulement son affichage, a bien changé
 d'emplacement --- les deux peuvent diverger silencieusement sans qu'un
 test de compilation ne le révèle.
 
+## `client.version`/`client.date` supprimés : une seule source pour la version du document
+
+Julien a remarqué que la version/date du document pouvaient être saisies
+à deux endroits potentiellement incohérents : `client.version`/
+`client.date` d'une part, `revisions:` d'autre part (qui a fini par
+devenir la vraie référence, y compris comme repli par défaut pour ces
+deux champs). Simplifié en supprimant purement et simplement
+`client.version`/`client.date` --- la couverture reprend désormais
+systématiquement la **dernière entrée** de `revisions:` (`client["version"]`
+et `client["date"]` sont positionnés en code juste après la construction
+de `revisions`, en écrasant ce qu'`esc_dict(config["client"])` aurait pu
+y mettre). Les deux fichiers d'exemple ont reçu un historique de révisions
+réaliste à 3 entrées (pas seulement le repli automatique à 2 lignes), pour
+qu'un nouveau client réel parti de l'un de ces fichiers ait un exemple
+concret à suivre plutôt qu'une section vide facile à oublier.
+
+## Relais tiers, pools et chemins de flux e-mail : ordre d'exécution critique
+
+Fonctionnalité conçue sur plusieurs échanges avec Julien à partir d'un
+cas réel (MTA sortant non-Carbonio portant la signature DKIM). Points de
+conception qui ne sont pas évidents en relisant seulement le code :
+
+- **`antispam_antivirus.deployment` doit être résolu AVANT
+  `derive_flows()`/`build_tikz()`**, pas après. Piège rencontré : la
+  résolution vivait initialement à la fin de `build_context()` (là où
+  vivait déjà la construction historique de `antispam_antivirus_ctx`),
+  bien après que les diagrammes soient déjà construits --- une boîte
+  symbolique "AS/AV externe" ajoutée à ce stade n'aurait jamais pu
+  apparaître dans les schémas. Tout le bloc (résolution du déploiement +
+  parsing de `email_flow_paths` + injection éventuelle du nœud
+  symbolique) a dû être déplacé juste après `_resolve_node_or_pool()`,
+  avant la construction de `nodes_raw`.
+- **`email_flow_paths` remplace le lien standard, ne s'ajoute pas à
+  côté** : après `derive_flows()`, un post-traitement retire les flux
+  SMTP standard directs MTA↔pare-feu pour les nœuds explicitement
+  couverts par un chemin déclaré, puis ajoute les maillons du chemin
+  (produit cartésien entre maillons consécutifs, pour couvrir les pools).
+  Les nœuds du même rôle non couverts gardent leur relation standard.
+- **`label_for()` ne doit jamais rééchapper un `label` de nœud** --- ce
+  champ est déjà du LaTeX brut par convention (voir `_node_content()`
+  dans `tikz_builder.py`, qui ne l'échappe pas non plus). Bug rencontré
+  concrètement : la boîte symbolique AS/AV utilisant un `label` avec
+  `\textbf{...}` s'affichait comme texte littéral
+  (`\textbackslash{}textbf\{...\}`) dans la matrice exhaustive des flux,
+  sans qu'aucune erreur de compilation ne le révèle --- seule
+  l'inspection du texte extrait du PDF l'a montré. `label_for()` a été
+  aligné sur `_node_content()` (jamais d'échappement d'un `label` fourni).
+- **Le porteur DKIM (`dns.domains[].dkim_carrier`) remplace entièrement
+  l'ancien `antispam_antivirus.dkim_domains`** --- ne pas réintroduire ce
+  second mécanisme. Une seule déclaration par domaine alimente
+  automatiquement trois affichages (récapitulatif AS/AV, détail DNS du
+  domaine, section du nœud/relais porteur) via un dict
+  `dkim_carrier_domains_by_raw_id` construit après le traitement de tous
+  les domaines, puis injecté sur les objets nœuds déjà construits (les
+  mêmes objets référencés dans `nodes`, `comp["nodes"]` etc. --- la
+  mutation après coup se propage partout sans repasser par ces listes).
+- **Avertissement "bonne pratique" DKIM** : se déclenche si
+  `antispam_antivirus.outbound_filtering: true` ET le porteur DKIM du
+  domaine n'est pas `"antispam_antivirus"` --- testé et confirmé qu'il ne
+  se déclenche PAS quand le porteur correspond, sur un vrai scénario à
+  deux domaines avec des porteurs différents (voir
+  `config/client_exemple_grande_infra.yaml`).
+- **Annotation visuelle manquante (connu, pas encore fait)** : quand
+  l'AS/AV est déployé sur un nœud/pool existant plutôt qu'externe, la
+  prose des sections en parle mais les boîtes des schémas ne portent
+  aucune annotation visuelle ("+ Vade for Zextras" par ex.) --- prévu
+  pour une prochaine session, pas oublié.
+
 ## Où regarder pour le reste
 
 - `README.md` — structure complète du fichier de configuration, toutes

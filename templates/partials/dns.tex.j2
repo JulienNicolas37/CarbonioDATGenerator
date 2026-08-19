@@ -21,6 +21,12 @@ Chaque alias de domaine est présenté ci-dessous comme une sous-section du doma
   \item \textbf{DKIM~:} \BLOCK{ if d.has_dkim }\texttt{\VAR{ d.dkim_selector }} (\VAR{ d.dkim_carrier })\BLOCK{ else }\textcolor{placeholdercol}{absent}\BLOCK{ endif }
   \item \textbf{DMARC~:} \BLOCK{ if d.has_dmarc }\texttt{\VAR{ d.dmarc }}\BLOCK{ else }\textcolor{placeholdercol}{absent}\BLOCK{ endif }
 \end{itemize}
+\BLOCK{ if d.dkim_carrier_warning }
+\dnswarning{\VAR{ d.dkim_carrier_warning }}
+\BLOCK{ endif }
+\BLOCK{ if d.dkim_best_practice_warning }
+\dnswarning{\VAR{ d.dkim_best_practice_warning }}
+\BLOCK{ endif }
 
 \BLOCK{ for a in d.aliases }
 \paragraph{Alias de domaine --- \VAR{ a.domain }}
@@ -34,6 +40,12 @@ Cet alias est attaché au domaine principal \VAR{ a.alias_of }~: tous les compte
   \item \textbf{DKIM~:} \BLOCK{ if a.has_dkim }\texttt{\VAR{ a.dkim_selector }} (\VAR{ a.dkim_carrier })\BLOCK{ else }\textcolor{placeholdercol}{absent}\BLOCK{ endif }
   \item \textbf{DMARC~:} \BLOCK{ if a.has_dmarc }\texttt{\VAR{ a.dmarc }}\BLOCK{ else }\textcolor{placeholdercol}{absent}\BLOCK{ endif }
 \end{itemize}
+\BLOCK{ if a.dkim_carrier_warning }
+\dnswarning{\VAR{ a.dkim_carrier_warning }}
+\BLOCK{ endif }
+\BLOCK{ if a.dkim_best_practice_warning }
+\dnswarning{\VAR{ a.dkim_best_practice_warning }}
+\BLOCK{ endif }
 \BLOCK{ endfor }
 
 \BLOCK{ endfor }
@@ -64,7 +76,12 @@ Quarantaine possible & \VAR{ antispam_antivirus.quarantine } \\
 \hline
 Domaines dont le DKIM est géré par l'AS/AV & \VAR{ antispam_antivirus.dkim_domains_display } \\
 \hline
+Déploiement & \VAR{ antispam_antivirus.deployment_token if antispam_antivirus.deployment_token else 'Externe (hors périmètre nœuds)' } \\
+\hline
 \end{longtable}
+\BLOCK{ if antispam_antivirus.deployment_warning }
+\dnswarning{\VAR{ antispam_antivirus.deployment_warning }}
+\BLOCK{ endif }
 
 \subsection{SPF, DKIM, DMARC --- fonctionnement et conséquences}
 \label{sec:dns-consequences}
