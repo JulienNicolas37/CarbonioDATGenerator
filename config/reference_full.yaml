@@ -23,6 +23,24 @@
 # placeholder ou un avertissement visible dans le PDF, jamais par un crash.
 # =============================================================================
 
+# Historique des révisions --- alimente à la fois le chapitre "Historique
+# des révisions" et la case "Version du document"/"Date" de la couverture
+# (dernière entrée de cette liste). Aucun champ de version/date séparé
+# dans la section "client:" --- un seul endroit à mettre à jour.
+revisions:
+  - version: "0.1"
+    date: "10/06/2026"
+    author: "Julien Nicolas"
+    note: "Création initiale du document"
+  - version: "1.0"
+    date: "04/08/2026"
+    author: "Julien Nicolas"
+    note: "Version générée automatiquement"
+  - version: "1.1"
+    date: "12/08/2026"
+    author: "Laurent FRANÇOISE"
+    note: "Bascule en Carbonio Community Edition et différenciation de l'authentification personnel/étudiants"
+
 client:
   name: "Université d'Amboise"
   long_name: "Université d'Amboise"
@@ -529,24 +547,6 @@ scheduled_operations:
     operation: "Vérification intégrité réplication LDAP"
     schedule:
       - {days: "Tous les jours", times: ["04:00"]}
-
-# Historique des révisions --- alimente à la fois le chapitre "Historique
-# des révisions" et la case "Version du document"/"Date" de la couverture
-# (dernière entrée de cette liste). Aucun champ de version/date séparé
-# dans la section "client:" --- un seul endroit à mettre à jour.
-revisions:
-  - version: "0.1"
-    date: "10/06/2026"
-    author: "Julien Nicolas"
-    note: "Création initiale du document"
-  - version: "1.0"
-    date: "04/08/2026"
-    author: "Julien Nicolas"
-    note: "Version générée automatiquement"
-  - version: "1.1"
-    date: "12/08/2026"
-    author: "Laurent FRANÇOISE"
-    note: "Bascule en Carbonio Community Edition et différenciation de l'authentification personnel/étudiants"
 
 # Documents complémentaires associés à ce DAT.
 annexes:
