@@ -5,6 +5,18 @@ Les versions antérieures à 1.0.0 n'ont pas été formellement numérotées
 un numéro de version répercuté dans le nom de l'archive
 (`dat-generator-vX.Y.Z.zip`), pour permettre un suivi simple dans le temps.
 
+## 1.17.1 --- 2026-08-20
+
+- **Chapitre AS/AV corrigé** : la phrase par défaut affichée quand aucun
+  domaine n'a son DKIM porté par l'AS/AV affirmait à tort que "Carbonio
+  gère le DKIM pour tous les domaines" --- faux dès qu'un domaine est
+  porté par un nœud dédié hors Carbonio (ex. un relais tiers). Remplacée
+  par une phrase neutre qui ne présume pas du porteur réel.
+- **Avertissement de bonne pratique DKIM consolidé** : affiché désormais
+  aussi dans le chapitre AS/AV lui-même (pas seulement par domaine) si
+  l'AS/AV filtre le courrier sortant sans porter le DKIM d'au moins un
+  domaine --- liste les domaines concernés.
+
 ## 1.17.0 --- 2026-08-20
 
 - **Tâches planifiées (cron) par défaut du mailstore** --- catalogue dans

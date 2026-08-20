@@ -1054,7 +1054,27 @@ def build_context(config, config_filename, outdir=None, config_dir=None):
     _asav_dkim_domains = sorted({e["domain"] for e in _all_domain_entries if e["dkim_carrier_token"] == "antispam_antivirus"})
     antispam_antivirus_ctx["dkim_domains_display"] = (
         ", ".join(_asav_dkim_domains) if _asav_dkim_domains
-        else "Aucun --- Carbonio gère le DKIM pour tous les domaines"
+        # Ne présume PAS que Carbonio porte le DKIM par défaut --- le
+        # porteur réel peut être un nœud dédié hors Carbonio (ex. un
+        # relais tiers), voir le détail par domaine plus loin.
+        else "Aucun --- le DKIM n'est porté par l'AS/AV pour aucun domaine (voir le porteur retenu pour chaque domaine ci-après)"
+    )
+    # Avertissement de bonne pratique, consolidé pour l'ensemble de la
+    # plateforme (même condition que par domaine, voir build_domain_entry)
+    # --- si l'AS/AV filtre le courrier sortant sans porter le DKIM d'au
+    # moins un domaine, la signature risque d'être apposée avant un
+    # traitement/relais supplémentaire qui pourrait l'invalider.
+    _domains_dkim_not_on_asav = sorted({
+        e["domain"] for e in _all_domain_entries
+        if e["dkim_carrier_token"] != "antispam_antivirus" and not e.get("is_alias")
+    })
+    antispam_antivirus_ctx["dkim_best_practice_warning"] = (
+        (
+            "l'AS/AV filtre les e-mails sortants pour cette plateforme, mais ne porte pas la signature "
+            "DKIM des domaines suivants~: " + ", ".join(_domains_dkim_not_on_asav) + ". La signature devrait "
+            "normalement être apposée avant tout traitement/relais sortant supplémentaire (bonne pratique)."
+        )
+        if asav_outbound_filtering_bool and _domains_dkim_not_on_asav else None
     )
 
     dkim_carrier_domains_by_raw_id = {}
