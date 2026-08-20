@@ -5,6 +5,13 @@ Les versions antérieures à 1.0.0 n'ont pas été formellement numérotées
 un numéro de version répercuté dans le nom de l'archive
 (`dat-generator-vX.Y.Z.zip`), pour permettre un suivi simple dans le temps.
 
+## 1.17.2 --- 2026-08-20
+
+- **Reformulation** des avertissements de bonne pratique DKIM (par
+  domaine et consolidé dans le chapitre AS/AV) --- registre plus
+  professionnel, sans répétition avec le préfixe "Attention" déjà ajouté
+  par la macro d'avertissement.
+
 ## 1.17.1 --- 2026-08-20
 
 - **Chapitre AS/AV corrigé** : la phrase par défaut affichée quand aucun

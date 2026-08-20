@@ -987,9 +987,10 @@ def build_context(config, config_filename, outdir=None, config_dir=None):
         dkim_best_practice_warning = None
         if asav_outbound_filtering_bool and dkim_carrier_token != "antispam_antivirus":
             dkim_best_practice_warning = (
-                "l'AS/AV filtre les e-mails sortants pour cette plateforme, mais ne porte pas la "
-                "signature DKIM de ce domaine --- la signature devrait normalement être apposée "
-                "avant tout traitement/relais sortant supplémentaire (bonne pratique)."
+                "l'AS/AV assurant le filtrage du courrier sortant n'est pas le porteur de la signature "
+                "DKIM de ce domaine. Pour en garantir l'intégrité, il est recommandé que la signature "
+                "DKIM soit apposée en dernière étape du traitement sortant, après tout filtrage ou "
+                "relais additionnel."
             )
 
         is_alias = bool(d.get("alias_of"))
@@ -1070,9 +1071,10 @@ def build_context(config, config_filename, outdir=None, config_dir=None):
     })
     antispam_antivirus_ctx["dkim_best_practice_warning"] = (
         (
-            "l'AS/AV filtre les e-mails sortants pour cette plateforme, mais ne porte pas la signature "
-            "DKIM des domaines suivants~: " + ", ".join(_domains_dkim_not_on_asav) + ". La signature devrait "
-            "normalement être apposée avant tout traitement/relais sortant supplémentaire (bonne pratique)."
+            "l'AS/AV assure le filtrage du courrier sortant pour cette plateforme sans être le porteur "
+            "de la signature DKIM des domaines suivants~: " + ", ".join(_domains_dkim_not_on_asav)
+            + ". Pour en garantir l'intégrité, il est recommandé que la signature DKIM soit apposée en "
+            "dernière étape du traitement sortant, après tout filtrage ou relais additionnel."
         )
         if asav_outbound_filtering_bool and _domains_dkim_not_on_asav else None
     )
