@@ -5,6 +5,31 @@ Les versions antérieures à 1.0.0 n'ont pas été formellement numérotées
 un numéro de version répercuté dans le nom de l'archive
 (`dat-generator-vX.Y.Z.zip`), pour permettre un suivi simple dans le temps.
 
+## 1.16.0 --- 2026-08-19
+
+- **`config/reference_full.yaml`** (nouveau) : fichier de référence
+  exhaustif listant tous les champs de configuration disponibles --- à
+  utiliser comme point de départ pour un nouveau client, ou comme point
+  de comparaison (`diff`) pour repérer les nouveaux champs disponibles
+  lors d'une montée de version. Sera tenu à jour à chaque nouvelle
+  version qui introduit ou modifie un champ (voir `CLAUDE.md`).
+- **Annotation visuelle de l'AS/AV** sur les boîtes des schémas quand
+  `antispam_antivirus.deployment` pointe vers un nœud ou un pool
+  existant (plutôt que "external") --- affiché en plus des composants
+  habituels du nœud.
+- **Chapitre "Contraintes et exigences non fonctionnelles" corrigé** :
+  seule la disponibilité (`sla.availability`) était alimentée par la
+  config, tout le reste était un texte figé dans le template depuis le
+  début du projet. Nouvelle section `nfr:` (performance, conformité,
+  souveraineté, réversibilité).
+- **`user_protocols`** (nouveau) : `imap`/`pop`/`smtp_submission`,
+  distincts de l'existence des composants (`services.proxy`/
+  `services.mta_auth`) --- répercuté sur la liste "Protocole(s) d'accès
+  autorisés" du chapitre fonctionnel. Tout à `true` par défaut si absent.
+- **`network_equipment[].blocked_ports`** (nouveau) : retire PARTOUT
+  (schémas et matrice) tout flux utilisant un port bloqué sur l'équipement
+  concerné, même philosophie que `nodes[].blocked_protocols`.
+
 ## 1.15.0 --- 2026-08-19
 
 - **Relais de messagerie tiers (non-Carbonio)** : nouveau composant

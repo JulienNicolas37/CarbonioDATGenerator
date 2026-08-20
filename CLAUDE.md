@@ -514,6 +514,59 @@ conception qui ne sont pas évidents en relisant seulement le code :
   aucune annotation visuelle ("+ Vade for Zextras" par ex.) --- prévu
   pour une prochaine session, pas oublié.
 
+## `config/reference_full.yaml` : à tenir à jour à CHAQUE nouveau champ de config
+
+Julien l'a demandé explicitement : "à chaque nouvelle version pour qu'il
+soit systématiquement à jour et le laisser synchronisé avec le projet."
+**Toute session qui ajoute, renomme ou modifie un champ de configuration
+DOIT répercuter le changement dans ce fichier avant de livrer un patch**
+--- ce n'est pas optionnel, c'est la condition pour que le fichier reste
+utile (un fichier de référence obsolète est pire que pas de fichier de
+référence, puisqu'il inspire une fausse confiance). Construit initialement
+à partir de `client_exemple_grande_infra.yaml` (déjà le plus complet des
+deux exemples), avec un gros en-tête expliquant qu'il ne s'agit PAS d'un
+exemple de déploiement réaliste --- une référence de schéma pure.
+
+## Cette session : plusieurs corrections/ajouts indépendants, pas un seul thème
+
+- **NFR** (`nfr:`) --- le chapitre "Contraintes et exigences non
+  fonctionnelles" n'affichait que la disponibilité depuis la config, tout
+  le reste (performance, conformité, souveraineté, réversibilité) était
+  un texte entre crochets figé dans le template depuis le début du projet
+  --- personne ne l'avait remarqué avant que Julien ne relise le chapitre
+  attentivement. Vérifier systématiquement, pour tout nouveau chapitre,
+  qu'AUCUN texte "à remplir" n'est resté câblé en dur dans un `.tex.j2`.
+- **`user_protocols`** (imap/pop/smtp_submission) --- distinct de
+  `services.proxy`/`services.mta_auth` (existence du composant) : un
+  composant peut exister tout en étant fermé à l'accès direct pour les
+  utilisateurs (ex. webmail uniquement, pas de client IMAP tiers autorisé).
+  Ne détermine QUE la liste "Protocole(s) d'accès autorisés" dans le
+  chapitre fonctionnel pour l'instant --- si un futur chapitre affirme
+  qu'IMAP/POP sont disponibles, vérifier qu'il respecte aussi ces
+  interrupteurs plutôt que de re-déduire depuis `services:` seul.
+- **`network_equipment[].blocked_ports`** --- même philosophie que
+  `nodes[].blocked_protocols` (retrait réel partout, pas un simple masquage
+  visuel) : un port bloqué sur un équipement précis retire tout flux qui
+  l'utilise ET qui traverse cet équipement, dans les schémas ET la
+  matrice exhaustive. Alternative envisagée et explicitement écartée pour
+  l'instant (proposée à Julien, pas encore tranchée s'il la préfère) :
+  marquer le flux comme "bloqué"/incohérent plutôt que le retirer
+  silencieusement, pour repérer une contradiction entre ce que Carbonio a
+  besoin d'émettre et ce que le pare-feu autorise réellement.
+- **Annotation visuelle AS/AV sur les schémas** --- quand
+  `antispam_antivirus.deployment` pointe vers un nœud ou un pool (plutôt
+  que "external"), la boîte du schéma affiche désormais "+ AS/AV (nom)"
+  en plus de ses composants habituels --- calculé dans la même boucle qui
+  construit `components_display_diagram`, testé visuellement sur
+  `client_exemple_grande_infra.yaml` (AS/AV déployé sur `pool_mta_out`).
+- **Crons du mailstore** : NON implémentés, contrairement à ce qu'une
+  relecture rapide de l'historique de conversation pourrait suggérer --- la
+  conception (catalogue par défaut + surcharges par nœud + double
+  affichage) a été discutée en détail sur plusieurs échanges avec Julien,
+  mais aucune session n'a reçu le déclencheur explicite pour l'implémenter.
+  Ne pas supposer qu'une fonctionnalité longuement discutée a été
+  construite --- vérifier dans le code (`grep`) avant de répondre.
+
 ## Où regarder pour le reste
 
 - `README.md` — structure complète du fichier de configuration, toutes

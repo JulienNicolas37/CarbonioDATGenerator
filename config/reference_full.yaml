@@ -1,0 +1,557 @@
+# =============================================================================
+# FICHIER DE RÉFÉRENCE EXHAUSTIF --- config/reference_full.yaml
+#
+# Objectif : montrer TOUS les champs de configuration disponibles, pour
+# servir de base de départ à la création d'un nouveau fichier client, ET de
+# point de comparaison pour repérer les champs apparus depuis la dernière
+# fois (faire un diff entre l'ancien fichier client et ce fichier après
+# chaque mise à jour du générateur --- voir CHANGELOG.md pour le détail de
+# ce qui a changé). Ce fichier N'EST PAS destiné à être compilé tel quel
+# pour un vrai client --- ce n'est pas un exemple de déploiement réaliste,
+# c'est une référence de schéma, tenue à jour par le mainteneur du
+# générateur à chaque nouvelle version qui introduit ou modifie un champ.
+#
+# Pour un exemple RÉELLEMENT compilable et représentatif d'un déploiement
+# (avec des choix cohérents entre eux), voir plutôt :
+#   - config/client_exemple.yaml (petite infrastructure)
+#   - config/client_exemple_grande_infra.yaml (haute disponibilité)
+#
+# Tous les champs marqués "optionnel" peuvent être omis --- le générateur
+# applique alors un repli explicite ("[à préciser]", valeur par défaut, ou
+# section masquée selon le champ). Rien n'est jamais bloquant : une valeur
+# manquante ou un identifiant de nœud/pool erroné se traduit par un
+# placeholder ou un avertissement visible dans le PDF, jamais par un crash.
+# =============================================================================
+
+client:
+  name: "Université d'Amboise"
+  long_name: "Université d'Amboise"
+  scope: "Messagerie, agenda, contacts, mobilité, chat, tâches, fichiers, visioconférence --- infrastructure haute disponibilité"
+  author: "Julien Nicolas"
+  classification: "Confidentiel"
+  verificateur: "Laurent FRANÇOISE"
+  logo: "logo_universite_amboise.png"   # chemin relatif à CE fichier de config
+  description: "Université d'Amboise (fictive) --- établissement d'enseignement supérieur utilisé comme cas d'exemple d'infrastructure haute disponibilité pour ce générateur de DAT, avec une population mixte personnel/étudiants (deux domaines de messagerie distincts)."
+  website: "https://www.univ-amboise.fr"
+  address:
+    - "Place du Château"
+    - "37400 Amboise"
+  emergency_phone: "+33 2 47 00 00 00"
+  contacts:
+    - name: "Sophie Durand"
+      role: "Responsable de projet"
+      email: "sophie.durand@univ-amboise.fr"
+      phone: "+33 2 47 00 00 01"
+    - name: "Marc Lefèvre"
+      role: "Responsable technique"
+      email: "marc.lefevre@univ-amboise.fr"
+      phone: "+33 2 47 00 00 02"
+    - name: "Amina Kaced"
+      role: "Intervenant technique"
+      email: "amina.kaced@univ-amboise.fr"
+      phone: ""
+    - name: "Thomas Roux"
+      role: "Intervenant technique"
+      email: "thomas.roux@univ-amboise.fr"
+      phone: ""
+
+# Intégrateur (Zextras Services).
+integrator:
+  name: "Zextras Services"
+  long_name: "Zextras Services"
+  description: "Zextras Services est la filiale française du groupe Zextras, présente en France depuis 2017 et spécialisée dans l'accompagnement des organisations dans la mise en œuvre, l'exploitation et l'évolution de leurs plateformes collaboratives. Forte d'une équipe d'experts reconnus pour leur maîtrise d'environnements critiques et à grande échelle, l'entreprise intervient à chaque étape des projets, depuis les phases de conception jusqu'au maintien en conditions opérationnelles. Ses compétences couvrent le déploiement de solutions en cloud souverain, sur site ou en architecture hybride, ainsi que la migration de plateformes complexes tout en garantissant la continuité des services. Zextras Services accompagne également les organisations dans la conduite du changement, le transfert de compétences et la montée en autonomie des équipes techniques et fonctionnelles. L'entreprise assure l'exploitation et le maintien en conditions opérationnelles d'infrastructures pouvant accueillir jusqu'à près d'un million d'utilisateurs, avec des exigences élevées en matière de disponibilité, de sécurité et de performance. Son offre comprend enfin un support technique de niveaux 2 et 3, assuré par des ingénieurs spécialisés, afin d'apporter une expertise avancée et un accompagnement durable tout au long du cycle de vie des plateformes."
+  website: "https://www.zextras-services.fr"
+  address:
+    - "1 allée Ferdinand de Lesseps"
+    - "37200 Tours"
+  contacts:
+    - name: "Julien NICOLAS"
+      role: "Responsable projet"
+      email: "julien.nicolas@zextras.fr"
+      phone: "06 69 40 25 96"
+    - name: "Laurent FRANÇOISE"
+      role: "Responsable technique"
+      email: "laurent.francoise@zextras.fr"
+      phone: ""
+
+product:
+  version: "25.9.0"
+  edition: "ce"    # "ce" | "advanced" --- "advanced" si absent
+  release_date: "30/09/2025"
+  version_check_url: "https://docs.zextras.com/en/carbonio-release-notes/latest"
+  user_doc_url: "https://docs.zextras.com/en/user-guide"
+  admin_doc_url: "https://docs.zextras.com/en/carbonio-admin-guide"
+
+license:
+  accounts: 6000
+  activesync: 2000
+  chat: true
+  two_fa: true
+  s3_storage: true
+  video: true
+  files: true
+
+sla:
+  availability: "99,95 % hors fenêtres de maintenance planifiées"
+  rto: "2h"
+  rpo: "30 min"
+  backup_retention: "30 jours glissants, sauvegarde quotidienne"
+
+# Chapitre "Contraintes et exigences non fonctionnelles" --- tous les
+# champs optionnels, "[à préciser]" affiché si absent.
+nfr:
+  performance: "< 2 secondes en conditions nominales pour l'ouverture du webmail"
+  compliance: "RGPD --- données hébergées en France/UE"
+  sovereignty: "On-premise, hébergement France"
+  reversibility: "Export IMAP/CSV complet fourni sous 30 jours après fin de contrat"
+
+dns:
+  domains:
+    - domain: "univ-amboise.fr"
+      mx_records:
+        - {priority: 10, hostname: "mx1.univ-amboise.fr"}
+        - {priority: 20, hostname: "mx2.univ-amboise.fr"}
+      spf: "v=spf1 mx ip4:192.0.2.11 ip4:192.0.2.12 -all"
+      dkim_selector: "carbonio"
+      dmarc: "v=DMARC1; p=reject; rua=mailto:dmarc-reports@univ-amboise.fr; pct=100"
+      # Signature DKIM sortante gérée par le pool de relais tiers (voir
+      # load_balancer_pools et email_flow_paths) --- pas par Carbonio.
+      dkim_carrier: "pool_relay"
+      # Domaine personnel --- SSO institutionnel (SAML2) avec repli LDAP.
+      authentication:
+        methods: [native, external_ldap, saml2]
+        external_ldap:
+          fallback_to_native: true
+          servers:
+            - {hostname: "ad01.univ-amboise.local", ip: "10.0.5.10"}
+            - {hostname: "ad02.univ-amboise.local", ip: "10.0.5.11"}
+        saml2:
+          idp_metadata_url: "https://sso.univ-amboise.fr/metadata"
+    - domain: "etu.univ-amboise.fr"
+      mx_records:
+        - {priority: 10, hostname: "mx1.univ-amboise.fr"}
+        - {priority: 20, hostname: "mx2.univ-amboise.fr"}
+      spf: "v=spf1 mx ip4:192.0.2.11 ip4:192.0.2.12 -all"
+      dkim_selector: "carbonio"
+      dmarc: "v=DMARC1; p=reject; rua=mailto:dmarc-reports@univ-amboise.fr; pct=100"
+      # Domaine étudiant, plus volumineux : signature DKIM sortante gérée
+      # par l'AS/AV externalisé plutôt que par Carbonio directement.
+      dkim_carrier: "antispam_antivirus"
+      # Domaine étudiant --- annuaire dédié séparé, pas de SSO institutionnel.
+      authentication:
+        methods: [native, external_ldap]
+        external_ldap:
+          fallback_to_native: true
+          servers:
+            - {hostname: "ldap-etu01.univ-amboise.local", ip: "10.0.5.20"}
+
+# Autoprovisioning activé pour ce client --- synchronisation depuis un AD.
+autoprovisioning:
+  enabled: true
+  node: "services03"
+  script_name: "ad-sync.sh"
+  ldap_server: {hostname: "ad01.univ-amboise.local", ip: "10.0.5.10"}
+  arguments: "--full-sync --domain univ-amboise.fr --ou 'OU=Users,DC=univ-amboise,DC=fr'"
+  frequency: "Toutes les 15 minutes (cron)"
+  sync_accounts: true
+  sync_distribution_lists: true
+  sync_resources: false
+  sync_signatures: true
+
+authentication:
+  connection:
+    vhost: "webmail.univ-amboise.fr"
+    url: "https://webmail.univ-amboise.fr"
+    default_domain: "univ-amboise.fr"
+  password_policies:
+    - scope: "Plateforme (COS par défaut --- personnel)"
+      password_policy: "14 caractères minimum, renouvellement tous les 90 jours"
+      lockout_policy: "5 tentatives échouées --- verrouillage 30 minutes"
+    - scope: "COS Étudiants"
+      password_policy: "10 caractères minimum, pas de renouvellement forcé"
+      lockout_policy: "10 tentatives échouées --- verrouillage 10 minutes"
+  brute_force_protection:
+    enabled: true
+    tool: "fail2ban"
+    details: "Bannissement 30 minutes après 5 échecs en 10 minutes, sur proxy01/02 et mta_auth01/02"
+
+antispam_antivirus:
+  name: "Vade for Zextras"
+  outbound_filtering: true
+  inbound_filtering: true
+  quarantine: true
+  # Déployé directement sur le pool des MTA OUT (pas une appliance
+  # externe séparée) --- voir load_balancer_pools plus bas.
+  deployment: "pool_mta_out"
+  # Le porteur DKIM est désormais désigné par chaque domaine lui-même
+  # (dns.domains[].dkim_carrier), voir plus bas --- plus de liste séparée
+  # ici.
+
+support:
+  url: "https://support.zextras-services.fr"
+  phone: "+33 1 85 76 01 97"
+  escalation_name: "M. NICOLAS Julien"
+  escalation_phone: "+33 6 69 40 25 96"
+
+# PCA/PRA formalisé pour cette infrastructure de taille "6k comptes".
+pca:
+  enabled: false
+
+pra:
+  enabled: true
+  description: "Un site secondaire héberge une réplique asynchrone de l'ensemble des mailstores et de l'annuaire LDAP. La bascule est manuelle, déclenchée par le responsable de production après confirmation de l'indisponibilité prolongée du site principal."
+  rto: "2h"
+  rpo: "30 min"
+  secondary_site: "Datacenter secondaire (région Sud) --- réplication asynchrone"
+
+# Intégrations tierces effectivement en place chez ce client --- chapitre
+# entièrement masqué si cette liste est vide/absente.
+# Méthode de répartition de charge pour les rôles disposant de plusieurs
+# nœuds (affiché dans la sous-section de chaque composant concerné).
+load_balancing:
+  proxy: "Répartiteur de charge externe (couche 4, round-robin) devant proxy01/proxy02"
+  mta_in: "Enregistrements MX à priorité égale (round-robin SMTP côté expéditeurs)"
+  mta_out: "Round-robin applicatif (Postfix) entre mta_out01/mta_out02"
+  mta_auth: "Répartiteur de charge externe (couche 4, round-robin) devant mta_auth01/mta_auth02"
+
+interfaces:
+  - system: "Solution de supervision (Zabbix)"
+    integration: "Collecte de métriques et alerting"
+    protocol: "Prometheus exporters / SNMP"
+  - system: "Outil de ticketing (GLPI)"
+    integration: "Ouverture automatique de tickets sur alerte"
+    protocol: "API REST"
+
+services:
+  mesh: true
+  directory_master: true
+  directory_replica: true
+  database: true
+  mailbox: true
+  proxy: true
+  mta_in: true
+  mta_out: true
+  mta_auth: true
+  files: true
+  docs: true
+  chat: true
+  videoconf: true
+  tasks: true
+  monitoring: true
+  mail_relay: true
+
+# Protocoles d'accès directs proposés aux UTILISATEURS --- distinct de
+# l'existence des composants ci-dessus (ex. "proxy" peut exister pour le
+# webmail/ActiveSync tout en interdisant IMAP/POP en direct). Tous les
+# champs optionnels, "true" (autorisé) par défaut si absent --- comporte-
+# ment historique inchangé si cette section est omise entièrement.
+user_protocols:
+  imap: true              # IMAPS --- accès client de messagerie tiers
+  pop: false              # POP3S --- désactivé chez ce client (exemple)
+  smtp_submission: true   # soumission SMTP authentifiée (587)
+
+# Pool de répartition de charge --- les deux relais font exactement la
+# même chose (ils sont interchangeables du point de vue du flux), inutile
+# de les répéter individuellement dans email_flow_paths ci-dessous.
+load_balancer_pools:
+  pool_relay: [relay01, relay02]
+  pool_mta_out: [mta_out01, mta_out02]
+
+# Chemin de flux e-mail personnalisé : le relais tiers s'intercale entre
+# les MTA OUT Carbonio et la sortie vers Internet (sortant), et entre
+# l'entrée Internet et les MTA IN/AUTH Carbonio (entrant) --- remplace le
+# lien standard direct MTA<->pare-feu pour les nœuds concernés.
+email_flow_paths:
+  - "smtp:outbound:mta_out01:pool_relay"
+  - "smtp:outbound:mta_out02:pool_relay"
+  - "smtp:inbound:pool_relay:mta_in01"
+  - "smtp:inbound:pool_relay:mta_in02"
+
+network_equipment:
+  - id: internet
+    label: "Internet"
+    type: internet
+  - id: router01
+    label: "Routeur"
+    type: router
+  - id: firewall01
+    label: "Pare-feu"
+    type: firewall
+    # optionnel --- ports explicitement bloqués sur cet équipement. Le
+    # flux correspondant est retiré PARTOUT (schémas ET matrice), comme
+    # nodes[].blocked_protocols : il ne se produit pas réellement.
+    blocked_ports: [23, 21]   # ex. Telnet, FTP en clair --- jamais autorisés
+
+zones:
+  - id: DMZ
+    label: "Zone Publique (DMZ)"
+    short_label: "Publique (DMZ)"
+    max_cols: 2
+  - id: LAN
+    label: "Zone Privée (LAN)"
+    short_label: "Privée (LAN)"
+    max_cols: 3
+
+nodes:
+  # --- Zone publique : rôles dupliqués pour la haute disponibilité ---
+  - id: proxy01
+    zone: DMZ
+    hostname: "proxy01.exemple.fr"
+    ip: "192.0.2.11"
+    public_ip: "203.0.113.11"   # IP fixe publique (NAT/pare-feu)
+    components: [proxy]
+    sizing: {vcpu: 4, ram_gb: 8, storage_gb: 50, os: "Rocky Linux 9"}
+
+  - id: proxy02
+    zone: DMZ
+    hostname: "proxy02.exemple.fr"
+    ip: "192.0.2.12"
+    public_ip: "203.0.113.12"   # IP fixe publique (NAT/pare-feu)
+    components: [proxy]
+    sizing: {vcpu: 4, ram_gb: 8, storage_gb: 50, os: "Rocky Linux 9"}
+
+  - id: mta_in01
+    zone: DMZ
+    hostname: "mta-in01.exemple.fr"
+    ip: "192.0.2.21"
+    public_ip: "203.0.113.21"   # IP fixe publique (NAT/pare-feu)
+    components: [mta_in]
+    sizing: {vcpu: 2, ram_gb: 4, storage_gb: 50, os: "Rocky Linux 9"}
+
+  - id: mta_in02
+    zone: DMZ
+    hostname: "mta-in02.exemple.fr"
+    ip: "192.0.2.22"
+    public_ip: "203.0.113.22"   # IP fixe publique (NAT/pare-feu)
+    components: [mta_in]
+    sizing: {vcpu: 2, ram_gb: 4, storage_gb: 50, os: "Rocky Linux 9"}
+
+  - id: mta_out01
+    zone: DMZ
+    hostname: "mta-out01.exemple.fr"
+    ip: "192.0.2.23"
+    public_ip: "203.0.113.23"   # IP fixe publique (NAT/pare-feu)
+    components: [mta_out]
+    sizing: {vcpu: 2, ram_gb: 4, storage_gb: 50, os: "Rocky Linux 9"}
+
+  - id: mta_out02
+    zone: DMZ
+    hostname: "mta-out02.exemple.fr"
+    ip: "192.0.2.24"
+    public_ip: "203.0.113.24"   # IP fixe publique (NAT/pare-feu)
+    components: [mta_out]
+    sizing: {vcpu: 2, ram_gb: 4, storage_gb: 50, os: "Rocky Linux 9"}
+
+  # Relais de messagerie tiers (non-Carbonio), en haute disponibilité ---
+  # gère la signature DKIM pour l'ensemble des domaines de cette
+  # infrastructure. Voir load_balancer_pools plus bas (pool_relay) pour
+  # les référencer ensemble dans email_flow_paths sans les lister un par un.
+  - id: relay01
+    zone: DMZ
+    hostname: "relay01.tiers-messagerie.fr"
+    ip: "192.0.2.40"
+    components: [mail_relay]
+    sizing: {vcpu: 2, ram_gb: 4, storage_gb: 30, os: "Ubuntu 22.04 LTS"}
+
+  - id: relay02
+    zone: DMZ
+    hostname: "relay02.tiers-messagerie.fr"
+    ip: "192.0.2.41"
+    components: [mail_relay]
+    sizing: {vcpu: 2, ram_gb: 4, storage_gb: 30, os: "Ubuntu 22.04 LTS"}
+
+  - id: mta_auth01
+    zone: DMZ
+    hostname: "mta-auth01.exemple.fr"
+    ip: "192.0.2.25"
+    public_ip: "203.0.113.25"   # IP fixe publique (NAT/pare-feu)
+    components: [mta_auth]
+    sizing: {vcpu: 2, ram_gb: 4, storage_gb: 50, os: "Rocky Linux 9"}
+
+  - id: mta_auth02
+    zone: DMZ
+    hostname: "mta-auth02.exemple.fr"
+    ip: "192.0.2.26"
+    public_ip: "203.0.113.26"   # IP fixe publique (NAT/pare-feu)
+    components: [mta_auth]
+    sizing: {vcpu: 2, ram_gb: 4, storage_gb: 50, os: "Rocky Linux 9"}
+    # Blocage technique réel (pas une simple exclusion visuelle) : la
+    # soumission SMTP authentifiée a été désactivée sur ce nœud précis
+    # (pare-feu local) --- le flux correspondant disparaît partout
+    # (schémas ET matrice), puisqu'il ne se produit pas réellement.
+    blocked_protocols: ["smtp"]
+
+  - id: video01
+    zone: DMZ
+    hostname: "video01.exemple.fr"
+    ip: "192.0.2.30"
+    public_ip: "203.0.113.30"   # IP fixe publique (NAT/pare-feu)
+    components: [videoconf]
+    sizing: {vcpu: 4, ram_gb: 8, storage_gb: 50, os: "Rocky Linux 9"}
+
+  # --- Zone privée : mailstores, applications, services d'infrastructure ---
+  - id: mail01
+    zone: LAN
+    hostname: "mailstore01.exemple.local"
+    ip: "10.0.1.11"
+    components: [mesh, mailbox]
+    sizing: {vcpu: 8, ram_gb: 16, storage_gb: 500, os: "Rocky Linux 9"}
+    mailstore:
+      backup_retention_days: 30
+      hsm_enabled: true
+      hot_data_retention_days: 90
+      hsm_target: "S3 (bucket univ-amboise-hsm-cold)"
+    backup:
+      enabled: true
+      schedule:
+        - {days: "Lundi-Vendredi", times: ["01:00"]}
+        - {days: "Samedi-Dimanche", times: ["01:00", "13:00"]}
+
+  - id: mail02
+    zone: LAN
+    hostname: "mailstore02.exemple.local"
+    ip: "10.0.1.12"
+    components: [mesh, mailbox]
+    sizing: {vcpu: 8, ram_gb: 16, storage_gb: 500, os: "Rocky Linux 9"}
+    mailstore:
+      backup_retention_days: 30
+      hsm_enabled: false
+    backup:
+      enabled: true
+      schedule:
+        - {days: "Lundi-Vendredi", times: ["01:15"]}
+        - {days: "Samedi-Dimanche", times: ["01:15", "13:15"]}
+
+  - id: mail03
+    zone: LAN
+    hostname: "mailstore03.exemple.local"
+    ip: "10.0.1.13"
+    components: [mesh, mailbox]
+    sizing: {vcpu: 8, ram_gb: 16, storage_gb: 500, os: "Rocky Linux 9"}
+    mailstore:
+      backup_retention_days: 45
+      hsm_enabled: true
+      hot_data_retention_days: 60
+      hsm_target: "S3 (bucket univ-amboise-hsm-cold)"
+    backup:
+      enabled: true
+      schedule:
+        - {days: "Lundi-Vendredi", times: ["01:30"]}
+        - {days: "Samedi-Dimanche", times: ["01:30", "13:30"]}
+
+  - id: application01
+    zone: LAN
+    hostname: "application01.exemple.local"
+    ip: "10.0.1.20"
+    components: [mesh, chat, tasks]
+    sizing: {vcpu: 4, ram_gb: 8, storage_gb: 100, os: "Rocky Linux 9"}
+
+  - id: application02
+    zone: LAN
+    hostname: "application02.exemple.local"
+    ip: "10.0.1.21"
+    components: [mesh, files, docs]
+    sizing: {vcpu: 4, ram_gb: 8, storage_gb: 300, os: "Rocky Linux 9"}
+
+  - id: services01
+    zone: LAN
+    hostname: "services01.exemple.local"
+    ip: "10.0.1.30"
+    components: [mesh, directory_master]
+    sizing: {vcpu: 4, ram_gb: 8, storage_gb: 100, os: "Rocky Linux 9"}
+
+  - id: services02
+    zone: LAN
+    hostname: "services02.exemple.local"
+    ip: "10.0.1.31"
+    components: [mesh, directory_replica]
+    sizing: {vcpu: 4, ram_gb: 8, storage_gb: 100, os: "Rocky Linux 9"}
+
+  - id: services03
+    zone: LAN
+    hostname: "services03.exemple.local"
+    ip: "10.0.1.32"
+    components: [mesh, database]
+    sizing: {vcpu: 4, ram_gb: 8, storage_gb: 200, os: "Rocky Linux 9"}
+
+# Les flux réseau ne se déclarent plus manuellement : ils sont déduits
+# automatiquement des nœuds/composants ci-dessus et du catalogue de
+# relations standard (templates/flow_relations.yaml).
+#
+# Catégories dont le schéma dédié doit apparaître dans le DAT (Oui/Non) ---
+# une catégorie absente d'ici vaut "Oui" par défaut.
+protocol_schemas:
+  web: true
+  smtp: true
+  ldap: true
+  udp_video: true
+  interne: true
+  mesh: true
+
+# Opérations planifiées (crons) connues sur la plateforme, tous nœuds
+# confondus.
+scheduled_operations:
+  - node: "mail01"
+    operation: "Sauvegarde Carbonio (backup.sh)"
+    schedule:
+      - {days: "Lundi-Vendredi", times: ["01:00"]}
+      - {days: "Samedi-Dimanche", times: ["01:00", "13:00"]}
+  - node: "mail02"
+    operation: "Sauvegarde Carbonio (backup.sh)"
+    schedule:
+      - {days: "Lundi-Vendredi", times: ["01:15"]}
+      - {days: "Samedi-Dimanche", times: ["01:15", "13:15"]}
+  - node: "mail03"
+    operation: "Sauvegarde Carbonio (backup.sh)"
+    schedule:
+      - {days: "Lundi-Vendredi", times: ["01:30"]}
+      - {days: "Samedi-Dimanche", times: ["01:30", "13:30"]}
+  - node: "services03"
+    operation: "Synchronisation AD (ad-sync.sh)"
+    schedule:
+      - {days: "Tous les jours", times: ["00:00, 00:15, 00:30 (toutes les 15 min)"]}
+  - node: "services01"
+    operation: "Purge des logs applicatifs (logrotate)"
+    schedule:
+      - {days: "Tous les jours", times: ["03:30"]}
+  - node: "services02"
+    operation: "Vérification intégrité réplication LDAP"
+    schedule:
+      - {days: "Tous les jours", times: ["04:00"]}
+
+# Historique des révisions --- alimente à la fois le chapitre "Historique
+# des révisions" et la case "Version du document"/"Date" de la couverture
+# (dernière entrée de cette liste). Aucun champ de version/date séparé
+# dans la section "client:" --- un seul endroit à mettre à jour.
+revisions:
+  - version: "0.1"
+    date: "10/06/2026"
+    author: "Julien Nicolas"
+    note: "Création initiale du document"
+  - version: "1.0"
+    date: "04/08/2026"
+    author: "Julien Nicolas"
+    note: "Version générée automatiquement"
+  - version: "1.1"
+    date: "12/08/2026"
+    author: "Laurent FRANÇOISE"
+    note: "Bascule en Carbonio Community Edition et différenciation de l'authentification personnel/étudiants"
+
+# Documents complémentaires associés à ce DAT.
+annexes:
+  - name: "Document d'exploitation"
+    filename: "EXPL_Grande_Infra.pdf"
+    description: "Procédures pas à pas d'administration courante (comptes, quotas, montées de version)."
+  - name: "Plan d'Assurance Sécurité"
+    filename: "PAS_Grande_Infra.pdf"
+    description: "Politique de sécurité contractuelle applicable à la plateforme."
+  - name: "Schéma réseau détaillé (Visio)"
+    filename: "Schema_Reseau_Grande_Infra.vsdx"
+    description: "Source éditable du schéma d'architecture, plan d'adressage IP complet."
+
+# Exclusions PUREMENT VISUELLES sur les schémas (le flux existe réellement
+# et reste listé dans la matrice exhaustive de fin de document --- seul son
+# tracé sur les schémas est masqué). L'appariement des nœuds fonctionne
+# dans les deux sens.
+flow_diagram_exclusions:
+  - {node1: "mail02", node2: "mail03", category: "mesh"}

@@ -264,6 +264,22 @@ nœud/pool) --- un avertissement rouge s'affiche dans le chapitre concerné
 (Authentification, DNS, ou Architecture fonctionnelle selon le cas),
 l'opérateur garde la responsabilité de corriger.
 
+## Fichier de référence exhaustif (`config/reference_full.yaml`)
+
+Montre **tous** les champs de configuration disponibles, tenu à jour à
+chaque nouvelle version qui en introduit ou en modifie un --- deux usages :
+1. **Point de départ** pour un nouveau client (copier, retirer ce qui ne
+   s'applique pas, adapter les valeurs) ;
+2. **Point de comparaison** pour un client existant, à chaque montée de
+   version de ce générateur --- un `diff` entre son fichier et cette
+   référence fait apparaître les nouveaux champs disponibles (voir
+   `CHANGELOG.md` pour le détail de ce qui a changé à chaque version).
+
+Ce fichier n'est volontairement pas un exemple de déploiement cohérent
+(contrairement à `client_exemple.yaml`/`client_exemple_grande_infra.yaml`,
+qui restent les exemples à utiliser pour un premier test de compilation
+réaliste) --- c'est une référence de schéma.
+
 ## Community Edition vs Advanced (`templates/carbonio_editions.yaml`)
 
 Catalogue **volontairement conservateur** des fonctionnalités confirmées
@@ -496,6 +512,14 @@ sla:                      # optionnel (valeurs par défaut sinon)
   rpo: "..."
   backup_retention: "..."
 
+# Chapitre "Contraintes et exigences non fonctionnelles" --- tous les
+# champs optionnels, "[à préciser]" affiché si absent.
+nfr:
+  performance: "..."     # ex. "< 2 s en conditions nominales"
+  compliance: "..."      # ex. "RGPD, hébergement France/UE"
+  sovereignty: "..."     # ex. "On-premise" ou "Cloud privé"
+  reversibility: "..."   # ex. modalités d'export en fin de contrat
+
 # Chapitre "DNS, légitimité et réputation" --- organisé PAR DOMAINE (un
 # domaine peut avoir plusieurs MX, un seul SPF/DKIM/DMARC en général). Les
 # tableaux du DAT fusionnent automatiquement la cellule "Domaine" sur
@@ -675,6 +699,16 @@ services:                 # active/désactive les sections du DAT
   videoconf: true
   tasks: true
   monitoring: true
+  mail_relay: true          # nouveau --- voir plus bas
+
+# Protocoles d'accès directs proposés aux UTILISATEURS --- distinct de
+# l'existence des composants ci-dessus (ex. "proxy" peut exister pour le
+# webmail/ActiveSync tout en interdisant IMAP/POP en direct). Optionnel
+# --- tout à "true" (autorisé) par défaut si la section est absente.
+user_protocols:
+  imap: true
+  pop: true
+  smtp_submission: true
 
 # Équipements réseau représentés en chaîne au-dessus des zones applicatives
 # (optionnel). Pour qu'un flux les traverse, référencer leur id dans
@@ -689,6 +723,11 @@ network_equipment:
   - id: firewall01
     label: "Pare-feu"
     type: firewall
+    blocked_ports: [23, 21] # optionnel --- retire PARTOUT (schémas ET
+                             # matrice) tout flux utilisant un de ces
+                             # ports sur cet équipement précis, comme
+                             # nodes[].blocked_protocols (le flux ne se
+                             # produit pas réellement).
 
 zones:                    # ordre d'affichage du schéma, haut -> bas
   - id: DMZ
