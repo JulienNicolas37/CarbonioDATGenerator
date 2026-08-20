@@ -121,8 +121,16 @@ nfr:
   performance: "< 2 secondes en conditions nominales pour l'ouverture du webmail"
   compliance: "RGPD --- données hébergées en France/UE"
   sovereignty: "On-premise, hébergement France"
-  reversibility: "Export IMAP/CSV complet fourni sous 30 jours après fin de contrat"
-
+  reversibility: >
+    La plateforme restitue l'ensemble des données du client via des
+    protocoles standards (IMAP, CalDAV, CardDAV...) ainsi que des API
+    ouvertes et documentées, sans verrou propriétaire ni restriction
+    d'accès. Le client dispose ainsi d'un accès autonome et permanent à
+    ses données, sans dépendre d'une prestation spécifique de
+    l'intégrateur pour les récupérer. Pour les modalités précises
+    applicables à ce contrat (délais, formats de restitution,
+    accompagnement éventuel), se référer au chapitre « Réversibilité »
+    du contrat.
 dns:
   domains:
     - domain: "univ-amboise.fr"
