@@ -296,6 +296,13 @@ def build_context(config, config_filename, outdir=None, config_dir=None):
         carbonio_edition = "advanced"
         carbonio_edition_label = "Carbonio (Advanced)"
     sla = esc_dict(config.get("sla", {}))
+    nfr_raw = config.get("nfr", {}) or {}
+    nfr = {
+        "performance": esc(nfr_raw.get("performance", "[à préciser]")),
+        "compliance": esc(nfr_raw.get("compliance", "[à préciser]")),
+        "sovereignty": esc(nfr_raw.get("sovereignty", "[à préciser]")),
+        "reversibility": esc(nfr_raw.get("reversibility", "[à préciser]")),
+    }
     services = config.get("services", {})
     zones = config.get("zones", [])
     raw_nodes = [n for n in (config.get("nodes", []) or []) if isinstance(n, dict)]
@@ -494,6 +501,13 @@ def build_context(config, config_filename, outdir=None, config_dir=None):
         # chaque boîte du schéma n'apporte rien (déjà visible dans le
         # tableau des composants) et alourdit l'affichage.
         comp_names_diagram = [catalog[c]["name"] for c in comps if c in catalog and c != "mesh"]
+        # Si l'AS/AV est déployé directement sur ce nœud (ou un pool dont
+        # il est membre) plutôt que sur une appliance externe séparée, on
+        # l'indique directement dans la boîte du schéma --- sans ça, rien
+        # ne distingue visuellement ce nœud d'un nœud identique sans AS/AV.
+        if n["id"] in asav_deployment_nodes:
+            _asav_annot_name = asav_raw.get("name", "").strip()
+            comp_names_diagram = comp_names_diagram + [f"+ AS/AV ({_asav_annot_name})" if _asav_annot_name else "+ AS/AV"]
         n["components_display_diagram"] = ", ".join(comp_names_diagram) if comp_names_diagram else ""
         n.setdefault("hostname", "")
         n.setdefault("ip", "")
@@ -546,6 +560,25 @@ def build_context(config, config_filename, outdir=None, config_dir=None):
                     continue
             _filtered_flows.append(f)
         raw_flows = _filtered_flows + email_flow_extra_flows
+
+    # --- Ports explicitement bloqués sur un équipement réseau (ex. le
+    #     pare-feu) --- même logique que nodes[].blocked_protocols : le
+    #     flux ne se produit pas réellement, donc retiré PARTOUT (schémas
+    #     ET matrice), pas seulement visuellement. ---
+    _blocked_ports_by_equipment = {
+        eq["id"]: {int(p) for p in (eq.get("blocked_ports") or [])}
+        for eq in network_equipment_raw if eq.get("blocked_ports")
+    }
+    if _blocked_ports_by_equipment:
+        def _flow_is_port_blocked(f):
+            for _eq_id, _blocked in _blocked_ports_by_equipment.items():
+                if f["from"] != _eq_id and f["to"] != _eq_id:
+                    continue
+                for _p in f.get("ports") or []:
+                    if _p.get("port") in _blocked:
+                        return True
+            return False
+        raw_flows = [f for f in raw_flows if not _flow_is_port_blocked(f)]
 
     # --- Exclusions PUREMENT VISUELLES sur les schémas (le flux existe
     #     réellement et reste dans la matrice exhaustive de fin de document
@@ -724,13 +757,22 @@ def build_context(config, config_filename, outdir=None, config_dir=None):
         if services.get(meta.get("trigger")):
             user_service_items.append({"name": esc(meta["name"]), "text": esc(meta["text"])})
 
-    # --- Protocoles d'accès autorisés, déduits des composants activés
-    #     (pas de champ de config dédié : c'est une conséquence directe des
-    #     rôles présents sur la plateforme). ---
+    # --- Protocoles d'accès autorisés, déduits des composants activés ET
+    #     d'un interrupteur explicite par protocole (user_protocols:) ---
+    #     un client peut avoir proxy/mta_auth actifs tout en interdisant
+    #     l'accès direct IMAP/POP/SMTP aux utilisateurs (ex. webmail
+    #     uniquement). Absence de user_protocols: = tout activé (défaut
+    #     historique inchangé).
+    user_protocols_raw = config.get("user_protocols", {}) or {}
     allowed_protocols = []
     if services.get("proxy"):
-        allowed_protocols += ["HTTPS (webmail)", "IMAPS", "POP3S", "ActiveSync (EAS, mobilité)"]
-    if services.get("mta_auth"):
+        allowed_protocols.append("HTTPS (webmail)")
+        if user_protocols_raw.get("imap", True):
+            allowed_protocols.append("IMAPS")
+        if user_protocols_raw.get("pop", True):
+            allowed_protocols.append("POP3S")
+        allowed_protocols.append("ActiveSync (EAS, mobilité)")
+    if services.get("mta_auth") and user_protocols_raw.get("smtp_submission", True):
         allowed_protocols.append("SMTP submission authentifié (587)")
     allowed_protocols = [esc(p) for p in allowed_protocols]
 
@@ -1054,6 +1096,7 @@ def build_context(config, config_filename, outdir=None, config_dir=None):
         "carbonio_edition": carbonio_edition,
         "carbonio_edition_label": carbonio_edition_label,
         "sla": sla,
+        "nfr": nfr,
         "services": services,
         "zones": zones,
         "nodes": nodes,

@@ -264,6 +264,22 @@ nœud/pool) --- un avertissement rouge s'affiche dans le chapitre concerné
 (Authentification, DNS, ou Architecture fonctionnelle selon le cas),
 l'opérateur garde la responsabilité de corriger.
 
+## Fichier de référence exhaustif (`config/reference_full.yaml`)
+
+Montre **tous** les champs de configuration disponibles, tenu à jour à
+chaque nouvelle version qui en introduit ou en modifie un --- deux usages :
+1. **Point de départ** pour un nouveau client (copier, retirer ce qui ne
+   s'applique pas, adapter les valeurs) ;
+2. **Point de comparaison** pour un client existant, à chaque montée de
+   version de ce générateur --- un `diff` entre son fichier et cette
+   référence fait apparaître les nouveaux champs disponibles (voir
+   `CHANGELOG.md` pour le détail de ce qui a changé à chaque version).
+
+Ce fichier n'est volontairement pas un exemple de déploiement cohérent
+(contrairement à `client_exemple.yaml`/`client_exemple_grande_infra.yaml`,
+qui restent les exemples à utiliser pour un premier test de compilation
+réaliste) --- c'est une référence de schéma.
+
 ## Community Edition vs Advanced (`templates/carbonio_editions.yaml`)
 
 Catalogue **volontairement conservateur** des fonctionnalités confirmées
@@ -496,6 +512,14 @@ sla:                      # optionnel (valeurs par défaut sinon)
   rpo: "..."
   backup_retention: "..."
 
+# Chapitre "Contraintes et exigences non fonctionnelles" --- tous les
+# champs optionnels, "[à préciser]" affiché si absent.
+nfr:
+  performance: "..."     # ex. "< 2 s en conditions nominales"
+  compliance: "..."      # ex. "RGPD, hébergement France/UE"
+  sovereignty: "..."     # ex. "On-premise" ou "Cloud privé"
+  reversibility: "..."   # ex. modalités d'export en fin de contrat
+
 # Chapitre "DNS, légitimité et réputation" --- organisé PAR DOMAINE (un
 # domaine peut avoir plusieurs MX, un seul SPF/DKIM/DMARC en général). Les
 # tableaux du DAT fusionnent automatiquement la cellule "Domaine" sur
@@ -675,6 +699,16 @@ services:                 # active/désactive les sections du DAT
   videoconf: true
   tasks: true
   monitoring: true
+  mail_relay: true          # nouveau --- voir plus bas
+
+# Protocoles d'accès directs proposés aux UTILISATEURS --- distinct de
+# l'existence des composants ci-dessus (ex. "proxy" peut exister pour le
+# webmail/ActiveSync tout en interdisant IMAP/POP en direct). Optionnel
+# --- tout à "true" (autorisé) par défaut si la section est absente.
+user_protocols:
+  imap: true
+  pop: true
+  smtp_submission: true
 
 # Équipements réseau représentés en chaîne au-dessus des zones applicatives
 # (optionnel). Pour qu'un flux les traverse, référencer leur id dans
@@ -689,6 +723,11 @@ network_equipment:
   - id: firewall01
     label: "Pare-feu"
     type: firewall
+    blocked_ports: [23, 21] # optionnel --- retire PARTOUT (schémas ET
+                             # matrice) tout flux utilisant un de ces
+                             # ports sur cet équipement précis, comme
+                             # nodes[].blocked_protocols (le flux ne se
+                             # produit pas réellement).
 
 zones:                    # ordre d'affichage du schéma, haut -> bas
   - id: DMZ
@@ -788,7 +827,7 @@ plus haut). La liste ci-dessous correspond au catalogue actuel
 | `mta_out` | MTA OUT | Émission du courrier sortant, signature DKIM |
 | `mta_auth` | MTA AUTH | Soumission authentifiée (port 587) |
 | `files` | Files | Stockage de fichiers et partage documentaire |
-| `docs` | Docs (édition collaborative) | Édition bureautique en ligne via Collabora Online (WOPI) |
+| `docs` | Docs (édition collaborative) | Édition bureautique en ligne via Collabora Online |
 | `chat` | Chat (Workstream Collaboration) | Messagerie instantanée temps réel, notifications |
 | `videoconf` | Visioconférence (Video Server) | Agrégation des flux WebRTC des réunions vidéo --- **zone DMZ** (NAT 1:1 direct) |
 | `tasks` | Tasks | Gestion de tâches / listes de choses à faire |
@@ -803,7 +842,7 @@ réellement en jeu, plutôt que de le masquer dans un composant générique.
 
 **Toutes les informations d'un rôle vivent dans un seul fichier** :
 `templates/partials/components/<id>.tex.j2` (ou `_generic.tex.j2` en
-repli) contient la description commerciale, le rôle technique, les
+repli) contient la description, le rôle technique, les
 paquets, les ports et le tableau des nœuds pour CE rôle --- rien n'est
 dispersé ailleurs. Le "MTA (Mail Transfer Agent)" chapitre ci-dessous en
 est l'exception volontaire de présentation, pas de contenu : il ajoute un
@@ -821,17 +860,17 @@ Pour créer un nouveau regroupement, ajouter une entrée dans
 `templates/component_groups.yaml` et référencer son id via `group:` dans
 les entrées concernées de `components_catalog.yaml`.
 
-### Description technico-commerciale (`components_catalog.yaml[id].commercial`)
+### Description générale (`components_catalog.yaml[id].commercial`)
 
 Chaque composant du catalogue porte un champ `commercial` (description
-technico-commerciale, orientée décideur) affiché en **introduction de son
+générale, orientée décideur) affiché en **introduction de son
 propre `\subsection`/`\subsubsection`** dans "Composants Carbonio et
 rôles" --- pas dans un chapitre séparé qui les listerait toutes à la suite.
 
 ### Services rendus aux utilisateurs (`templates/user_services_catalog.yaml`)
 
 Distinct du catalogue technique : ce catalogue fournit une description
-orientée usage final (pas technique, pas commerciale) pour les briques que
+orientée usage final pour les briques que
 l'utilisateur perçoit réellement (Mail, Agenda, Contacts, Fichiers, Édition
 collaborative, Chat, Visioconférence, Tâches). Chaque entrée porte un
 `trigger` (l'id de `services:` qui la déclenche) --- LDAP/Mesh/Database
@@ -1012,7 +1051,7 @@ dat-generator/
 ├── templates/
 │   ├── assets/
 │   │   └── logo_zextras_services.png   # logo intégrateur par défaut
-│   ├── components_catalog.yaml         # catalogue technique des composants (+ description commerciale)
+│   ├── components_catalog.yaml         # catalogue technique des composants (+ description générale)
 │   ├── component_groups.yaml           # regroupements de composants (ex. MTA IN/OUT/AUTH)
 │   ├── scope_catalog.yaml              # descriptions fonctionnelles (périmètre, §1.3)
 │   ├── user_services_catalog.yaml      # descriptions "service rendu" orientées utilisateur final (§3.1)

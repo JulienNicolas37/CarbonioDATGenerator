@@ -27,5 +27,4 @@
 \begin{itemize}[nosep]
   \item La plage de ports UDP 20000-40000 doit être ouverte/redirigée vers ce nœud (flux RTP WebRTC) --- dimensionner le pare-feu et le NAT en conséquence.
   \item Le paramètre \texttt{nat\_1\_1\_mapping} du fichier \texttt{/etc/janus/janus.jcfg} doit correspondre à l'IP publique réellement joignable par les clients (attention aux configurations avec IP entrante/sortante différentes).
-  \item Le Video Server historique (« Legacy Videoserver ») est déprécié au profit du composant Video Server \& Video Recording actuel ; vérifier la version effectivement déployée chez le client.
 \end{itemize}
