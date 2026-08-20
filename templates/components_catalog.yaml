@@ -19,7 +19,7 @@ mesh:
   name: "Mesh"
   role: "Agent de coordination inter-nœuds et de découverte de services (service discovery). Présent sur l'ensemble des nœuds d'infrastructure Carbonio, qu'ils hébergent ou non LDAP/PostgreSQL."
   commercial: "Brique d'infrastructure invisible pour l'utilisateur final, mais indispensable : elle permet aux différents modules Carbonio de se découvrir et de communiquer entre eux quel que soit le nombre de serveurs. Celle-ci est incluse dans toutes les éditions Carbonio."
-  packages: "service-discover-server, carbonio-message-broker, carbonio-storages"
+  packages: "service-discover-server"
   default_ports: "interne uniquement (Consul / service discovery)"
 
 directory_master:
@@ -51,7 +51,7 @@ mailbox:
   name: "Mailstore"
   role: "Cœur applicatif : stockage des messages, calendriers, contacts ; API SOAP/REST ; IMAP/POP3."
   commercial: "Le cœur de l'offre Carbonio : messagerie électronique, agenda partagé et contacts, accessible depuis le webmail, les clients lourds (IMAP/POP3) et les terminaux mobiles."
-  packages: "carbonio-appserver, carbonio-mailbox (store, soap, client)"
+  packages: "carbonio-appserver, carbonio-mailbox (store, soap, client), carbonio-storages"
   default_ports: "7071 (SOAP interne), 143/993 (IMAP), 110/995 (POP3)"
   # Tâches planifiées (cron) présentes par défaut sur un mailstore Carbonio
   # --- valeurs par défaut du produit, PAS propres à un client. Un client
@@ -142,7 +142,7 @@ chat:
   name: "Chat (Workstream Collaboration)"
   role: "Messagerie instantanée temps réel (1:1 et groupes), notifications, intégration avec les autres services Carbonio. Souvent colocalisé avec Tasks."
   commercial: "Messagerie instantanée d'entreprise intégrée à la plateforme de messagerie (Carbonio Workstream Collaboration). Fonctionnalité soumise à licence --- voir la section Licence."
-  packages: "carbonio-ws-collaboration, carbonio-ws-collaboration-db, carbonio-ws-collaboration-ui, carbonio-message-dispatcher, carbonio-push-connector, carbonio-notification-push"
+  packages: "carbonio-ws-collaboration, carbonio-ws-collaboration-db, carbonio-ws-collaboration-ui, carbonio-message-dispatcher, carbonio-push-connector, carbonio-notification-push, carbonio-message-broker"
   default_ports: "WebSocket (WSS) via le Proxy --- le protocole WebSocket doit être explicitement autorisé sur le nœud Proxy"
 
 videoconf:
