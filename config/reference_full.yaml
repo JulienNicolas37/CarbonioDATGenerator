@@ -138,11 +138,11 @@ dns:
         - {priority: 10, hostname: "mx1.univ-amboise.fr"}
         - {priority: 20, hostname: "mx2.univ-amboise.fr"}
       spf: "v=spf1 mx ip4:192.0.2.11 ip4:192.0.2.12 -all"
-      dkim_selector: "carbonio"
       dmarc: "v=DMARC1; p=reject; rua=mailto:dmarc-reports@univ-amboise.fr; pct=100"
       # Signature DKIM sortante gérée par le pool de relais tiers (voir
       # load_balancer_pools et email_flow_paths) --- pas par Carbonio.
       dkim_carrier: "pool_relay"
+      dkim_selector: "carbonio"
       # Domaine personnel --- SSO institutionnel (SAML2) avec repli LDAP.
       authentication:
         methods: [native, external_ldap, saml2]
@@ -158,11 +158,11 @@ dns:
         - {priority: 10, hostname: "mx1.univ-amboise.fr"}
         - {priority: 20, hostname: "mx2.univ-amboise.fr"}
       spf: "v=spf1 mx ip4:192.0.2.11 ip4:192.0.2.12 -all"
-      dkim_selector: "carbonio"
       dmarc: "v=DMARC1; p=reject; rua=mailto:dmarc-reports@univ-amboise.fr; pct=100"
       # Domaine étudiant, plus volumineux : signature DKIM sortante gérée
       # par l'AS/AV externalisé plutôt que par Carbonio directement.
       dkim_carrier: "antispam_antivirus"
+      dkim_selector: "carbonio"
       # Domaine étudiant --- annuaire dédié séparé, pas de SSO institutionnel.
       authentication:
         methods: [native, external_ldap]
