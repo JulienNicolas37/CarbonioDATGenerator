@@ -567,6 +567,50 @@ exemple de déploiement réaliste --- une référence de schéma pure.
   Ne pas supposer qu'une fonctionnalité longuement discutée a été
   construite --- vérifier dans le code (`grep`) avant de répondre.
 
+## Tâches planifiées du mailstore : implémenté (après plusieurs sessions de conception seule)
+
+Julien avait transmis la liste réelle des tâches cron par défaut d'un
+mailstore Carbonio ; la conception (catalogue par défaut + surcharge par
+nœud + séparation commun/divergent + double affichage) avait été discutée
+en détail sur plusieurs échanges SANS jamais être implémentée --- vérifié
+par `grep` avant de répondre à la question "je ne vois pas les crons,
+est-ce normal ?" plutôt que de supposer. Cette fois implémenté
+intégralement :
+
+- Catalogue par défaut : `templates/components_catalog.yaml`, entrée
+  `mailbox.default_scheduled_tasks` (liste de `{name, cron, disabled?,
+  description?}`). `backupCoherencyCheckScheduler` porte `disabled: true`
+  --- c'est son état par défaut réel sur Carbonio (annoté "(disabled)"
+  dans la liste d'origine transmise par Julien), pas un oubli.
+- Surcharge par nœud (pas globale, comme validé par Julien) :
+  `nodes[].scheduled_tasks_overrides.<nom_de_tâche>.{cron, disabled}` ---
+  champs partiels, fusionnés avec le catalogue par défaut.
+- Séparation automatique : pour chaque tâche du catalogue, si tous les
+  mailstores de la plateforme ont la même valeur effective (après fusion
+  des surcharges), elle va dans `mailstore_tasks_common` (tableau unique) ;
+  sinon dans `mailstore_tasks_divergent` (détail par nœud). Calculé une
+  seule fois dans `build_context()`, exposé aux templates via ces deux
+  clés de contexte.
+- Double affichage confirmé par Julien comme pragmatique malgré la
+  duplication : chapitre "Opérations planifiées" (`scheduled_operations.
+  tex.j2`, vue consolidée) ET section propre à chaque nœud mailstore
+  (`components/mailbox.tex.j2`, avec un marqueur rouge "Modifié --- défaut
+  : ..." uniquement sur les tâches qui divergent réellement pour CE nœud).
+  L'injection sur les objets nœuds réutilise `nodes_by_raw_id` (même
+  pattern que l'injection des domaines DKIM portés, sessions précédentes)
+  --- mutation après coup, se propage à `comp["nodes"]` sans repasser par
+  cette liste.
+
+**Piège rencontré** : les noms de tâches Carbonio sont en camelCase sans
+aucun espace ni tiret (`CountAccountFromLdapCronString`, 31 caractères) ---
+LaTeX n'a alors aucun point de rupture pour les faire passer à la ligne
+dans une colonne de tableau étroite, et le texte débordait visuellement
+de sa cellule (repéré uniquement sur capture d'écran, la compilation ne
+signalait rien). Nouveau helper `_break_camel()` (insère `\allowbreak{}`
+avant chaque majuscule d'un texte déjà échappé) --- à réutiliser si
+d'autres identifiants techniques du même style apparaissent dans un
+tableau étroit à l'avenir.
+
 ## Où regarder pour le reste
 
 - `README.md` — structure complète du fichier de configuration, toutes

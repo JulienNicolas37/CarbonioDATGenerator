@@ -24,6 +24,7 @@ Modularité:
 """
 import argparse
 import datetime
+import re
 import shutil
 import subprocess
 import sys
@@ -105,6 +106,15 @@ AUTH_METHOD_LABELS = {
     "saml2": "Authentification SAML2 (SSO)",
     "preauth": "Authentification par preauth",
 }
+
+
+def _break_camel(escaped_text):
+    """Insère des points de rupture autorisés (\\allowbreak) avant chaque
+    majuscule d'un identifiant camelCase déjà échappé (ex. noms de tâches
+    cron Carbonio type "CountAccountFromLdapCronString") --- ces
+    identifiants n'ont ni espace ni tiret, donc aucun point de rupture
+    naturel, et débordent des colonnes de tableau étroites sans ça."""
+    return re.sub(r"(?<!^)(?=[A-Z])", r"\\allowbreak{}", escaped_text)
 
 
 def _oui_non(value, default="[à préciser]"):
@@ -810,6 +820,68 @@ def build_context(config, config_filename, outdir=None, config_dir=None):
             "schedule_display": esc("; ".join(lines)) if lines else "",
         })
 
+    # --- Tâches planifiées par défaut du mailstore, avec surcharges
+    #     possibles par nœud (nodes[].scheduled_tasks_overrides) --- voir
+    #     templates/components_catalog.yaml (mailbox.default_scheduled_tasks).
+    #     Si tous les mailstores s'accordent sur une tâche, elle apparaît
+    #     dans un tableau unique "pour l'ensemble des mailstores" ; sinon,
+    #     elle sort dans une présentation détaillée par nœud.
+    _default_mailstore_tasks = catalog.get("mailbox", {}).get("default_scheduled_tasks", []) or []
+    _mailstore_node_ids = [n["id"] for n in raw_nodes if isinstance(n, dict) and "mailbox" in (n.get("components") or [])]
+    _raw_nodes_by_id_for_tasks = {n["id"]: n for n in raw_nodes if isinstance(n, dict)}
+
+    def _effective_mailstore_task(node_id, task):
+        overrides = (_raw_nodes_by_id_for_tasks.get(node_id, {}).get("scheduled_tasks_overrides") or {}).get(task["name"], {})
+        cron = overrides.get("cron", task.get("cron", ""))
+        disabled = overrides.get("disabled", bool(task.get("disabled")))
+        return {"cron": cron, "disabled": bool(disabled), "modified": bool(overrides)}
+
+    mailstore_tasks_common = []
+    mailstore_tasks_divergent = []
+    for _task in _default_mailstore_tasks:
+        _per_node = {nid: _effective_mailstore_task(nid, _task) for nid in _mailstore_node_ids}
+        _distinct_values = {(v["cron"], v["disabled"]) for v in _per_node.values()}
+        if len(_distinct_values) <= 1:
+            _cron_val, _disabled_val = next(iter(_distinct_values)) if _distinct_values else (_task.get("cron", ""), bool(_task.get("disabled")))
+            mailstore_tasks_common.append({
+                "name": _break_camel(esc(_task["name"])),
+                "cron": esc(_cron_val),
+                "disabled": _oui_non(_disabled_val, default="Non"),
+                "description": esc(_task.get("description", "")),
+            })
+        else:
+            mailstore_tasks_divergent.append({
+                "name": _break_camel(esc(_task["name"])),
+                "description": esc(_task.get("description", "")),
+                "default_cron": esc(_task.get("cron", "")),
+                "default_disabled": _oui_non(bool(_task.get("disabled")), default="Non"),
+                "nodes": [
+                    {"node_id": esc(nid), "cron": esc(v["cron"]), "disabled": _oui_non(v["disabled"], default="Non")}
+                    for nid, v in _per_node.items()
+                ],
+            })
+
+    # Injection sur chaque nœud mailstore --- affiché dans sa propre
+    # section de composant (mailbox.tex.j2), en plus du tableau consolidé
+    # ci-dessus (duplication volontaire et pragmatique, validée par Julien).
+    for _nid in _mailstore_node_ids:
+        _node_obj = nodes_by_raw_id.get(_nid)
+        if _node_obj is None:
+            continue
+        _tasks_display = []
+        for _task in _default_mailstore_tasks:
+            _v = _effective_mailstore_task(_nid, _task)
+            _tasks_display.append({
+                "name": _break_camel(esc(_task["name"])),
+                "cron": esc(_v["cron"]),
+                "disabled": _oui_non(_v["disabled"], default="Non"),
+                "modified": _v["modified"],
+                "default_cron": esc(_task.get("cron", "")),
+                "default_disabled": _oui_non(bool(_task.get("disabled")), default="Non"),
+            })
+        _node_obj["scheduled_tasks"] = _tasks_display
+
+
     # --- Interfaces et intégrations : chapitre entièrement omis si la
     #     liste est vide (le paramétrage reste disponible pour un usage
     #     futur, sans forcer l'affichage d'exemples génériques). ---
@@ -1113,6 +1185,8 @@ def build_context(config, config_filename, outdir=None, config_dir=None):
         "antispam_antivirus": antispam_antivirus_ctx,
         "interfaces": interfaces_ctx,
         "scheduled_operations": scheduled_operations_ctx,
+        "mailstore_tasks_common": mailstore_tasks_common,
+        "mailstore_tasks_divergent": mailstore_tasks_divergent,
         "annexes": annexes_ctx,
         "diagram_tikz": diagram_tikz,
         "category_diagrams": category_diagrams,

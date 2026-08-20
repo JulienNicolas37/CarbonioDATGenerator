@@ -403,6 +403,12 @@ nodes:
       schedule:
         - {days: "Lundi-Vendredi", times: ["01:30"]}
         - {days: "Samedi-Dimanche", times: ["01:30", "13:30"]}
+    # Purge des sauvegardes étalée sur ce mailstore (dimanche 5h plutôt
+    # que samedi 4h) pour éviter la contention avec mail01/mail02 ---
+    # démonstration du mécanisme de surcharge par nœud.
+    scheduled_tasks_overrides:
+      backupPurgeScheduler:
+        cron: "0 5 * * 0"
 
   - id: application01
     zone: LAN

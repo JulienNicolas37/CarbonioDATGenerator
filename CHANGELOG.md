@@ -5,6 +5,25 @@ Les versions antérieures à 1.0.0 n'ont pas été formellement numérotées
 un numéro de version répercuté dans le nom de l'archive
 (`dat-generator-vX.Y.Z.zip`), pour permettre un suivi simple dans le temps.
 
+## 1.17.0 --- 2026-08-20
+
+- **Tâches planifiées (cron) par défaut du mailstore** --- catalogue dans
+  `templates/components_catalog.yaml` (`mailbox.default_scheduled_tasks`),
+  les 10 tâches réelles transmises par Julien, avec les 3 descriptions
+  confirmées auprès d'une source officielle Zextras (les 7 autres restent
+  `"[à préciser]"` plutôt que d'inventer).
+- **Surcharge par mailstore** (pas globale) : `nodes[].
+  scheduled_tasks_overrides.<nom_de_tâche>.{cron, disabled}`.
+- Si tous les mailstores s'accordent sur une tâche, elle apparaît dans un
+  tableau unique "pour l'ensemble des mailstores" (chapitre "Opérations
+  planifiées") ; si un mailstore diverge, elle sort dans une présentation
+  détaillée par nœud --- affichée à la fois dans ce chapitre et dans la
+  section propre à chaque mailstore concerné (duplication volontaire).
+- Correction d'un débordement visuel dans les tableaux : les identifiants
+  camelCase sans espace ni tiret (noms de tâches cron Carbonio) n'avaient
+  aucun point de rupture pour passer à la ligne --- nouveau helper
+  `_break_camel()`.
+
 ## 1.16.0 --- 2026-08-19
 
 - **`config/reference_full.yaml`** (nouveau) : fichier de référence

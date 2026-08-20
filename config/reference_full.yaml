@@ -438,6 +438,17 @@ nodes:
       schedule:
         - {days: "Lundi-Vendredi", times: ["01:30"]}
         - {days: "Samedi-Dimanche", times: ["01:30", "13:30"]}
+    # optionnel --- surcharge, PAR NŒUD, d'une tâche planifiée par défaut
+    # du mailstore (voir templates/components_catalog.yaml pour le
+    # catalogue complet). Ici : purge des sauvegardes étalée sur ce
+    # mailstore (dimanche 5h) pour éviter la contention avec les autres.
+    # Si tous les mailstores s'accordent sur une tâche, elle apparaît dans
+    # un tableau unique ; sinon, elle sort dans une présentation par nœud
+    # (chapitre "Opérations planifiées" ET section propre à ce nœud).
+    scheduled_tasks_overrides:
+      backupPurgeScheduler:
+        cron: "0 5 * * 0"     # champ "cron" et/ou "disabled", partiels
+        # disabled: false     # exemple : réactiverait une tâche désactivée par défaut
 
   - id: application01
     zone: LAN

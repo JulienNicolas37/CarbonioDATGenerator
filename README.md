@@ -763,6 +763,20 @@ nodes:
       schedule:
         - {days: "Lundi-Vendredi", times: ["02:00"]}
         - {days: "Samedi", times: ["02:00", "22:00"]}   # plusieurs heures/jour possibles
+    # optionnel --- surcharge, PAR NŒUD (pas globale), d'une tâche
+    # planifiée présente PAR DÉFAUT sur tout mailstore Carbonio (catalogue
+    # complet dans templates/components_catalog.yaml,
+    # mailbox.default_scheduled_tasks). Champs "cron"/"disabled" partiels,
+    # par nom de tâche. Si tous les mailstores s'accordent sur une tâche,
+    # elle apparaît dans un tableau unique "pour l'ensemble des
+    # mailstores" (chapitre "Opérations planifiées") ; si un mailstore
+    # diverge, cette tâche sort dans une présentation détaillée par nœud
+    # --- affichée aussi directement dans la section de ce nœud
+    # (duplication volontaire, pour éviter d'avoir à sauter de chapitre).
+    scheduled_tasks_overrides:
+      backupPurgeScheduler:
+        cron: "0 5 * * 0"
+        # disabled: false      # réactiverait une tâche désactivée par défaut
     # blocked_protocols: ["smtp"]          # optionnel --- blocage TECHNIQUE réel
     #                                       # (pas une simple exclusion visuelle) : retire
     #                                       # le flux de cette catégorie PARTOUT (schémas ET
@@ -866,6 +880,22 @@ Chaque composant du catalogue porte un champ `commercial` (description
 générale, orientée décideur) affiché en **introduction de son
 propre `\subsection`/`\subsubsection`** dans "Composants Carbonio et
 rôles" --- pas dans un chapitre séparé qui les listerait toutes à la suite.
+
+### Tâches planifiées par défaut du mailstore (`components_catalog.yaml["mailbox"].default_scheduled_tasks`)
+
+Liste des tâches cron présentes par défaut sur tout mailstore Carbonio
+(valeurs du produit, pas propres à un client) --- chaque entrée porte
+`name`, `cron`, et optionnellement `disabled: true`/`description`.
+Catalogue volontairement conservateur pour les descriptions : seules
+celles confirmées auprès d'une source officielle Zextras sont
+renseignées, les autres restent `"[à préciser]"` plutôt que d'inventer
+(voir `CLAUDE.md` pour le détail des sources). Un client peut ajuster
+cron/disabled **par mailstore** via `nodes[].scheduled_tasks_overrides`
+(voir la structure du fichier de configuration, plus haut) --- si tous les
+mailstores s'accordent sur une tâche, elle apparaît dans un tableau
+unique ; sinon elle sort dans une présentation détaillée par nœud, à la
+fois dans le chapitre "Opérations planifiées" et dans la section propre
+à chaque mailstore concerné.
 
 ### Services rendus aux utilisateurs (`templates/user_services_catalog.yaml`)
 

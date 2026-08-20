@@ -14,3 +14,36 @@ Le tableau ci-dessous liste l'ensemble des opérations planifiées (tâches cron
 \BLOCK{ if not scheduled_operations }
 \placeholder{Aucune opération planifiée renseignée dans le fichier de configuration --- compléter la section \texttt{scheduled\_operations} si des tâches cron existent sur cette plateforme.}
 \BLOCK{ endif }
+
+\BLOCK{ if mailstore_tasks_common or mailstore_tasks_divergent }
+\subsection{Tâches planifiées par défaut (Mailstore)}
+Les tâches suivantes sont présentes par défaut sur tout mailstore Carbonio (indépendamment de la configuration propre à ce client), pour l'ensemble des mailstores de cette plateforme.
+\begin{longtable}{|p{5cm}|p{3cm}|p{1.8cm}|p{4cm}|}
+\hline
+\rowcolor{primary}\tblhead{Tâche} & \tblhead{Planification} & \tblhead{Désactivée} & \tblhead{Description} \\
+\hline
+\endhead
+\BLOCK{ for t in mailstore_tasks_common }
+\VAR{ t.name } & \VAR{ t.cron } & \VAR{ t.disabled } & \VAR{ t.description if t.description else '[à préciser]' } \\
+\hline
+\BLOCK{ endfor }
+\end{longtable}
+
+\BLOCK{ if mailstore_tasks_divergent }
+\subsection{Tâches planifiées propres à certains mailstores}
+Les tâches suivantes ont une planification qui diffère d'un mailstore à l'autre sur cette plateforme --- le détail par nœud est présenté séparément ci-dessous.
+\BLOCK{ for t in mailstore_tasks_divergent }
+\textbf{\VAR{ t.name }} \BLOCK{ if t.description }--- \VAR{ t.description }\BLOCK{ endif } (valeur par défaut du produit~: \VAR{ t.default_cron }, désactivée~: \VAR{ t.default_disabled })
+\begin{longtable}{|p{4cm}|p{4.5cm}|p{2.5cm}|}
+\hline
+\rowcolor{primary}\tblhead{Nœud} & \tblhead{Planification} & \tblhead{Désactivée} \\
+\hline
+\endhead
+\BLOCK{ for n in t.nodes }
+\VAR{ n.node_id } & \VAR{ n.cron } & \VAR{ n.disabled } \\
+\hline
+\BLOCK{ endfor }
+\end{longtable}
+\BLOCK{ endfor }
+\BLOCK{ endif }
+\BLOCK{ endif }

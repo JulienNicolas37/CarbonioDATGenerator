@@ -23,6 +23,22 @@
 
 \textbf{Rétention des sauvegardes~:} le système de sauvegarde Carbonio retient les données utilisateur (item-level~: e-mails, contacts, agenda) selon une politique de rétention définie \emph{par mailstore} --- voir la colonne « Rétention backup » ci-dessus. Cette rétention peut être ajustée indépendamment sur chaque nœud selon les contraintes propres à sa population d'utilisateurs.
 
+\BLOCK{ for n in comp.nodes }
+\BLOCK{ if n.scheduled_tasks }
+\textbf{Tâches planifiées sur \VAR{ n.id }~:} (voir aussi le récapitulatif complet des mailstores dans le chapitre « Opérations planifiées »)
+\begin{longtable}{|p{5cm}|p{3cm}|p{1.8cm}|p{4cm}|}
+\hline
+\rowcolor{primary}\tblhead{Tâche} & \tblhead{Planification} & \tblhead{Désactivée} & \tblhead{Écart par rapport au défaut} \\
+\hline
+\endhead
+\BLOCK{ for t in n.scheduled_tasks }
+\VAR{ t.name } & \VAR{ t.cron } & \VAR{ t.disabled } & \BLOCK{ if t.modified }\textcolor{placeholdercol}{Modifié --- défaut~: \VAR{ t.default_cron }, désactivée~: \VAR{ t.default_disabled }}\BLOCK{ else }---\BLOCK{ endif } \\
+\hline
+\BLOCK{ endfor }
+\end{longtable}
+\BLOCK{ endif }
+\BLOCK{ endfor }
+
 \BLOCK{ if comp.hsm_nodes }
 \BLOCK{ if carbonio_edition == 'ce' }
 \dnswarning{le HSM (Hierarchical Storage Management) n'est pas disponible en Carbonio Community Edition --- la configuration ci-dessous n'est donc pas cohérente avec l'édition déployée (\VAR{ carbonio_edition_label }) et doit être vérifiée.}

@@ -53,6 +53,38 @@ mailbox:
   commercial: "Le cœur de l'offre Carbonio : messagerie électronique, agenda partagé et contacts, accessible depuis le webmail, les clients lourds (IMAP/POP3) et les terminaux mobiles."
   packages: "carbonio-appserver, carbonio-mailbox (store, soap, client)"
   default_ports: "7071 (SOAP interne), 143/993 (IMAP), 110/995 (POP3)"
+  # Tâches planifiées (cron) présentes par défaut sur un mailstore Carbonio
+  # --- valeurs par défaut du produit, PAS propres à un client. Un client
+  # peut ajuster cron/disabled par nœud via nodes[].scheduled_tasks_overrides
+  # (voir generate_dat.py et le README). Catalogue volontairement
+  # conservateur pour les descriptions : seules celles confirmées auprès
+  # d'une source officielle Zextras sont renseignées (voir CLAUDE.md) ---
+  # les autres restent sans description plutôt que d'inventer.
+  default_scheduled_tasks:
+    - name: "CountAccountFromLdapCronString"
+      cron: "55 * * * *"
+    - name: "ZxMobile_TrackingScheduler"
+      cron: "0 4 * * *"
+    - name: "authDbCleanerCron"
+      cron: "17 */12 * * *"
+    - name: "backupCoherencyCheckScheduler"
+      cron: "59 23 1 * *"
+      disabled: true
+    - name: "backupPurgeScheduler"
+      cron: "0 4 * * 6"
+      description: "Purge les sauvegardes selon la politique de rétention configurée."
+    - name: "backupSmartScanScheduler"
+      cron: "0 4 * * *"
+      description: "Analyse quotidienne des modifications survenues depuis le dernier scan (sauvegarde incrémentale « SmartScan »)."
+    - name: "guestAccountCleanerCron"
+      cron: "0 2 * * *"
+    - name: "powerstoreDeleteDbCronString"
+      cron: "0 3 * * 5"
+    - name: "powerstoreMoveScheduler"
+      cron: "0 2 * * *"
+      description: "Déplace les données du stockage primaire vers le stockage secondaire selon la politique HSM (commande interne « carbonio powerstore doMoveBlobs »)."
+    - name: "usageDataCalculatorCronString"
+      cron: "0 23 * * *"
 
 proxy:
   order: 40
