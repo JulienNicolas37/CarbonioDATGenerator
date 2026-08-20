@@ -5,6 +5,14 @@ Les versions antérieures à 1.0.0 n'ont pas été formellement numérotées
 un numéro de version répercuté dans le nom de l'archive
 (`dat-generator-vX.Y.Z.zip`), pour permettre un suivi simple dans le temps.
 
+## 1.17.3 --- 2026-08-20
+
+- **Liste à puces** pour l'avertissement de bonne pratique DKIM
+  consolidé (chapitre AS/AV) --- l'énumération des domaines concernés
+  était auparavant intégrée dans une seule phrase, illisible dès que
+  plusieurs domaines étaient concernés. La version par domaine (un seul
+  domaine à la fois) reste une phrase simple, inchangée.
+
 ## 1.17.2 --- 2026-08-20
 
 - **Reformulation** des avertissements de bonne pratique DKIM (par

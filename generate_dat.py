@@ -1064,19 +1064,26 @@ def build_context(config, config_filename, outdir=None, config_dir=None):
     # plateforme (même condition que par domaine, voir build_domain_entry)
     # --- si l'AS/AV filtre le courrier sortant sans porter le DKIM d'au
     # moins un domaine, la signature risque d'être apposée avant un
-    # traitement/relais supplémentaire qui pourrait l'invalider.
+    # traitement/relais supplémentaire qui pourrait l'invalider. Séparé en
+    # intro/liste/conclusion (plutôt qu'une seule phrase avec énumération
+    # inline) --- illisible dès que plusieurs domaines sont concernés.
     _domains_dkim_not_on_asav = sorted({
         e["domain"] for e in _all_domain_entries
         if e["dkim_carrier_token"] != "antispam_antivirus" and not e.get("is_alias")
     })
-    antispam_antivirus_ctx["dkim_best_practice_warning"] = (
-        (
-            "l'AS/AV assure le filtrage du courrier sortant pour cette plateforme sans être le porteur "
-            "de la signature DKIM des domaines suivants~: " + ", ".join(_domains_dkim_not_on_asav)
-            + ". Pour en garantir l'intégrité, il est recommandé que la signature DKIM soit apposée en "
-            "dernière étape du traitement sortant, après tout filtrage ou relais additionnel."
-        )
-        if asav_outbound_filtering_bool and _domains_dkim_not_on_asav else None
+    _has_dkim_best_practice_issue = asav_outbound_filtering_bool and bool(_domains_dkim_not_on_asav)
+    antispam_antivirus_ctx["dkim_best_practice_warning_intro"] = (
+        "l'AS/AV assure le filtrage du courrier sortant pour cette plateforme sans être le porteur "
+        "de la signature DKIM des domaines suivants~:"
+        if _has_dkim_best_practice_issue else None
+    )
+    antispam_antivirus_ctx["dkim_best_practice_warning_domains"] = (
+        _domains_dkim_not_on_asav if _has_dkim_best_practice_issue else []
+    )
+    antispam_antivirus_ctx["dkim_best_practice_warning_outro"] = (
+        "Pour en garantir l'intégrité, il est recommandé que la signature DKIM soit apposée en "
+        "dernière étape du traitement sortant, après tout filtrage ou relais additionnel."
+        if _has_dkim_best_practice_issue else None
     )
 
     dkim_carrier_domains_by_raw_id = {}

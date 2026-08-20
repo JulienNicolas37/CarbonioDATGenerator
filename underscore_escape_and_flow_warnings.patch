@@ -1,0 +1,92 @@
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index c4f89a4..9aef051 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -5,6 +5,22 @@ Les versions antérieures à 1.0.0 n'ont pas été formellement numérotées
+ un numéro de version répercuté dans le nom de l'archive
+ (`dat-generator-vX.Y.Z.zip`), pour permettre un suivi simple dans le temps.
+ 
++## 1.17.3 --- 2026-08-20
++
++- **Correction d'affichage** : les identifiants techniques `load_balancer_
++  pools`, `antispam_antivirus` et `email_flow_paths`, cités en dur dans
++  plusieurs messages d'avertissement, n'étaient pas échappés pour LaTeX
++  --- leurs underscores étaient interprétés comme des indices
++  mathématiques, produisant un texte tassé et en italique au lieu du nom
++  du champ. Corrigé dans les 4 messages concernés.
++- **Avertissements `email_flow_paths` enfin affichés** : un chemin de
++  flux e-mail mal formé, avec un protocole non supporté, ou avec un sens
++  inconnu (ni "outbound" ni "inbound") était détecté et le message
++  correspondant construit, mais jamais réellement affiché nulle part (ni
++  dans le PDF, ni sur la console) --- l'erreur de configuration passait
++  totalement inaperçue. Affiché désormais en tête du chapitre "Schéma
++  d'architecture", avant le schéma que ce chemin est censé influencer.
++
+ ## 1.17.2 --- 2026-08-20
+ 
+ - **Reformulation** des avertissements de bonne pratique DKIM (par
+diff --git a/VERSION b/VERSION
+index 06fb41b..b9a05a6 100644
+--- a/VERSION
++++ b/VERSION
+@@ -1 +1 @@
+-1.17.2
++1.17.3
+diff --git a/generate_dat.py b/generate_dat.py
+index 9fb2032..ef29fee 100644
+--- a/generate_dat.py
++++ b/generate_dat.py
+@@ -370,7 +370,7 @@ def build_context(config, config_filename, outdir=None, config_dir=None):
+     if asav_deployment_token not in ("", "external") and not asav_deployment_exists:
+         asav_deployment_warning = (
+             f"le déploiement déclaré pour l'AS/AV (« {esc(asav_deployment_token)} ») ne correspond "
+-            f"à aucun nœud ni pool déclaré --- vérifier load_balancer_pools et les identifiants de nœuds."
++            f"à aucun nœud ni pool déclaré --- vérifier load\\_balancer\\_pools et les identifiants de nœuds."
+         )
+     antispam_antivirus_ctx = {
+         "name": esc(asav_raw.get("name", "[à préciser]")),
+@@ -405,13 +405,13 @@ def build_context(config, config_filename, outdir=None, config_dir=None):
+                 return [ASAV_EXTERNAL_ID], None
+             if not asav_deployment_exists:
+                 return [], (
+-                    f"« antispam_antivirus » référencé dans email_flow_paths, mais son déploiement "
++                    f"« antispam\\_antivirus » référencé dans email\\_flow\\_paths, mais son déploiement "
+                     f"(« {esc(asav_deployment_token)} ») ne correspond à aucun nœud ni pool déclaré."
+                 )
+             return list(asav_deployment_nodes), None
+         members, exists = _resolve_node_or_pool(token)
+         if not exists:
+-            return [], f"« {esc(token)} » référencé dans email_flow_paths ne correspond à aucun nœud ni pool déclaré."
++            return [], f"« {esc(token)} » référencé dans email\\_flow\\_paths ne correspond à aucun nœud ni pool déclaré."
+         return members, None
+ 
+     for _path_str in email_flow_paths_raw:
+@@ -974,7 +974,7 @@ def build_context(config, config_filename, outdir=None, config_dir=None):
+                 dkim_carrier = f"« {dkim_carrier_token} » (INCONNU)"
+                 dkim_carrier_warning = (
+                     f"le porteur DKIM déclaré pour ce domaine (« {esc(dkim_carrier_token)} ») ne correspond "
+-                    f"à aucun nœud ni pool déclaré --- vérifier load_balancer_pools et les identifiants de nœuds."
++                    f"à aucun nœud ni pool déclaré --- vérifier load\\_balancer\\_pools et les identifiants de nœuds."
+                 )
+             else:
+                 dkim_carrier_member_ids = _members
+@@ -1212,6 +1212,7 @@ def build_context(config, config_filename, outdir=None, config_dir=None):
+         "annexes": annexes_ctx,
+         "diagram_tikz": diagram_tikz,
+         "category_diagrams": category_diagrams,
++        "email_flow_path_warnings": email_flow_path_warnings,
+         "flow_category_color_defs": flow_category_color_defs,
+         "flow_category_ref": flow_category_ref,
+         "revisions": revisions,
+diff --git a/templates/partials/technical_arch_header.tex.j2 b/templates/partials/technical_arch_header.tex.j2
+index c14710f..cb5bc38 100644
+--- a/templates/partials/technical_arch_header.tex.j2
++++ b/templates/partials/technical_arch_header.tex.j2
+@@ -1,4 +1,7 @@
+ \section{Schéma d'architecture}
++\BLOCK{ for w in email_flow_path_warnings }
++\dnswarning{\VAR{ w }}
++\BLOCK{ endfor }
+ Le schéma ci-dessous est généré automatiquement à partir du fichier de configuration de la plateforme (nœuds, zones, flux) et donne une vue topologique d'ensemble, volontairement sans les flèches de flux (voir la légende des catégories ci-avant et les schémas détaillés ci-dessous pour le détail des flux ; la matrice exhaustive des règles d'ouverture de flux figure en fin de document).
+ 
+ \begin{landscape}

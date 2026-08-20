@@ -45,6 +45,12 @@ Déploiement & \VAR{ antispam_antivirus.deployment_token if antispam_antivirus.d
 \BLOCK{ if antispam_antivirus.deployment_warning }
 \dnswarning{\VAR{ antispam_antivirus.deployment_warning }}
 \BLOCK{ endif }
-\BLOCK{ if antispam_antivirus.dkim_best_practice_warning }
-\dnswarning{\VAR{ antispam_antivirus.dkim_best_practice_warning }}
+\BLOCK{ if antispam_antivirus.dkim_best_practice_warning_intro }
+\dnswarning{\VAR{ antispam_antivirus.dkim_best_practice_warning_intro }}
+\begin{itemize}[nosep]
+\BLOCK{ for d in antispam_antivirus.dkim_best_practice_warning_domains }
+  \item \VAR{ d }
+\BLOCK{ endfor }
+\end{itemize}
+\VAR{ antispam_antivirus.dkim_best_practice_warning_outro }
 \BLOCK{ endif }
