@@ -5,6 +5,22 @@ Les versions antérieures à 1.0.0 n'ont pas été formellement numérotées
 un numéro de version répercuté dans le nom de l'archive
 (`dat-generator-vX.Y.Z.zip`), pour permettre un suivi simple dans le temps.
 
+## 1.17.4 --- 2026-08-20
+
+- **Correction d'affichage** : les identifiants techniques `load_balancer_
+  pools`, `antispam_antivirus` et `email_flow_paths`, cités en dur dans
+  plusieurs messages d'avertissement, n'étaient pas échappés pour LaTeX
+  --- leurs underscores étaient interprétés comme des indices
+  mathématiques, produisant un texte tassé et en italique au lieu du nom
+  du champ. Corrigé dans les 4 messages concernés.
+- **Avertissements `email_flow_paths` enfin affichés** : un chemin de
+  flux e-mail mal formé, avec un protocole non supporté, ou avec un sens
+  inconnu (ni "outbound" ni "inbound") était détecté et le message
+  correspondant construit, mais jamais réellement affiché nulle part (ni
+  dans le PDF, ni sur la console) --- l'erreur de configuration passait
+  totalement inaperçue. Affiché désormais en tête du chapitre "Schéma
+  d'architecture", avant le schéma que ce chemin est censé influencer.
+
 ## 1.17.3 --- 2026-08-20
 
 - **Liste à puces** pour l'avertissement de bonne pratique DKIM

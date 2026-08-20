@@ -370,7 +370,7 @@ def build_context(config, config_filename, outdir=None, config_dir=None):
     if asav_deployment_token not in ("", "external") and not asav_deployment_exists:
         asav_deployment_warning = (
             f"le déploiement déclaré pour l'AS/AV (« {esc(asav_deployment_token)} ») ne correspond "
-            f"à aucun nœud ni pool déclaré --- vérifier load_balancer_pools et les identifiants de nœuds."
+            f"à aucun nœud ni pool déclaré --- vérifier load\\_balancer\\_pools et les identifiants de nœuds."
         )
     antispam_antivirus_ctx = {
         "name": esc(asav_raw.get("name", "[à préciser]")),
@@ -405,13 +405,13 @@ def build_context(config, config_filename, outdir=None, config_dir=None):
                 return [ASAV_EXTERNAL_ID], None
             if not asav_deployment_exists:
                 return [], (
-                    f"« antispam_antivirus » référencé dans email_flow_paths, mais son déploiement "
+                    f"« antispam\\_antivirus » référencé dans email\\_flow\\_paths, mais son déploiement "
                     f"(« {esc(asav_deployment_token)} ») ne correspond à aucun nœud ni pool déclaré."
                 )
             return list(asav_deployment_nodes), None
         members, exists = _resolve_node_or_pool(token)
         if not exists:
-            return [], f"« {esc(token)} » référencé dans email_flow_paths ne correspond à aucun nœud ni pool déclaré."
+            return [], f"« {esc(token)} » référencé dans email\\_flow\\_paths ne correspond à aucun nœud ni pool déclaré."
         return members, None
 
     for _path_str in email_flow_paths_raw:
@@ -974,7 +974,7 @@ def build_context(config, config_filename, outdir=None, config_dir=None):
                 dkim_carrier = f"« {dkim_carrier_token} » (INCONNU)"
                 dkim_carrier_warning = (
                     f"le porteur DKIM déclaré pour ce domaine (« {esc(dkim_carrier_token)} ») ne correspond "
-                    f"à aucun nœud ni pool déclaré --- vérifier load_balancer_pools et les identifiants de nœuds."
+                    f"à aucun nœud ni pool déclaré --- vérifier load\\_balancer\\_pools et les identifiants de nœuds."
                 )
             else:
                 dkim_carrier_member_ids = _members
@@ -1219,6 +1219,7 @@ def build_context(config, config_filename, outdir=None, config_dir=None):
         "annexes": annexes_ctx,
         "diagram_tikz": diagram_tikz,
         "category_diagrams": category_diagrams,
+        "email_flow_path_warnings": email_flow_path_warnings,
         "flow_category_color_defs": flow_category_color_defs,
         "flow_category_ref": flow_category_ref,
         "revisions": revisions,
