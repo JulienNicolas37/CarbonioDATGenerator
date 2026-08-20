@@ -276,22 +276,30 @@ user_protocols:
   pop: false              # POP3S --- désactivé chez ce client (exemple)
   smtp_submission: true   # soumission SMTP authentifiée (587)
 
+# =============================================================================
+# RELAIS DE MESSAGERIE TIERS, POOLS ET CHEMINS DE FLUX E-MAIL (ENTRANT/SORTANT)
+# =============================================================================
 # Pool de répartition de charge --- les deux relais font exactement la
 # même chose (ils sont interchangeables du point de vue du flux), inutile
 # de les répéter individuellement dans email_flow_paths ci-dessous.
 load_balancer_pools:
-  pool_relay: [relay01, relay02]
+  pool_mta_in: [mta_in01, mta_in02]
   pool_mta_out: [mta_out01, mta_out02]
+  pool_mta_auth: [proxy01, proxy02]
+  pool_proxy: [proxy01, proxy02]
 
-# Chemin de flux e-mail personnalisé : le relais tiers s'intercale entre
-# les MTA OUT Carbonio et la sortie vers Internet (sortant), et entre
-# l'entrée Internet et les MTA IN/AUTH Carbonio (entrant) --- remplace le
-# lien standard direct MTA<->pare-feu pour les nœuds concernés.
+# Chemin de flux e-mail personnalisé (SORTANT et ENTRANT) : le relais
+# tiers s'intercale entre les MTA OUT Carbonio et la sortie vers Internet
+# (sortant), et entre l'entrée Internet et les MTA IN/AUTH Carbonio
+# (entrant) --- remplace le lien standard direct MTA<->pare-feu pour les
+# nœuds concernés. Notation "protocole:sens:maillon1:maillon2:..." --- le
+# maillon spécial "antispam_antivirus" se résout vers son déploiement réel
+# (voir antispam_antivirus.deployment plus haut).
 email_flow_paths:
-  - "smtp:outbound:mta_out01:pool_relay"
-  - "smtp:outbound:mta_out02:pool_relay"
   - "smtp:inbound:pool_relay:mta_in01"
   - "smtp:inbound:pool_relay:mta_in02"
+  - "smtp:outbound:mta_out01:pool_relay"
+  - "smtp:outbound:mta_out02:pool_relay"
 
 network_equipment:
   - id: internet
