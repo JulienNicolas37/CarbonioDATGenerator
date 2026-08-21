@@ -144,7 +144,7 @@ Classification & Public \\
 \end{longtable}
 
 \renewcommand{\footrulewidth}{0.4pt}
-\fancyfoot[L]{\small\color{graytxt}Document du 12/08/2026}
+\fancyfoot[L]{\small\color{graytxt}Document du 21/08/2026}
 \fancyfoot[R]{\small\color{graytxt}Page \thepage\ / \pageref{LastPage}}
 
 \chapter{Introduction et cadrage}
@@ -179,6 +179,28 @@ $\square$ & Confidentiel & Le contenu de ce document et de ses annexes est stric
 \tableofcontents
 \clearpage
 
+\begin{landscape}
+\chapter{Plan de maintenance --- synthèse}
+Ce tableau récapitule, pour référence rapide, l'ensemble des opérations décrites dans ce document qui portent des attributs de planification (type, fréquence, criticité...). Le détail complet de chaque opération --- prérequis, commande(s), avertissements --- reste dans son chapitre dédié ; ce tableau n'en est qu'une vue de synthèse.
+
+\footnotesize
+\begin{longtable}{|p{1.8cm}|p{2.6cm}|p{1.3cm}|p{1.3cm}|p{1.2cm}|p{1.3cm}|p{1.3cm}|p{1.1cm}|p{1.6cm}|p{2.5cm}|}
+\hline
+\rowcolor{primary}\tblhead{Brique} & \tblhead{Opération} & \tblhead{Type} & \tblhead{Fréquence} & \tblhead{Criticité} & \tblhead{Automatis.} & \tblhead{Interrupt.} & \tblhead{Durée est.} & \tblhead{Fenêtre reco.} & \tblhead{Contrôle attendu} \\
+\hline
+\endhead
+Opérations courantes & Vérification du fonctionnement des services & Préventif & Quotidien & Haute & Oui & Non & 1 min & N'importe quand & Tous les services actifs \\
+\hline
+Opérations courantes & Vérification du fonctionnement des services systemd & Préventif & Quotidien & Haute & Oui & Non & 1 min & N'importe quand & Tous les services systemd actifs \\
+\hline
+Opérations courantes & Vérification du fonctionnement du service consul & Préventif & Quotidien & Haute & Oui & Non & 1 min & N'importe quand & Tous les services systemd actifs \\
+\hline
+Remplacement d'un certificat SSL commercial & Sauvegarde de l'ancien certificat & Planifié & Annuel & Critique & Partiel & Non & 15 min & Hors heures ouvrées & Certificat TLS valide \\
+\hline
+\end{longtable}
+\normalsize
+\end{landscape}
+
 \chapter{Opérations courantes}
 
 Cette brique regroupe les vérifications de base à effectuer sur
@@ -196,10 +218,33 @@ zmcontrol -v
 
 
 \section{Vérification du fonctionnement des services}
+{\small\color{graytxt}%
+Type~: Préventif \textbullet\ Fréquence~: Quotidien \textbullet\ Criticité~: Haute \textbullet\ Automatisable~: Oui \textbullet\ Interruption~: Non\par\vspace{4pt}}
 La vérification du fonctionnement des services sur un nœud Carbonio se fait via la commande :
 
 \begin{lstlisting}
 zmcontrol status
+\end{lstlisting}
+
+
+\section{Vérification du fonctionnement des services systemd}
+{\small\color{graytxt}%
+Type~: Préventif \textbullet\ Fréquence~: Quotidien \textbullet\ Criticité~: Haute \textbullet\ Automatisable~: Oui \textbullet\ Interruption~: Non\par\vspace{4pt}}
+La vérification du fonctionnement des unités de services systemd d'un nœud Carbonio s'effecture via les commandes :
+
+\begin{lstlisting}
+systemctl list-units 'carbonio-*'
+systemctl status 'carbonio-*'
+\end{lstlisting}
+
+
+\section{Vérification du fonctionnement du service consul}
+{\small\color{graytxt}%
+Type~: Préventif \textbullet\ Fréquence~: Quotidien \textbullet\ Criticité~: Haute \textbullet\ Automatisable~: Oui \textbullet\ Interruption~: Non\par\vspace{4pt}}
+La vérification du fonctionnement des unités de services systemd d'un nœud Carbonio s'effecture via les commandes :
+
+\begin{lstlisting}
+systemctl status service-discover
 \end{lstlisting}
 
 
@@ -434,7 +479,11 @@ certificat auto-\allowbreak{}signé utilisé par défaut à l'installation.\allo
 
 
 \section{Sauvegarde de l'ancien certificat}
-Avant de remplacer le certificat, il est recommandé de sauvegarder les fichiers actuels en cas de besoin de restauration.\allowbreak{}
+{\small\color{graytxt}%
+Type~: Planifié \textbullet\ Fréquence~: Annuel \textbullet\ Criticité~: Critique \textbullet\ Automatisable~: Partiel \textbullet\ Interruption~: Non\par\vspace{4pt}}
+Avant de remplacer le certificat, il est \textbf{recommandé} de
+sauvegarder les fichiers actuels en cas de besoin de restauration.
+
 
 \begin{lstlisting}
 cp -a /opt/zextras/ssl/carbonio /opt/zextras/ssl/carbonio.$(date "+%Y%m%d")
@@ -520,6 +569,33 @@ john.\allowbreak{}doe@domaine.\allowbreak{}tld & Le nom du compte à restaurer \
 john.\allowbreak{}doe.\allowbreak{}restauration@domaine.\allowbreak{}tld & Le nom du compte de restauration \\
 \hline
 "01/12/2024 13:00:00" & Le compte sera restauré à son état du 1er décembre 2024 à 13h \\
+\hline
+notifications juste.\allowbreak{}leblanc@domaine.\allowbreak{}tld & Une fois la restauration terminée, un mail sera envoyé à "juste.\allowbreak{}leblanc@domaine.\allowbreak{}tld" \\
+\hline
+\end{longtable}
+
+
+
+\section{Restauration des mails supprimées durant un intervalle de temps.\allowbreak{}}
+Cette procédure décrit comment restaurer les mails qui ont été supprimés d'un compte utilisateur durant un intervalle de temps
+
+\begin{lstlisting}
+carbonio backup doUndelete john.doe@domaine.tld "01/12/2024 13:00:00" "01/12/2025 13:00:00" target_original_folder true apply_hsm true notifications juste.leblanc@domaine.tld
+\end{lstlisting}
+\begin{longtable}{|p{5.5cm}|p{7.5cm}|}
+\hline
+\rowcolor{primary}\tblhead{Option} & \tblhead{Description} \\
+\hline
+\endhead
+doUndelete & Lance la restauration des mails \\
+\hline
+john.\allowbreak{}doe@domaine.\allowbreak{}tld & Le nom du compte à restaurer \\
+\hline
+"01/12/2024 13:00:00" & Le début de l'intervalle de temps sera à partir du 1er décembre 2024 à 13h \\
+\hline
+"01/12/2025 13:00:00" & La fin de l'intervalle de temps pour la récupération du mail est le 1er décembre 2025 à 13h \\
+\hline
+target\_original\_folder true & les mails seront réstauré dans les dossiers origaux du compte utilisateur \\
 \hline
 notifications juste.\allowbreak{}leblanc@domaine.\allowbreak{}tld & Une fois la restauration terminée, un mail sera envoyé à "juste.\allowbreak{}leblanc@domaine.\allowbreak{}tld" \\
 \hline

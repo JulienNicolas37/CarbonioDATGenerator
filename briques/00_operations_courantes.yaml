@@ -24,3 +24,32 @@ operations:
     description: "La vérification du fonctionnement des services sur un nœud Carbonio se fait via la commande :"
     commands:
       - "zmcontrol status"
+
+  - title: "Vérification du fonctionnement des services systemd"
+    attributes: 
+      type: "Préventif"
+      frequency: "Quotidien"
+      criticality: "Haute"
+      automatable: "Oui"
+      interruption: "Non"
+      expected_control: "Tous les services systemd actifs"
+      estimated_duration: "1 min" 
+      recommended_window: "N'importe quand"
+    description: "La vérification du fonctionnement des unités de services systemd d'un nœud Carbonio s'effecture via les commandes :"
+    commands:
+      - "systemctl list-units 'carbonio-*'"
+      - "systemctl status 'carbonio-*'"
+
+  - title: "Vérification du fonctionnement du service consul"
+    attributes: 
+      type: "Préventif"
+      frequency: "Quotidien"
+      criticality: "Haute"
+      automatable: "Oui"
+      interruption: "Non"
+      expected_control: "Tous les services systemd actifs"
+      estimated_duration: "1 min" 
+      recommended_window: "N'importe quand"
+    description: "La vérification du fonctionnement des unités de services systemd d'un nœud Carbonio s'effecture via les commandes :"
+    commands:
+      - "systemctl status service-discover"

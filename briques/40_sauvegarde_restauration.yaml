@@ -27,3 +27,15 @@ operations:
       - {option: "john.doe.restauration@domaine.tld", description: "Le nom du compte de restauration"}
       - {option: '"01/12/2024 13:00:00"', description: "Le compte sera restauré à son état du 1er décembre 2024 à 13h"}
       - {option: "notifications juste.leblanc@domaine.tld", description: 'Une fois la restauration terminée, un mail sera envoyé à "juste.leblanc@domaine.tld"'}
+
+  - title: "Restauration des mails supprimées durant un intervalle de temps."
+    description: "Cette procédure décrit comment restaurer les mails qui ont été supprimés d'un compte utilisateur durant un intervalle de temps"
+    commands:
+      - 'carbonio backup doUndelete john.doe@domaine.tld "01/12/2024 13:00:00" "01/12/2025 13:00:00" target_original_folder true apply_hsm true notifications juste.leblanc@domaine.tld'
+    options_table:
+      - {option: "doUndelete", description: "Lance la restauration des mails"}
+      - {option: "john.doe@domaine.tld", description: "Le nom du compte à restaurer"}
+      - {option: '"01/12/2024 13:00:00"', description: "Le début de l'intervalle de temps sera à partir du 1er décembre 2024 à 13h"}
+      - {option: '"01/12/2025 13:00:00"', description: "La fin de l'intervalle de temps pour la récupération du mail est le 1er décembre 2025 à 13h"}
+      - {option: "target_original_folder true", description: 'les mails seront réstauré dans les dossiers origaux du compte utilisateur'}
+      - {option: "notifications juste.leblanc@domaine.tld", description: 'Une fois la restauration terminée, un mail sera envoyé à "juste.leblanc@domaine.tld"'}
